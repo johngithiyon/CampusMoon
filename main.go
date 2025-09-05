@@ -1,96 +1,69 @@
 package main
 
 import (
-    "encoding/json"
-    "fmt"
-    "log"
-    "net/http"
-    "html/template"
-    "github.com/gorilla/websocket"
-    "github.com/google/uuid"
+	"fmt"
+	"html/template"
+	"log"
+	"net/http"
+	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{
     CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-type Client struct {
-    ID   string
-    Conn *websocket.Conn
-}
 
-var clients = make(map[string]*Client)
-var broadcast = make(chan BroadcastMessage)
+var clients = make(map[*websocket.Conn]bool)
 
-type Message struct {
-    Type string          `json:"type"`
-    Data json.RawMessage `json:"data"`
-    From string          `json:"from,omitempty"`
-}
-
-type BroadcastMessage struct {
-    SenderID string
-    Msg      Message
-}
-
-func handleConnections(w http.ResponseWriter, r *http.Request) {
-    ws, err := upgrader.Upgrade(w, r, nil)
+func wsHandler(w http.ResponseWriter, r *http.Request) {
+ 
+    conn, err := upgrader.Upgrade(w, r, nil)
     if err != nil {
-        log.Println(err)
+        log.Println("Upgrade error:", err)
         return
     }
-    defer ws.Close()
+    defer conn.Close()
 
-    clientID := uuid.New().String()
-    client := &Client{ID: clientID, Conn: ws}
-    clients[clientID] = client
-
-    log.Printf("Client connected: %s", clientID)
+    clients[conn] = true
+    log.Println("New client connected")
 
     for {
-        var msg Message
-        err := ws.ReadJSON(&msg)
+        _, msg, err := conn.ReadMessage()
         if err != nil {
-            log.Println("error reading json:", err)
-            delete(clients, clientID)
+            log.Println("Read error:", err)
+            delete(clients, conn)
             break
         }
 
-        msg.From = clientID
-        broadcast <- BroadcastMessage{SenderID: clientID, Msg: msg}
-    }
-}
-
-func handleMessages() {
-    for {
-        bmsg := <-broadcast
-        for id, client := range clients {
-            if id != bmsg.SenderID { // 🚀 don’t send back to sender
-                err := client.Conn.WriteJSON(bmsg.Msg)
+        for client := range clients {
+            if client != conn {
+                err := client.WriteMessage(websocket.TextMessage, msg)
                 if err != nil {
-                    log.Printf("error: %v", err)
-                    client.Conn.Close()
-                    delete(clients, id)
+                    log.Println("Write error:", err)
+                    client.Close()
+                    delete(clients, client)
                 }
             }
         }
     }
 }
 
-func serveHome(w http.ResponseWriter, r *http.Request) {
-    tmpl, err := template.ParseFiles("templates/sample.html")
-    if err != nil {
-        http.Error(w, "Error loading template", http.StatusInternalServerError)
-        return
-    }
-    tmpl.Execute(w, nil)
+
+func serveHome(w http.ResponseWriter,r *http.Request) {
+	      templ,err := template.ParseFiles("templates/sample.html")
+
+		  if err != nil {
+			 fmt.Println("Parsing error",err)
+            }
+
+			templ.Execute(w,nil)
 }
-
-
 func main() {
+    http.HandleFunc("/ws", wsHandler)
 	http.HandleFunc("/",serveHome)
-    http.HandleFunc("/ws", handleConnections)
-    go handleMessages()
-    fmt.Println("Signalling server started on :8080")
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    log.Println("Server started on :8080")
+    err := http.ListenAndServe(":8080", nil)
+    if err != nil {
+        log.Fatal("ListenAndServe:", err)
+    }
 }

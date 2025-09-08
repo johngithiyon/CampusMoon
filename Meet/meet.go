@@ -20,8 +20,8 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-func serveHome(w http.ResponseWriter, r *http.Request) {
-	templ, err := template.ParseFiles("templates/meet.html")
+func servemeet(w http.ResponseWriter, r *http.Request) {
+	templ, err := template.ParseFiles("meet.html")
 	if err != nil {
 		fmt.Println("Parsing error:", err)
 		return
@@ -32,7 +32,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", serveHome)
+	http.HandleFunc("/", servemeet)
 	http.HandleFunc("/ws", handleWS)
 
 	fmt.Println("Server started on :8080")

@@ -10,20 +10,33 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
+// ===== MinIO Setup =====
 var minioClient *minio.Client
 var bucketName = "videos"
 
+// ===== WebRTC Setup =====
+type Client struct {
+	ID   string
+	Conn *websocket.Conn
+}
+
+var clients = make(map[string]*Client)
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
+
 func main() {
 	// Initialize MinIO client
-	endpoint := "localhost:9000"      // MinIO server address
-	accessKeyID := "john"             // MinIO access key
-	secretAccessKey := "johngithiyon" // MinIO secret key
-	useSSL := false                   // change to true if using HTTPS
+	endpoint := "localhost:9000"
+	accessKeyID := "john"
+	secretAccessKey := "johngithiyon"
+	useSSL := false
 
 	var err error
 	minioClient, err = minio.New(endpoint, &minio.Options{
@@ -46,17 +59,37 @@ func main() {
 		}
 	}
 
-	// Routes
-	http.HandleFunc("/upload", uploadHandler)
-	http.HandleFunc("/videos", videosHandler)
-	http.HandleFunc("/", homeserve)
+	// ===== Routes =====
+	http.HandleFunc("/", serveHome)           // index.html
+	http.HandleFunc("/meet", serveMeet)       // meet.html
+	http.HandleFunc("/upload", uploadHandler) // video upload
+	http.HandleFunc("/videos", videosHandler) // list videos
+	http.HandleFunc("/ws", handleWS)          // WebSocket for video chat
 
-	// Start server
-	fmt.Println("Server running at http://localhost:8081")
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	fmt.Println("Server running at http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-// Upload video handler
+// ===== Frontend Handlers =====
+func serveHome(w http.ResponseWriter, r *http.Request) {
+	templ, err := template.ParseFiles("index.html")
+	if err != nil {
+		http.Error(w, "Failed to load template", http.StatusInternalServerError)
+		return
+	}
+	templ.Execute(w, nil)
+}
+
+func serveMeet(w http.ResponseWriter, r *http.Request) {
+	templ, err := template.ParseFiles("meet.html")
+	if err != nil {
+		http.Error(w, "Failed to load template", http.StatusInternalServerError)
+		return
+	}
+	templ.Execute(w, nil)
+}
+
+// ===== MinIO Handlers =====
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Allow CORS
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -79,10 +112,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// Generate unique filename
 	fileName := uuid.New().String() + "_" + header.Filename
 
-	// Upload to MinIO
 	_, err = minioClient.PutObject(context.Background(), bucketName, fileName, file, header.Size, minio.PutObjectOptions{
 		ContentType: header.Header.Get("Content-Type"),
 	})
@@ -96,7 +127,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// List videos handler
 func videosHandler(w http.ResponseWriter, r *http.Request) {
 	// Allow CORS
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -108,9 +138,7 @@ func videosHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	objectCh := minioClient.ListObjects(ctx, bucketName, minio.ListObjectsOptions{
-		Recursive: true,
-	})
+	objectCh := minioClient.ListObjects(ctx, bucketName, minio.ListObjectsOptions{Recursive: true})
 
 	type Video struct {
 		Name string `json:"name"`
@@ -125,7 +153,6 @@ func videosHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		// Generate presigned URL valid for 24 hours
 		reqParams := make(url.Values)
 		presignedURL, err := minioClient.PresignedGetObject(ctx, bucketName, object.Key, time.Hour*24, reqParams)
 		if err != nil {
@@ -143,12 +170,57 @@ func videosHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(videos)
 }
 
-func homeserve(w http.ResponseWriter, r *http.Request) {
-	templ, err := template.ParseFiles("index.html")
-
+// ===== WebSocket Handlers =====
+func handleWS(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-
+		log.Println("Upgrade error:", err)
+		return
 	}
 
-	templ.Execute(w, nil)
+	id := uuid.New().String()
+	client := &Client{ID: id, Conn: conn}
+	clients[id] = client
+
+	// Notify existing clients about new peer
+	for _, c := range clients {
+		if c.ID != id {
+			c.Conn.WriteJSON(map[string]interface{}{
+				"type": "new-peer",
+				"id":   id,
+			})
+		}
+	}
+
+	// Notify new client about existing peers
+	existingPeers := []string{}
+	for _, c := range clients {
+		if c.ID != id {
+			existingPeers = append(existingPeers, c.ID)
+		}
+	}
+	conn.WriteJSON(map[string]interface{}{
+		"type":  "existing-peers",
+		"peers": existingPeers,
+	})
+
+	for {
+		var msg map[string]interface{}
+		err := conn.ReadJSON(&msg)
+		if err != nil {
+			log.Println("Read error:", err)
+			break
+		}
+
+		toID, ok := msg["to"].(string)
+		if ok {
+			if c, found := clients[toID]; found {
+				msg["from"] = id
+				c.Conn.WriteJSON(msg)
+			}
+		}
+	}
+
+	delete(clients, id)
+	conn.Close()
 }

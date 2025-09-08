@@ -7,6 +7,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
@@ -17,10 +19,11 @@ var minioClient *minio.Client
 var bucketName = "videos"
 
 func main() {
-	endpoint := "localhost:9000"
-	accessKeyID := "john"       // Use your MinIO credentials
-	secretAccessKey := "johngithiyon"   
-	useSSL := false
+	// Initialize MinIO client
+	endpoint := "localhost:9000"      // MinIO server address
+	accessKeyID := "john"       // MinIO access key
+	secretAccessKey := "johngithiyon"   // MinIO secret key
+	useSSL := false                    // change to true if using HTTPS
 
 	var err error
 	minioClient, err = minio.New(endpoint, &minio.Options{
@@ -28,36 +31,38 @@ func main() {
 		Secure: useSSL,
 	})
 	if err != nil {
-		log.Fatalln("Failed to initialize MinIO:", err)
+		log.Fatalln("Failed to connect to MinIO:", err)
 	}
 
+	// Ensure bucket exists
 	ctx := context.Background()
-	exists, err := minioClient.BucketExists(ctx, bucketName)
+	err = minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: "us-east-1"})
 	if err != nil {
-		log.Fatalln("Failed to check bucket:", err)
-	}
-	if !exists {
-		err = minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
-		if err != nil {
-			log.Fatalln("Failed to create bucket:", err)
+		exists, errBucketExists := minioClient.BucketExists(ctx, bucketName)
+		if errBucketExists == nil && exists {
+			log.Println("Bucket already exists:", bucketName)
+		} else {
+			log.Fatalln("Error creating bucket:", err)
 		}
-		fmt.Println("Bucket created:", bucketName)
 	}
 
-	http.HandleFunc("/", serveHome)
+	// Routes
 	http.HandleFunc("/upload", uploadHandler)
-	http.HandleFunc("/videos", listVideosHandler)
+	http.HandleFunc("/videos", videosHandler)
+    http.HandleFunc("/",homeserve)
 
-	fmt.Println("Server started at :8081")
+	// Start server
+	fmt.Println("Server running at http://localhost:8081")
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 
+// Upload video handler
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	// Allow CORS
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
 	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
@@ -69,56 +74,81 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	file, header, err := r.FormFile("video")
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error reading file: %v", err), http.StatusBadRequest)
+		http.Error(w, "Failed to read file: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
+	// Generate unique filename
 	fileName := uuid.New().String() + "_" + header.Filename
 
-	ctx := context.Background()
-	info, err := minioClient.PutObject(ctx, bucketName, fileName, file, header.Size, minio.PutObjectOptions{
+	// Upload to MinIO
+	_, err = minioClient.PutObject(context.Background(), bucketName, fileName, file, header.Size, minio.PutObjectOptions{
 		ContentType: header.Header.Get("Content-Type"),
 	})
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to upload: %v", err), http.StatusInternalServerError)
+		http.Error(w, "Failed to upload: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Printf("Successfully uploaded %s of size %d\n", info.Key, info.Size)
+	resp := map[string]interface{}{"success": true, "name": fileName}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(fmt.Sprintf(`{"success": true, "filename":"%s"}`, fileName)))
+	json.NewEncoder(w).Encode(resp)
 }
 
-// List all videos in the bucket
-func listVideosHandler(w http.ResponseWriter, r *http.Request) {
+// List videos handler
+func videosHandler(w http.ResponseWriter, r *http.Request) {
+	// Allow CORS
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
 	ctx := context.Background()
 	objectCh := minioClient.ListObjects(ctx, bucketName, minio.ListObjectsOptions{
 		Recursive: true,
 	})
 
-	var videos []string
-	for obj := range objectCh {
-		if obj.Err != nil {
-			log.Println("Error listing object:", obj.Err)
+	type Video struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	}
+
+	var videos []Video
+
+	for object := range objectCh {
+		if object.Err != nil {
+			log.Println("Error listing object:", object.Err)
 			continue
 		}
-		videos = append(videos, obj.Key)
+
+		// Generate presigned URL valid for 24 hours
+		reqParams := make(url.Values)
+		presignedURL, err := minioClient.PresignedGetObject(ctx, bucketName, object.Key, time.Hour*24, reqParams)
+		if err != nil {
+			log.Println("Error generating URL:", err)
+			continue
+		}
+
+		videos = append(videos, Video{
+			Name: object.Key,
+			URL:  presignedURL.String(),
+		})
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(videos)
 }
 
-func serveHome(w http.ResponseWriter, r *http.Request) {
-	templ, err := template.ParseFiles("index.html")
-	if err != nil {
-		fmt.Println("Parsing error:", err)
-		return
-	}
-	if err := templ.Execute(w, nil); err != nil {
-		log.Println("Template execution error:", err)
-	}
+func homeserve(w http.ResponseWriter,r *http.Request) {
+     templ,err := template.ParseFiles("index.html")
+
+     if err != nil {
+             
+     }
+
+     templ.Execute(w,nil)
 }

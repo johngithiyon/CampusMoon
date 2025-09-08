@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"time"
-    _ "github.com/lib/pq"
+
+	_ "github.com/lib/pq"
 	"github.com/gorilla/websocket"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
@@ -36,7 +38,7 @@ func initDB() {
 		log.Fatalln("Postgres ping failed:", err)
 	}
 
-	// Create table if not exists
+	// Videos table
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS videos (
 		id SERIAL PRIMARY KEY,
 		title VARCHAR(255) NOT NULL,
@@ -45,10 +47,32 @@ func initDB() {
 		uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);`)
 	if err != nil {
-		log.Fatalln("Failed to create table:", err)
+		log.Fatalln("Failed to create videos table:", err)
 	}
 
-	log.Println("Connected to Postgres and table ready")
+	// Admin table
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS admins (
+		id SERIAL PRIMARY KEY,
+		name VARCHAR(100),
+		code VARCHAR(50),
+		address TEXT
+	);`)
+	if err != nil {
+		log.Fatalln("Failed to create admins table:", err)
+	}
+
+	// User IDs table
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS user_ids (
+		id SERIAL PRIMARY KEY,
+		student_id VARCHAR(20) UNIQUE NOT NULL,
+		staff_id VARCHAR(20) UNIQUE NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);`)
+	if err != nil {
+		log.Fatalln("Failed to create user_ids table:", err)
+	}
+
+	log.Println("✅ Connected to Postgres and tables ready")
 }
 
 // ===== WebRTC Setup =====
@@ -99,12 +123,17 @@ func main() {
 	http.HandleFunc("/upload", uploadHandler) // video upload
 	http.HandleFunc("/videos", videosHandler) // list videos
 	http.HandleFunc("/ws", handleWS)          // WebSocket for video chat
-	http.HandleFunc("/welcome",servewelcome)
-	http.HandleFunc("/admin",serveadmin)
-	http.HandleFunc("/student",servestudent)
-	http.HandleFunc("/staff",servestaff)
 
-	fmt.Println("Server running at http://localhost:8080")
+	// Admin & Auth routes
+	http.HandleFunc("/welcome", servewelcome)
+	http.HandleFunc("/admin", serveadmin)          // serve admin.html
+	http.HandleFunc("/admin/register", adminAPI)   // handle admin form submission
+	http.HandleFunc("/student", servestudent)
+	http.HandleFunc("/staff", servestaff)
+	http.HandleFunc("/login", loginHandler) // ✅ Staff & Student login
+
+
+	fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -273,43 +302,123 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 	conn.Close()
 }
 
-func servewelcome(w http.ResponseWriter,r *http.Request) {
-	 templ,err := template.ParseFiles("welcome.html")
-
-	 if err !=nil {
-		fmt.Println("Template error in welcome page",err)
-	 }
-
-	 templ.Execute(w,nil)
+// ===== Templates =====
+func servewelcome(w http.ResponseWriter, r *http.Request) {
+	templ, err := template.ParseFiles("welcome.html")
+	if err != nil {
+		fmt.Println("Template error in welcome page", err)
+	}
+	templ.Execute(w, nil)
 }
 
-func serveadmin(w http.ResponseWriter,r *http.Request) {
-	templ,err := template.ParseFiles("admin.html")
-
-	if err !=nil {
-	   fmt.Println("Template error in welcome page",err)
+func serveadmin(w http.ResponseWriter, r *http.Request) {
+	templ, err := template.ParseFiles("admin.html")
+	if err != nil {
+		fmt.Println("Template error in admin page", err)
 	}
-
-	templ.Execute(w,nil)
+	templ.Execute(w, nil)
 }
 
-func servestaff(w http.ResponseWriter,r *http.Request) {
-	templ,err := template.ParseFiles("staff.html")
-
-	if err !=nil {
-	   fmt.Println("Template error in welcome page",err)
+func servestaff(w http.ResponseWriter, r *http.Request) {
+	templ, err := template.ParseFiles("staff.html")
+	if err != nil {
+		fmt.Println("Template error in staff page", err)
 	}
-
-	templ.Execute(w,nil)
+	templ.Execute(w, nil)
 }
 
-func servestudent(w http.ResponseWriter,r *http.Request) {
-	templ,err := template.ParseFiles("student.html")
+func servestudent(w http.ResponseWriter, r *http.Request) {
+	templ, err := template.ParseFiles("student.html")
+	if err != nil {
+		fmt.Println("Template error in student page", err)
+	}
+	templ.Execute(w, nil)
+}
 
-	if err !=nil {
-	   fmt.Println("Template error in welcome page",err)
+// ===== Admin ID Generation API =====
+func randomID(prefix string) string {
+	rand.Seed(time.Now().UnixNano())
+	return fmt.Sprintf("%s-%06d", prefix, rand.Intn(1000000))
+}
+
+func adminAPI(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 
-	templ.Execute(w,nil)
+	var data struct {
+		Name    string `json:"name"`
+		Code    string `json:"code"`
+		Address string `json:"address"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	// Save admin info
+	_, err := db.Exec(`INSERT INTO admins (name, code, address) VALUES ($1, $2, $3)`, data.Name, data.Code, data.Address)
+	if err != nil {
+		http.Error(w, "DB insert error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Generate Student & Staff IDs
+	studentID := randomID("STU")
+	staffID := randomID("STF")
+
+	_, err = db.Exec(`INSERT INTO user_ids (student_id, staff_id) VALUES ($1, $2)`, studentID, staffID)
+	if err != nil {
+		http.Error(w, "DB insert error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]string{
+		"student_id": studentID,
+		"staff_id":   staffID,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+// ===== Login API =====
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var data struct {
+		UserID string `json:"user_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	var studentID, staffID string
+	err := db.QueryRow(`SELECT student_id, staff_id FROM user_ids 
+		WHERE student_id = $1 OR staff_id = $1`, data.UserID).Scan(&studentID, &staffID)
+
+	if err == sql.ErrNoRows {
+		http.Error(w, "Invalid ID", http.StatusUnauthorized)
+		return
+	} else if err != nil {
+		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Decide role
+	if data.UserID == studentID {
+		resp := map[string]string{"role": "student", "redirect": "/student"}
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+	if data.UserID == staffID {
+		resp := map[string]string{"role": "staff", "redirect": "/staff"}
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
 }
 

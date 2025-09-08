@@ -99,6 +99,10 @@ func main() {
 	http.HandleFunc("/upload", uploadHandler) // video upload
 	http.HandleFunc("/videos", videosHandler) // list videos
 	http.HandleFunc("/ws", handleWS)          // WebSocket for video chat
+	http.HandleFunc("/welcome",servewelcome)
+	http.HandleFunc("/admin",serveadmin)
+	http.HandleFunc("/student",servestudent)
+	http.HandleFunc("/staff",servestaff)
 
 	fmt.Println("Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -268,3 +272,44 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 	delete(clients, id)
 	conn.Close()
 }
+
+func servewelcome(w http.ResponseWriter,r *http.Request) {
+	 templ,err := template.ParseFiles("welcome.html")
+
+	 if err !=nil {
+		fmt.Println("Template error in welcome page",err)
+	 }
+
+	 templ.Execute(w,nil)
+}
+
+func serveadmin(w http.ResponseWriter,r *http.Request) {
+	templ,err := template.ParseFiles("admin.html")
+
+	if err !=nil {
+	   fmt.Println("Template error in welcome page",err)
+	}
+
+	templ.Execute(w,nil)
+}
+
+func servestaff(w http.ResponseWriter,r *http.Request) {
+	templ,err := template.ParseFiles("staff.html")
+
+	if err !=nil {
+	   fmt.Println("Template error in welcome page",err)
+	}
+
+	templ.Execute(w,nil)
+}
+
+func servestudent(w http.ResponseWriter,r *http.Request) {
+	templ,err := template.ParseFiles("student.html")
+
+	if err !=nil {
+	   fmt.Println("Template error in welcome page",err)
+	}
+
+	templ.Execute(w,nil)
+}
+

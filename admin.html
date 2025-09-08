@@ -1,0 +1,53 @@
+<html></html>
+    <head>
+     <link rel="stylesheet" href="admin.css">
+     <title>Admin</title>
+    </head>
+
+    <body>
+
+        <div class="login">
+            <h2>Admin</h2>
+            <form  class="form" onsubmit="return valid()">
+            <input id="name" type="text" required placeholder="enter College name " ><br>
+            <input id="pass" type="password" required placeholder="enter College Code"> <br>  
+            <input id="address" type="text" required placeholder="enter College address"> <br>  
+            <input id="button" type="submit" value="login">
+</form>
+        </div>
+
+
+        <script>
+            function valid(){
+
+                let name=document.getElementById("name").value;
+                let pass=document.getElementById("pass").value;
+                let addre=document.getElementById("address").value;
+                let valid=true;
+
+                let regname=/^[a-zA-Z]+$/;
+                let passreg=/^[a-zA-Z0-9]{8}$/;
+                let addrs=/^[a-zA-Z0-9]+$/;
+
+                if(!regname.test(name)){
+                    alert("enter a valid name could be in small or capital letters");
+                    valid=false;
+                }
+
+                if(!passreg.test(pass)){
+                    alert("enter a valid password contains minimum 8 letters  numbers,small,capital");
+                    valid=false;
+                }
+
+                if(!addrs.test(addre)){
+                    alert("enter a proper college address with pincode ");
+                    valid=false;
+                }
+
+                return valid;
+
+            }
+        </script>
+
+    </body>
+</html>

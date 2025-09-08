@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Moon - Remote Classroom</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #6a11cb, #2575fc, #0099cc, #4facfe);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: #ffcc00;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .user-actions button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-actions button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 50px;
+            animation: slideUp 1s ease;
+        }
+
+        .btn {
+            padding: 18px 35px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            display: inline-block;
+        }
+
+        .videos-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1.5s ease;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .video-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #5c6bc0, #3949ab);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .video-thumbnail i {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .video-info {
+            padding: 15px;
+        }
+
+        .video-title {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-meta {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 88, 88, 0.9);
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .video-card:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 50, 50, 1);
+            transform: scale(1.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            color: rgba(255, 255, 255, 0.7);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 350px;
+            }
+            
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-moon"></i>
+                Campus Moon
+            </div>
+            <div class="user-actions">
+                <button><i class="fas fa-user"></i> Admin Panel</button>
+                <button><i class="fas fa-cog"></i> Settings</button>
+            </div>
+        </header>
+
+        <section class="hero">
+            <h1>Remote Classroom</h1>
+            <p>Access live video streams and recorded lectures from anywhere, anytime. Enhance your learning experience with our platform.</p>
+        </section>
+
+        <div class="button-group">
+            <button class="btn btn-primary">
+                <i class="fas fa-video"></i> Live Video Stream
+            </button>
+            <button class="btn btn-secondary">
+                <i class="fas fa-upload"></i> Upload Video
+            </button>
+        </div>
+
+        <div class="videos-container">
+            <h2 class="section-title">Uploaded Videos</h2>
+            <div class="video-grid">
+                <!-- Video 1 -->
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <i class="fas fa-play-circle"></i>
+                        <div class="video-duration">45:12</div>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">Introduction to Web Development</h3>
+                        <div class="video-meta">
+                            <span>Prof. Johnson</span>
+                            <span>Sep 15, 2023</span>
+                        </div>
+                    </div>
+                    <button class="delete-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+
+                <!-- Video 2 -->
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <i class="fas fa-play-circle"></i>
+                        <div class="video-duration">32:45</div>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">Advanced CSS Animations</h3>
+                        <div class="video-meta">
+                            <span>Dr. Smith</span>
+                            <span>Sep 10, 2023</span>
+                        </div>
+                    </div>
+                    <button class="delete-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+
+                <!-- Video 3 -->
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <i class="fas fa-play-circle"></i>
+                        <div class="video-duration">58:23</div>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">JavaScript Fundamentals</h3>
+                        <div class="video-meta">
+                            <span>Prof. Williams</span>
+                            <span>Sep 5, 2023</span>
+                        </div>
+                    </div>
+                    <button class="delete-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+
+                <!-- Video 4 -->
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <i class="fas fa-play-circle"></i>
+                        <div class="video-duration">41:08</div>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">Data Structures & Algorithms</h3>
+                        <div class="video-meta">
+                            <span>Dr. Anderson</span>
+                            <span>Aug 28, 2023</span>
+                        </div>
+                    </div>
+                    <button class="delete-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+
+                <!-- Video 5 -->
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <i class="fas fa-play-circle"></i>
+                        <div class="video-duration">37:54</div>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">Machine Learning Basics</h3>
+                        <div class="video-meta">
+                            <span>Prof. Davis</span>
+                            <span>Aug 22, 2023</span>
+                        </div>
+                    </div>
+                    <button class="delete-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+
+                <!-- Video 6 -->
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <i class="fas fa-play-circle"></i>
+                        <div class="video-duration">52:41</div>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">Database Management Systems</h3>
+                        <div class="video-meta">
+                            <span>Dr. Roberts</span>
+                            <span>Aug 15, 2023</span>
+                        </div>
+                    </div>
+                    <button class="delete-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2023 Campus Moon - Remote Classroom Platform. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Simple JavaScript for delete functionality
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const videoCard = this.closest('.video-card');
+                if (confirm('Are you sure you want to delete this video?')) {
+                    videoCard.style.opacity = '0';
+                    setTimeout(() => {
+                        videoCard.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+
+        // Button functionality
+        document.querySelector('.btn-primary').addEventListener('click', function() {
+            alert('Live video stream is starting...');
+        });
+
+        document.querySelector('.btn-secondary').addEventListener('click', function() {
+            alert('Upload video dialog would open here.');
+        });
+    </script>
+</body>
+</html>

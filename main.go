@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -9,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"time"
-
+    _ "github.com/lib/pq"
 	"github.com/gorilla/websocket"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
@@ -19,6 +20,36 @@ import (
 // ===== MinIO Setup =====
 var minioClient *minio.Client
 var bucketName = "videos"
+
+// ===== Postgres Setup =====
+var db *sql.DB
+
+func initDB() {
+	var err error
+	connStr := "host=localhost port=5432 user=john password=john dbname=campusmoon sslmode=disable"
+	db, err = sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatalln("Failed to connect to Postgres:", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		log.Fatalln("Postgres ping failed:", err)
+	}
+
+	// Create table if not exists
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS videos (
+		id SERIAL PRIMARY KEY,
+		title VARCHAR(255) NOT NULL,
+		description TEXT,
+		filename VARCHAR(255) NOT NULL,
+		uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);`)
+	if err != nil {
+		log.Fatalln("Failed to create table:", err)
+	}
+
+	log.Println("Connected to Postgres and table ready")
+}
 
 // ===== WebRTC Setup =====
 type Client struct {
@@ -32,6 +63,9 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
+	// Initialize DB
+	initDB()
+
 	// Initialize MinIO client
 	endpoint := "localhost:9000"
 	accessKeyID := "john"
@@ -89,9 +123,8 @@ func serveMeet(w http.ResponseWriter, r *http.Request) {
 	templ.Execute(w, nil)
 }
 
-// ===== MinIO Handlers =====
+// ===== MinIO + Postgres Handlers =====
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
-	// Allow CORS
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Method == http.MethodOptions {
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
@@ -112,6 +145,13 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	title := r.FormValue("title")
+	description := r.FormValue("description")
+	if title == "" {
+		http.Error(w, "Title is required", http.StatusBadRequest)
+		return
+	}
+
 	fileName := uuid.New().String() + "_" + header.Filename
 
 	_, err = minioClient.PutObject(context.Background(), bucketName, fileName, file, header.Size, minio.PutObjectOptions{
@@ -122,13 +162,18 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, err = db.Exec(`INSERT INTO videos (title, description, filename) VALUES ($1, $2, $3)`, title, description, fileName)
+	if err != nil {
+		http.Error(w, "Failed to store video info: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	resp := map[string]interface{}{"success": true, "name": fileName}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
 
 func videosHandler(w http.ResponseWriter, r *http.Request) {
-	// Allow CORS
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Method == http.MethodOptions {
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
@@ -137,32 +182,39 @@ func videosHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-	objectCh := minioClient.ListObjects(ctx, bucketName, minio.ListObjectsOptions{Recursive: true})
+	rows, err := db.Query(`SELECT title, description, filename FROM videos ORDER BY uploaded_at DESC`)
+	if err != nil {
+		http.Error(w, "Failed to query videos: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
 
 	type Video struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		URL         string `json:"url"`
 	}
 
 	var videos []Video
 
-	for object := range objectCh {
-		if object.Err != nil {
-			log.Println("Error listing object:", object.Err)
+	for rows.Next() {
+		var title, description, filename string
+		err := rows.Scan(&title, &description, &filename)
+		if err != nil {
+			log.Println("Row scan error:", err)
 			continue
 		}
 
-		reqParams := make(url.Values)
-		presignedURL, err := minioClient.PresignedGetObject(ctx, bucketName, object.Key, time.Hour*24, reqParams)
+		presignedURL, err := minioClient.PresignedGetObject(context.Background(), bucketName, filename, time.Hour*24, url.Values{})
 		if err != nil {
 			log.Println("Error generating URL:", err)
 			continue
 		}
 
 		videos = append(videos, Video{
-			Name: object.Key,
-			URL:  presignedURL.String(),
+			Title:       title,
+			Description: description,
+			URL:         presignedURL.String(),
 		})
 	}
 
@@ -182,27 +234,19 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 	client := &Client{ID: id, Conn: conn}
 	clients[id] = client
 
-	// Notify existing clients about new peer
 	for _, c := range clients {
 		if c.ID != id {
-			c.Conn.WriteJSON(map[string]interface{}{
-				"type": "new-peer",
-				"id":   id,
-			})
+			c.Conn.WriteJSON(map[string]interface{}{"type": "new-peer", "id": id})
 		}
 	}
 
-	// Notify new client about existing peers
 	existingPeers := []string{}
 	for _, c := range clients {
 		if c.ID != id {
 			existingPeers = append(existingPeers, c.ID)
 		}
 	}
-	conn.WriteJSON(map[string]interface{}{
-		"type":  "existing-peers",
-		"peers": existingPeers,
-	})
+	conn.WriteJSON(map[string]interface{}{"type": "existing-peers", "peers": existingPeers})
 
 	for {
 		var msg map[string]interface{}

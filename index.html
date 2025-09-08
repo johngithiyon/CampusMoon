@@ -1,111 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campus Moon - Remote Classroom</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
-        body {background:linear-gradient(-45deg,#6a11cb,#2575fc,#0099cc,#4facfe);background-size:400% 400%;animation:gradientBG 15s ease infinite;min-height:100vh;color:#fff;padding:20px;}
-        @keyframes gradientBG {0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-        .container{max-width:1200px;margin:0 auto;}
-        header{display:flex;justify-content:space-between;align-items:center;padding:20px 0;margin-bottom:30px;border-bottom:1px solid rgba(255,255,255,0.2);}
-        .logo{font-size:2.5rem;font-weight:700;color:#fff;text-shadow:0 0 10px rgba(0,0,0,0.3);display:flex;align-items:center;}
-        .logo i{margin-right:10px;color:#ffcc00;}
-        .user-actions{display:flex;gap:15px;}
-        .user-actions button{background:rgba(255,255,255,0.1);border:none;padding:10px 20px;border-radius:50px;color:white;cursor:pointer;transition:all 0.3s ease;backdrop-filter:blur(10px);}
-        .user-actions button:hover{background:rgba(255,255,255,0.2);transform:translateY(-2px);}
-        .hero{text-align:center;margin-bottom:40px;animation:fadeIn 1s ease;}
-        .hero h1{font-size:3rem;margin-bottom:15px;text-shadow:0 2px 10px rgba(0,0,0,0.2);}
-        .hero p{font-size:1.2rem;max-width:700px;margin:0 auto;opacity:0.9;}
-        .button-group{display:flex;justify-content:center;gap:25px;margin-bottom:50px;animation:slideUp 1s ease;}
-        .btn{padding:18px 35px;font-size:1.1rem;border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;transition:all 0.3s ease;box-shadow:0 5px 15px rgba(0,0,0,0.2);font-weight:600;}
-        .btn-primary{background:linear-gradient(45deg,#ff6b6b,#ff8e8e);color:white;}
-        .btn-primary:hover{transform:translateY(-5px);box-shadow:0 10px 20px rgba(255,107,107,0.4);}
-        .btn-secondary{background:linear-gradient(45deg,#4facfe,#00f2fe);color:white;}
-        .btn-secondary:hover{transform:translateY(-5px);box-shadow:0 10px 20px rgba(79,172,254,0.4);}
-        .section-title{font-size:1.8rem;margin-bottom:25px;padding-bottom:10px;border-bottom:2px solid rgba(255,255,255,0.2);display:inline-block;}
-        .videos-container{background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border-radius:20px;padding:30px;margin-bottom:40px;box-shadow:0 10px 30px rgba(0,0,0,0.2);animation:fadeIn 1.5s ease;}
-        .video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:25px;}
-        .video-card{background:rgba(255,255,255,0.08);border-radius:15px;overflow:hidden;transition:all 0.3s ease;box-shadow:0 5px 15px rgba(0,0,0,0.1);position:relative;}
-        .video-card:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(0,0,0,0.2);background:rgba(255,255,255,0.12);}
-        .video-thumbnail{width:100%;height:auto;background:rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;position:relative;}
-        .video-thumbnail video{width:100%;height:auto;display:block;border-radius:10px;}
-        .video-info{padding:15px;}
-        .video-title{font-size:1.1rem;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .video-meta{display:flex;justify-content:space-between;color:rgba(255,255,255,0.7);font-size:0.9rem;}
-        .delete-btn{position:absolute;top:10px;right:10px;background:rgba(255,88,88,0.9);border:none;width:35px;height:35px;border-radius:50%;color:white;cursor:pointer;transition:all 0.3s ease;opacity:0;}
-        .video-card:hover .delete-btn{opacity:1;}
-        .delete-btn:hover{background:rgba(255,50,50,1);transform:scale(1.1);}
-        footer{text-align:center;padding:20px;margin-top:40px;color:rgba(255,255,255,0.7);border-top:1px solid rgba(255,255,255,0.2);}
-        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-        @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-        @media(max-width:768px){.button-group{flex-direction:column;align-items:center;}.btn{width:100%;max-width:350px;}.video-grid{grid-template-columns:1fr;}header{flex-direction:column;gap:15px;}}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Moon - Remote Classroom</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+body {background:linear-gradient(-45deg,#6a11cb,#2575fc,#0099cc,#4facfe);background-size:400% 400%;animation:gradientBG 15s ease infinite;min-height:100vh;color:#fff;padding:20px;}
+@keyframes gradientBG {0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+.container{max-width:1200px;margin:0 auto;}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px 0;margin-bottom:30px;border-bottom:1px solid rgba(255,255,255,0.2);}
+.logo{font-size:2.5rem;font-weight:700;color:#fff;text-shadow:0 0 10px rgba(0,0,0,0.3);display:flex;align-items:center;}
+.logo i{margin-right:10px;color:#ffcc00;}
+.user-actions{display:flex;gap:15px;}
+.user-actions button{background:rgba(255,255,255,0.1);border:none;padding:10px 20px;border-radius:50px;color:white;cursor:pointer;transition:all 0.3s ease;backdrop-filter:blur(10px);}
+.user-actions button:hover{background:rgba(255,255,255,0.2);transform:translateY(-2px);}
+.hero{text-align:center;margin-bottom:40px;animation:fadeIn 1s ease;}
+.hero h1{font-size:3rem;margin-bottom:15px;text-shadow:0 2px 10px rgba(0,0,0,0.2);}
+.hero p{font-size:1.2rem;max-width:700px;margin:0 auto;opacity:0.9;}
+.button-group{display:flex;justify-content:center;gap:25px;margin-bottom:50px;animation:slideUp 1s ease;}
+.btn{padding:18px 35px;font-size:1.1rem;border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;transition:all 0.3s ease;box-shadow:0 5px 15px rgba(0,0,0,0.2);font-weight:600;}
+.btn-primary{background:linear-gradient(45deg,#ff6b6b,#ff8e8e);color:white;}
+.btn-primary:hover{transform:translateY(-5px);box-shadow:0 10px 20px rgba(255,107,107,0.4);}
+.btn-secondary{background:linear-gradient(45deg,#4facfe,#00f2fe);color:white;}
+.btn-secondary:hover{transform:translateY(-5px);box-shadow:0 10px 20px rgba(79,172,254,0.4);}
+.section-title{font-size:1.8rem;margin-bottom:25px;padding-bottom:10px;border-bottom:2px solid rgba(255,255,255,0.2);display:inline-block;}
+.videos-container{background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border-radius:20px;padding:30px;margin-bottom:40px;box-shadow:0 10px 30px rgba(0,0,0,0.2);animation:fadeIn 1.5s ease;}
+.video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:25px;}
+.video-card{background:rgba(255,255,255,0.08);border-radius:15px;overflow:hidden;transition:all 0.3s ease;box-shadow:0 5px 15px rgba(0,0,0,0.1);position:relative;}
+.video-card:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(0,0,0,0.2);background:rgba(255,255,255,0.12);}
+.video-thumbnail{width:100%;height:auto;background:rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;position:relative;}
+.video-thumbnail video{width:100%;height:auto;display:block;border-radius:10px;}
+.video-info{padding:15px;}
+.video-title{font-size:1.1rem;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.video-desc{font-size:0.95rem;margin-bottom:5px;color:rgba(255,255,255,0.8);}
+.video-meta{display:flex;justify-content:space-between;color:rgba(255,255,255,0.7);font-size:0.9rem;}
+.delete-btn{position:absolute;top:10px;right:10px;background:rgba(255,88,88,0.9);border:none;width:35px;height:35px;border-radius:50%;color:white;cursor:pointer;transition:all 0.3s ease;opacity:0;}
+.video-card:hover .delete-btn{opacity:1;}
+.delete-btn:hover{background:rgba(255,50,50,1);transform:scale(1.1);}
+footer{text-align:center;padding:20px;margin-top:40px;color:rgba(255,255,255,0.7);border-top:1px solid rgba(255,255,255,0.2);}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:768px){.button-group{flex-direction:column;align-items:center;}.btn{width:100%;max-width:350px;}.video-grid{grid-template-columns:1fr;}header{flex-direction:column;gap:15px;}}
+/* Modal */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);justify-content:center;align-items:center;z-index:999;}
+.modal-content{background:#222;padding:30px;border-radius:15px;max-width:500px;width:100%;text-align:center;}
+.modal-content input, .modal-content textarea{width:100%;margin:10px 0;padding:10px;border-radius:10px;border:none;outline:none;}
+.modal-content button{margin-top:10px;}
+</style>
 </head>
 <body>
 <div class="container">
-    <header>
-        <div class="logo">
-            <i class="fas fa-moon"></i>
-            Campus Moon
-        </div>
-        <div class="user-actions">
-            <button><i class="fas fa-user"></i> Admin Panel</button>
-            <button><i class="fas fa-cog"></i> Settings</button>
-        </div>
-    </header>
+<header>
+<div class="logo"><i class="fas fa-moon"></i> Campus Moon</div>
+<div class="user-actions">
+<button><i class="fas fa-user"></i> Admin Panel</button>
+<button><i class="fas fa-cog"></i> Settings</button>
+</div>
+</header>
 
-    <section class="hero">
-        <h1>Remote Classroom</h1>
-        <p>Access live video streams and recorded lectures from anywhere, anytime. Enhance your learning experience with our platform.</p>
-    </section>
+<section class="hero">
+<h1>Remote Classroom</h1>
+<p>Access live video streams and recorded lectures from anywhere, anytime. Enhance your learning experience with our platform.</p>
+</section>
 
-    <div class="button-group">
-        <button class="btn btn-primary">
-            <a href="http://localhost:8080/meet"><i class="fas fa-video"></i> Live Video Stream</a>
-        </button>
-        <button class="btn btn-secondary">
-            <i class="fas fa-upload"></i> Upload Video
-        </button>
-    </div>
+<div class="button-group">
+<button class="btn btn-primary">
+<a href="http://localhost:8080/meet"><i class="fas fa-video"></i> Live Video Stream</a>
+</button>
+<button class="btn btn-secondary" id="uploadBtn">
+<i class="fas fa-upload"></i> Upload Video
+</button>
+</div>
 
-    <input type="file" id="videoInput" accept="video/*" style="display:none" />
+<input type="file" id="videoInput" accept="video/*" style="display:none" />
 
-    <div class="videos-container">
-        <h2 class="section-title">Uploaded Videos</h2>
-        <div class="video-grid" id="videoGrid">
-            <!-- Videos from MinIO will be appended here -->
-        </div>
-    </div>
+<div class="videos-container">
+<h2 class="section-title">Uploaded Videos</h2>
+<div class="video-grid" id="videoGrid"></div>
+</div>
 
-    <footer>
-        <p>© 2023 Campus Moon - Remote Classroom Platform. All rights reserved.</p>
-    </footer>
+<footer>
+<p>© 2023 Campus Moon - Remote Classroom Platform. All rights reserved.</p>
+</footer>
+</div>
+
+<!-- Modal for Title & Description -->
+<div class="modal" id="uploadModal">
+<div class="modal-content">
+<h2>Upload Video</h2>
+<input type="text" id="videoTitle" placeholder="Enter video title" required />
+<textarea id="videoDesc" placeholder="Enter video description"></textarea>
+<button id="confirmUpload">Upload</button>
+<button id="cancelUpload">Cancel</button>
+</div>
 </div>
 
 <script>
-const uploadBtn = document.querySelector('.btn-secondary');
+const uploadBtn = document.getElementById('uploadBtn');
 const videoInput = document.getElementById('videoInput');
 const videoGrid = document.getElementById('videoGrid');
+const uploadModal = document.getElementById('uploadModal');
+const confirmUpload = document.getElementById('confirmUpload');
+const cancelUpload = document.getElementById('cancelUpload');
+let selectedFile = null;
 
-// Click upload
+// Show modal on upload button click
 uploadBtn.addEventListener('click', () => videoInput.click());
 
-// Upload video to backend
-videoInput.addEventListener('change', async () => {
-    const file = videoInput.files[0];
-    if (!file) return;
+// Handle file selection
+videoInput.addEventListener('change', () => {
+    selectedFile = videoInput.files[0];
+    if (selectedFile) uploadModal.style.display = 'flex';
+});
+
+// Cancel upload
+cancelUpload.addEventListener('click', () => {
+    uploadModal.style.display = 'none';
+    selectedFile = null;
+    videoInput.value = '';
+});
+
+// Confirm upload
+confirmUpload.addEventListener('click', async () => {
+    const title = document.getElementById('videoTitle').value.trim();
+    const description = document.getElementById('videoDesc').value.trim();
+    if (!title || !selectedFile) { alert('Please enter title and select a file'); return; }
 
     const formData = new FormData();
-    formData.append('video', file);
+    formData.append('video', selectedFile);
+    formData.append('title', title);
+    formData.append('description', description);
 
     try {
-        const res = await fetch('http://localhost:8080/upload', {
-            method: 'POST',
-            body: formData
-        });
+        const res = await fetch('http://localhost:8080/upload', { method: 'POST', body: formData });
         const data = await res.json();
         if (data.success) {
             alert('Video uploaded successfully!');
@@ -113,18 +142,21 @@ videoInput.addEventListener('change', async () => {
         } else {
             alert('Upload failed!');
         }
-    } catch (err) {
-        alert('Upload error: ' + err.message);
-    }
+    } catch(err) { alert('Upload error: ' + err.message); }
+
+    uploadModal.style.display = 'none';
+    selectedFile = null;
+    videoInput.value = '';
+    document.getElementById('videoTitle').value = '';
+    document.getElementById('videoDesc').value = '';
 });
 
 // Load videos from backend
 async function loadVideos() {
-    videoGrid.innerHTML = ''; // clear grid
+    videoGrid.innerHTML = '';
     try {
         const res = await fetch('http://localhost:8080/videos');
-        const videos = await res.json(); // expect array of {name, url}
-
+        const videos = await res.json();
         videos.forEach(video => {
             const card = document.createElement('div');
             card.className = 'video-card';
@@ -136,18 +168,14 @@ async function loadVideos() {
                     </video>
                 </div>
                 <div class="video-info">
-                    <h3 class="video-title">${video.name}</h3>
-                    <div class="video-meta">
-                        <span>Uploaded</span>
-                        <span>-</span>
-                    </div>
+                    <h3 class="video-title">${video.title}</h3>
+                    <p class="video-desc">${video.description}</p>
+                    <div class="video-meta"><span>Uploaded</span></div>
                 </div>
             `;
             videoGrid.appendChild(card);
         });
-    } catch (err) {
-        console.error('Error fetching videos:', err);
-    }
+    } catch(err) { console.error('Error fetching videos:', err); }
 }
 
 // Initial load

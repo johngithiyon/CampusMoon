@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multiparty Video Chat</title>
+  <title>Multiparty Video Chat with Whiteboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
@@ -11,6 +11,7 @@
       --secondary-color: #6c757d;
       --success-color: #28a745;
       --danger-color: #dc3545;
+      --warning-color: #ffc107;
       --dark-color: #343a40;
       --light-color: #f8f9fa;
       --background-color: #f4f7fe;
@@ -32,6 +33,7 @@
       line-height: 1.6;
       padding: 20px;
       min-height: 100vh;
+      position: relative;
     }
 
     .container {
@@ -231,6 +233,15 @@
     .btn-danger:hover {
       background-color: #bd2130;
     }
+    
+    .btn-warning {
+      background-color: var(--warning-color);
+      color: var(--dark-color);
+    }
+
+    .btn-warning:hover {
+      background-color: #e0a800;
+    }
 
     .empty-state {
       text-align: center;
@@ -242,6 +253,74 @@
       font-size: 3rem;
       margin-bottom: 15px;
       color: #dee2e6;
+    }
+
+    /* Whiteboard styles */
+    .whiteboard-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.85);
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .whiteboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: var(--dark-color);
+      color: white;
+      border-top-left-radius: var(--border-radius);
+      border-top-right-radius: var(--border-radius);
+    }
+
+    .whiteboard-container {
+      flex: 1;
+      background-color: white;
+      border-bottom-left-radius: var(--border-radius);
+      border-bottom-right-radius: var(--border-radius);
+      overflow: hidden;
+    }
+
+    .whiteboard-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .whiteboard-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+
+    /* Staff controls */
+    .staff-controls {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: var(--card-background);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      display: none;
+    }
+
+    .staff-controls h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--dark-color);
+      margin-bottom: 15px;
+    }
+
+    .staff-controls h3 i {
+      color: var(--primary-color);
     }
 
     /* Responsive adjustments */
@@ -259,6 +338,10 @@
       .action-buttons {
         width: 100%;
         justify-content: center;
+      }
+      
+      .whiteboard-overlay {
+        padding: 10px;
       }
     }
 
@@ -344,6 +427,16 @@
         </div>
       </div>
 
+      <!-- Staff Controls Section -->
+      <div class="staff-controls" id="staffControls">
+        <h3><i class="fas fa-chalkboard-teacher"></i> Staff Tools</h3>
+        <div class="action-buttons">
+          <button class="btn btn-warning" id="toggleWhiteboard">
+            <i class="fas fa-chalkboard"></i> Open Whiteboard
+          </button>
+        </div>
+      </div>
+
       <div class="status-bar">
         <div class="connection-status">
           <div class="status-indicator" id="connectionStatus"></div>
@@ -367,6 +460,27 @@
     </div>
   </div>
 
+  <!-- Whiteboard Overlay -->
+  <div class="whiteboard-overlay" id="whiteboardOverlay">
+    <div class="whiteboard-header">
+      <h3><i class="fas fa-chalkboard"></i> Collaborative Whiteboard</h3>
+      <button class="control-btn" id="closeWhiteboard" title="Close Whiteboard">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="whiteboard-container">
+      <iframe src="https://excalidraw.com" id="whiteboardFrame"></iframe>
+    </div>
+    <div class="whiteboard-controls">
+      <button class="btn btn-primary" id="reloadWhiteboard">
+        <i class="fas fa-sync"></i> Reload Whiteboard
+      </button>
+      <button class="btn btn-warning" id="clearWhiteboard">
+        <i class="fas fa-trash"></i> Clear Whiteboard
+      </button>
+    </div>
+  </div>
+
   <script>
     const localVideo = document.getElementById("localVideo");
     const videosContainer = document.getElementById("videos");
@@ -377,18 +491,42 @@
     const shareScreenBtn = document.getElementById("shareScreen");
     const toggleAudioBtn = document.querySelector('.toggle-audio');
     const toggleVideoBtn = document.querySelector('.toggle-video');
+    const staffControls = document.getElementById("staffControls");
+    const toggleWhiteboardBtn = document.getElementById("toggleWhiteboard");
+    const whiteboardOverlay = document.getElementById("whiteboardOverlay");
+    const closeWhiteboardBtn = document.getElementById("closeWhiteboard");
+    const reloadWhiteboardBtn = document.getElementById("reloadWhiteboard");
+    const clearWhiteboardBtn = document.getElementById("clearWhiteboard");
+    const whiteboardFrame = document.getElementById("whiteboardFrame");
     
     let localStream;
     let peers = {}; // peerId -> RTCPeerConnection
     let pendingPeers = []; // peers received before localStream ready
     let isScreenSharing = false;
     let ws;
+    let isStaff = false; // This would normally be set based on user role
 
     // Initialize the application
     function init() {
+      // For demonstration, let's assume user is staff
+      // In a real application, this would be set based on authentication
+      checkIfStaff();
+      
       connectWebSocket();
       setupEventListeners();
       getLocalMedia();
+    }
+
+    // Check if user is staff (for demonstration purposes)
+    function checkIfStaff() {
+      // In a real app, this would check user role from authentication
+      // For demo, we'll use a URL parameter or prompt
+      const urlParams = new URLSearchParams(window.location.search);
+      isStaff = urlParams.has('staff') || confirm("Are you a staff member?");
+      
+      if (isStaff) {
+        staffControls.style.display = 'block';
+      }
     }
 
     // Connect to WebSocket server
@@ -429,6 +567,14 @@
       shareScreenBtn.addEventListener('click', toggleScreenShare);
       toggleAudioBtn.addEventListener('click', toggleAudio);
       toggleVideoBtn.addEventListener('click', toggleVideo);
+      
+      // Whiteboard events
+      if (isStaff) {
+        toggleWhiteboardBtn.addEventListener('click', toggleWhiteboard);
+        closeWhiteboardBtn.addEventListener('click', closeWhiteboard);
+        reloadWhiteboardBtn.addEventListener('click', reloadWhiteboard);
+        clearWhiteboardBtn.addEventListener('click', clearWhiteboard);
+      }
     }
 
     // Get local camera/mic
@@ -662,7 +808,7 @@
             };
           })
           .catch(err => {
-            console.error("Error sharing screen:", err);
+            console.error("Error sharing screen:", err)
           });
       }
     }
@@ -721,6 +867,45 @@
       }
     }
 
+    // Toggle whiteboard visibility
+    function toggleWhiteboard() {
+      if (whiteboardOverlay.style.display === 'flex') {
+        closeWhiteboard();
+      } else {
+        openWhiteboard();
+      }
+    }
+
+    // Open whiteboard
+    function openWhiteboard() {
+      whiteboardOverlay.style.display = 'flex';
+      toggleWhiteboardBtn.innerHTML = '<i class="fas fa-times"></i> Close Whiteboard';
+      toggleWhiteboardBtn.classList.add('btn-danger');
+      toggleWhiteboardBtn.classList.remove('btn-warning');
+    }
+
+    // Close whiteboard
+    function closeWhiteboard() {
+      whiteboardOverlay.style.display = 'none';
+      toggleWhiteboardBtn.innerHTML = '<i class="fas fa-chalkboard"></i> Open Whiteboard';
+      toggleWhiteboardBtn.classList.remove('btn-danger');
+      toggleWhiteboardBtn.classList.add('btn-warning');
+    }
+
+    // Reload whiteboard
+    function reloadWhiteboard() {
+      whiteboardFrame.src = whiteboardFrame.src;
+    }
+
+    // Clear whiteboard
+    function clearWhiteboard() {
+      if (confirm("Are you sure you want to clear the whiteboard? This will remove all drawings.")) {
+        // This would need to use the Excalidraw API in a real implementation
+        // For now, we'll just reload it
+        reloadWhiteboard();
+      }
+    }
+
     // Leave the call
     function leaveCall() {
       // Close all peer connections
@@ -738,6 +923,11 @@
         ws.close();
       }
       
+      // Close whiteboard if open
+      if (whiteboardOverlay.style.display === 'flex') {
+        closeWhiteboard();
+      }
+      
       // Update UI
       updateConnectionStatus('disconnected');
       statusText.textContent = "Call ended";
@@ -746,6 +936,9 @@
       // Disable buttons
       leaveCallBtn.disabled = true;
       shareScreenBtn.disabled = true;
+      if (isStaff) {
+        toggleWhiteboardBtn.disabled = true;
+      }
     }
 
     // Update connection status indicator

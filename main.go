@@ -421,4 +421,3 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-

@@ -1,17 +1,339 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="stylesheet" href="admin.css">
-  <title>Admin</title>
+  <title>Admin Registration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Animated background particles */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 40% 80%, rgba(120, 200, 255, 0.1) 0%, transparent 50%);
+      animation: float 20s ease-in-out infinite;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(30px, -30px) rotate(120deg); }
+      66% { transform: translate(-20px, 20px) rotate(240deg); }
+    }
+
+    .login {
+      width: 100%;
+      max-width: 450px;
+      padding: 40px;
+      background: rgba(26, 26, 46, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      text-align: center;
+      animation: slideInUp 0.8s ease-out;
+      position: relative;
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .login::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5);
+      border-radius: 22px;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .login:hover::before {
+      opacity: 0.5;
+    }
+
+    h2 {
+      color: #fff;
+      font-size: 2.2rem;
+      font-weight: 300;
+      margin-bottom: 30px;
+      letter-spacing: 2px;
+      position: relative;
+      text-transform: uppercase;
+    }
+
+    h2::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -12px;
+      height: 3px;
+      width: 0;
+      background: linear-gradient(90deg, #ff006e, #8338ec, #3a86ff);
+      transform: translateX(-50%);
+      transition: width 0.6s ease;
+      border-radius: 2px;
+    }
+
+    h2:hover::after {
+      width: 80%;
+    }
+
+    .input-container {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .input-container input {
+      width: 100%;
+      padding: 18px 55px 18px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      color: #fff;
+      font-size: 16px;
+      font-family: 'Segoe UI', sans-serif;
+      outline: none;
+      transition: all 0.4s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .input-container input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+      transition: all 0.3s ease;
+    }
+
+    .input-container input:focus {
+      border-color: #3a86ff;
+      background: rgba(58, 134, 255, 0.1);
+      box-shadow: 
+        0 0 25px rgba(58, 134, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .input-container input:focus::placeholder {
+      color: rgba(255, 255, 255, 0.8);
+      transform: translateX(5px);
+    }
+
+    .input-icon {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 18px;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .input-container:focus-within .input-icon {
+      color: #3a86ff;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 18px;
+      margin-top: 30px;
+      background: linear-gradient(135deg, #ff006e, #8338ec, #3a86ff);
+      background-size: 200% 200%;
+      border: none;
+      border-radius: 15px;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .submit-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .submit-btn:hover {
+      background-position: 100% 0;
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(58, 134, 255, 0.4);
+    }
+
+    .submit-btn:hover::before {
+      left: 100%;
+    }
+
+    .submit-btn:active {
+      transform: translateY(-1px);
+    }
+
+    .submit-btn.loading {
+      opacity: 0.8;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .submit-btn.loading::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      margin: auto;
+      border: 2px solid transparent;
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* Success animation */
+    @keyframes success {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .success {
+      animation: success 0.6s ease;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      .login {
+        padding: 30px 25px;
+        margin: 20px 10px;
+      }
+
+      h2 {
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+      }
+
+      .input-container input {
+        padding: 15px 50px 15px 15px;
+        font-size: 14px;
+      }
+
+      .input-icon {
+        right: 15px;
+        font-size: 16px;
+      }
+
+      .submit-btn {
+        padding: 15px;
+        font-size: 16px;
+      }
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #ff006e, #8338ec);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #8338ec, #3a86ff);
+    }
+
+    /* Error shake animation */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    .error {
+      animation: shake 0.5s ease-in-out;
+      border-color: #ff006e !important;
+      box-shadow: 0 0 15px rgba(255, 0, 110, 0.5) !important;
+    }
+  </style>
 </head>
 <body>
   <div class="login">
-    <h2>Admin</h2>
+    <h2>Admin Portal</h2>
     <form class="form" id="adminForm">
-      <input id="name" type="text" required placeholder="Enter College name"><br>
-      <input id="pass" type="password" required placeholder="Enter College Code"><br>  
-      <input id="address" type="text" required placeholder="Enter College address"><br>  
-      <input id="button" type="submit" value="Login">
+      <div class="input-container">
+        <input id="name" type="text" required placeholder="Enter College Name">
+        <i class="fas fa-university input-icon"></i>
+      </div>
+      
+      <div class="input-container">
+        <input id="pass" type="password" required placeholder="Enter College Code">
+        <i class="fas fa-key input-icon"></i>
+      </div>
+      
+      <div class="input-container">
+        <input id="address" type="text" required placeholder="Enter College Address">
+        <i class="fas fa-map-marker-alt input-icon"></i>
+      </div>
+      
+      <button id="button" type="submit" class="submit-btn">Register Admin</button>
     </form>
   </div>
 
@@ -19,30 +341,51 @@
     document.getElementById("adminForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
-      let name = document.getElementById("name").value;
-      let code = document.getElementById("pass").value;
-      let address = document.getElementById("address").value;
+      const button = document.getElementById("button");
+      const nameInput = document.getElementById("name");
+      const passInput = document.getElementById("pass");
+      const addressInput = document.getElementById("address");
 
-      // simple validations
+      // Clear previous error states
+      [nameInput, passInput, addressInput].forEach(input => {
+        input.classList.remove('error');
+      });
+
+      let name = nameInput.value;
+      let code = passInput.value;
+      let address = addressInput.value;
+
+      // Simple validations with better UX
       let regname = /^[a-zA-Z\s]+$/;
-      let passreg = /^[a-zA-Z0-9]{4,}$/; // 4+ chars
+      let passreg = /^[a-zA-Z0-9]{4,}$/;
       let addrs = /^[a-zA-Z0-9\s,.-]+$/;
 
       if (!regname.test(name)) {
-        alert("Enter a valid name");
+        nameInput.classList.add('error');
+        alert("❌ Enter a valid college name (letters only)");
+        nameInput.focus();
         return;
       }
       if (!passreg.test(code)) {
-        alert("Enter a valid college code (letters & numbers, min 4 chars)");
+        passInput.classList.add('error');
+        alert("❌ Enter a valid college code (letters & numbers, min 4 chars)");
+        passInput.focus();
         return;
       }
       if (!addrs.test(address)) {
-        alert("Enter a proper college address with pincode");
+        addressInput.classList.add('error');
+        alert("❌ Enter a proper college address");
+        addressInput.focus();
         return;
       }
 
+      // Add loading state
+      button.classList.add('loading');
+      button.disabled = true;
+      const originalText = button.textContent;
+      button.textContent = 'Registering...';
+
       try {
-        // Send data to Go backend
         let res = await fetch("/admin/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -50,22 +393,44 @@
         });
 
         if (!res.ok) {
-          alert("❌ Failed to register admin!");
-          return;
+          throw new Error('Registration failed');
         }
 
         let data = await res.json();
 
-        // ✅ Show IDs first
-        alert("✅ Registration Successful!\nStudent ID: " + data.student_id + "\nStaff ID: " + data.staff_id);
+        // Success animation
+        document.querySelector('.login').classList.add('success');
+        
+        // Show success message
+        alert("✅ Registration Successful!\n🎓 Student ID: " + data.student_id + "\n👨‍🏫 Staff ID: " + data.staff_id);
 
-        // ✅ Redirect to home page
-        window.location.href = "index.html";
+        // Redirect to home page
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1000);
 
       } catch (err) {
         console.error(err);
-        alert("Server error, please try again!");
+        alert("❌ Server error, please try again!");
+        
+        // Shake animation for error
+        document.querySelector('.login').style.animation = 'shake 0.5s ease-in-out';
+        setTimeout(() => {
+          document.querySelector('.login').style.animation = '';
+        }, 500);
+      } finally {
+        // Remove loading state
+        button.classList.remove('loading');
+        button.disabled = false;
+        button.textContent = originalText;
       }
+    });
+
+    // Add input validation feedback
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', function() {
+        this.classList.remove('error');
+      });
     });
   </script>
 </body>

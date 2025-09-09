@@ -159,7 +159,7 @@ func main() {
 	http.HandleFunc("/login", loginHandler) // ✅ Staff & Student login
 
 	fmt.Println("🚀 Server running at http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
 }
 
 // ===== Frontend Handlers =====

@@ -2,82 +2,328 @@
 <html>
 <head>
   <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 450px;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2rem;
+      font-weight: 300;
+      position: relative;
+    }
+
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 3px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 2px;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      padding: 15px 50px 15px 20px;
+      border: 2px solid #e1e5e9;
+      border-radius: 12px;
+      font-size: 16px;
+      background: #f8f9fa;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .input-icon {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      font-size: 18px;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .input-group:focus-within .input-icon {
+      color: #667eea;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .input-group select {
+      appearance: none;
+      background-image: none;
+      cursor: pointer;
+    }
+
+    .input-group select option {
+      padding: 10px;
+      background: white;
+    }
+
+    #user_id {
+      width: 100%;
+      padding: 15px 20px;
+      margin-bottom: 25px;
+      border: 2px solid #e1e5e9;
+      border-radius: 12px;
+      font-size: 16px;
+      background: #f8f9fa;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    #user_id:focus {
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      transform: translateY(-2px);
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 30px 20px;
+        margin: 10px;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      .input-group input,
+      .input-group select,
+      #user_id {
+        padding: 12px 45px 12px 15px;
+        font-size: 14px;
+      }
+
+      .input-icon {
+        right: 15px;
+        font-size: 16px;
+      }
+
+      button {
+        padding: 12px;
+        font-size: 16px;
+      }
+    }
+
+    /* Custom scrollbar for select dropdowns */
+    select::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    select::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    select::-webkit-scrollbar-thumb {
+      background: #667eea;
+      border-radius: 4px;
+    }
+
+    select::-webkit-scrollbar-thumb:hover {
+      background: #5a67d8;
+    }
+
+    /* Loading state for button */
+    button.loading {
+      opacity: 0.8;
+      cursor: not-allowed;
+    }
+
+    button.loading::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      margin: auto;
+      border: 2px solid transparent;
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-  <h2>Login</h2>
-  <form id="loginForm">
-    <div class="input-group">
-        <input type="text" placeholder="Enter your name" required>
-        <i class="fas fa-user input-icon"></i>
-    </div>
-    
-    <div class="input-group">
-        <input type="text" placeholder="Enter your College name" required>
-        <i class="fas fa-university input-icon"></i>
-    </div>
-    
-    <div class="input-group">
-        <select required>
-            <option value="" selected disabled>Select your Department</option>
-            <option value="cse">Computer Science Engineering</option>
-            <option value="ece">Electronic and Communication Engineering</option>
-            <option value="it">Information Technology</option>
-            <option value="aids">Artificial Intelligence and Data Science</option>
-            <option value="biotech">Biotechnology Engineering</option>
-            <option value="mech">Mechanical Engineering</option>
-            <option value="civ">Civil Engineering</option>
-            <option value="eee">Electrical and Electronics Engineering</option>
-        </select>
-        <i class="fas fa-graduation-cap input-icon"></i>
-    </div>
-    
-    <div class="input-group">
-        <select required>
-            <option value="" selected disabled>Select the Year</option>
-            <option value="1">First year</option>
-            <option value="2">Second year</option>
-            <option value="3">Third year</option>
-            <option value="4">Fourth year</option>
-        </select>
-        <i class="fas fa-calendar-alt input-icon"></i>
-    </div>
-    
-    <div class="input-group">
-        <select required>
-            <option value="" selected disabled>Select the section</option>
-            <option value="a">Section-A</option>
-            <option value="b">Section-B</option>
-            <option value="c">Section-C</option>
-        </select>
-        <i class="fas fa-users input-icon"></i>
-    </div>
-    
-    <div class="input-group">
-        <input type="password" placeholder="Enter your Password" required>
-        <i class="fas fa-lock input-icon"></i>
-    </div>
-    
-    <input type="text" id="user_id" placeholder="Enter Student/Staff ID" required><br>
-    <button type="submit">Login</button>
-  </form>
+  <div class="login-container">
+    <h2>Staff Login</h2>
+    <form id="loginForm">
+      <div class="input-group">
+          <input type="text" placeholder="Enter your name" required>
+          <i class="fas fa-user input-icon"></i>
+      </div>
+      
+      <div class="input-group">
+          <input type="text" placeholder="Enter your College name" required>
+          <i class="fas fa-university input-icon"></i>
+      </div>
+      
+      <div class="input-group">
+          <select required>
+              <option value="" selected disabled>Select your Department</option>
+              <option value="cse">Computer Science Engineering</option>
+              <option value="ece">Electronic and Communication Engineering</option>
+              <option value="it">Information Technology</option>
+              <option value="aids">Artificial Intelligence and Data Science</option>
+              <option value="biotech">Biotechnology Engineering</option>
+              <option value="mech">Mechanical Engineering</option>
+              <option value="civ">Civil Engineering</option>
+              <option value="eee">Electrical and Electronics Engineering</option>
+          </select>
+          <i class="fas fa-graduation-cap input-icon"></i>
+      </div>
+      
+      <div class="input-group">
+          <select required>
+              <option value="" selected disabled>Select the Year</option>
+              <option value="1">First year</option>
+              <option value="2">Second year</option>
+              <option value="3">Third year</option>
+              <option value="4">Fourth year</option>
+          </select>
+          <i class="fas fa-calendar-alt input-icon"></i>
+      </div>
+      
+      <div class="input-group">
+          <select required>
+              <option value="" selected disabled>Select the section</option>
+              <option value="a">Section-A</option>
+              <option value="b">Section-B</option>
+              <option value="c">Section-C</option>
+          </select>
+          <i class="fas fa-users input-icon"></i>
+      </div>
+      
+      <div class="input-group">
+          <input type="password" placeholder="Enter your Password" required>
+          <i class="fas fa-lock input-icon"></i>
+      </div>
+      
+      <input type="text" id="user_id" placeholder="Enter Student/Staff ID" required>
+      <button type="submit">Login</button>
+    </form>
+  </div>
 
   <script>
     document.getElementById("loginForm").onsubmit = async function(e) {
       e.preventDefault();
+      
+      // Add loading state
+      const button = e.target.querySelector('button');
+      button.classList.add('loading');
+      button.disabled = true;
+      button.textContent = 'Signing in...';
+      
       let userID = document.getElementById("user_id").value;
 
-      let res = await fetch("/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({user_id: userID})
-      });
+      try {
+        let res = await fetch("/login", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({user_id: userID})
+        });
 
-      if(res.ok){
-        let data = await res.json();
-        alert("Welcome " + data.role);
-        window.location.href = "index.html"; // ✅ go to student.html or staff.html
-      } else {
-        alert("Invalid ID!");
+        if(res.ok){
+          let data = await res.json();
+          alert("Welcome " + data.role);
+          window.location.href = "index.html";
+        } else {
+          alert("Invalid ID!");
+        }
+      } catch (error) {
+        alert("Connection error. Please try again.");
+      } finally {
+        // Remove loading state
+        button.classList.remove('loading');
+        button.disabled = false;
+        button.textContent = 'Login';
       }
     }
   </script>

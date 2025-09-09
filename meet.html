@@ -1157,7 +1157,7 @@
         const timestamp = new Date().toISOString();
         
         // Add message to UI immediately
-        addChatMessage("You", message, timestamp, true);
+        //addChatMessage("You", timestamp, true); // message removed
         
         // Send message to server
         ws.send(JSON.stringify({ 

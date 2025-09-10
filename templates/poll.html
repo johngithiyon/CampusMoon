@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Poll</title>
+</head>
+<body>
+  <h2>Poll System</h2>
+
+  <div id="create">
+    <input id="question" placeholder="Question"><br>
+    <input id="opt1" placeholder="Option 1"><br>
+    <input id="opt2" placeholder="Option 2"><br>
+    Correct Answer (0 or 1): <input id="answer" type="number"><br>
+    <button onclick="createPoll()">Create Poll</button>
+  </div>
+
+  <div id="poll"></div>
+  <div id="result"></div>
+
+  <script>
+    let ws = new WebSocket("ws://localhost:8080/ws");
+
+    ws.onmessage = (event) => {
+      let msg = JSON.parse(event.data);
+      if (msg.type === "createPoll") {
+        showPoll(msg);
+      }
+      if (msg.type === "vote") {
+        document.getElementById("result").innerText =
+          msg.correct ? "✅ Correct!" : "❌ Wrong!";
+      }
+    };
+
+    function createPoll() {
+      let poll = {
+        type: "createPoll",
+        question: document.getElementById("question").value,
+        options: [
+          document.getElementById("opt1").value,
+          document.getElementById("opt2").value
+        ],
+        answer: parseInt(document.getElementById("answer").value)
+      };
+      ws.send(JSON.stringify(poll));
+    }
+
+    function showPoll(poll) {
+      let div = document.getElementById("poll");
+      div.innerHTML = "<h3>" + poll.question + "</h3>";
+      poll.options.forEach((opt, i) => {
+        let btn = document.createElement("button");
+        btn.innerText = opt;
+        btn.onclick = () => vote(i);
+        div.appendChild(btn);
+      });
+    }
+
+    function vote(choice) {
+      ws.send(JSON.stringify({ type: "vote", choice: choice }));
+    }
+  </script>
+</body>
+</html>

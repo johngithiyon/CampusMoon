@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Multiparty Video Chat with Whiteboard & Chat</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Existing CSS remains the same, just adding poll-specific styles -->
   <style>
+    /* All existing CSS remains unchanged */
     :root {
       --primary-color: #4a6cf7;
       --secondary-color: #6c757d;
@@ -546,6 +548,183 @@
     .quality-bar.active {
       background-color: var(--success-color);
     }
+    /* Poll-specific styles */
+    .poll-overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 500px;
+      background-color: var(--card-background);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      display: none;
+      flex-direction: column;
+      z-index: 1002;
+      overflow: hidden;
+    }
+
+    .poll-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .poll-header h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .poll-content {
+      padding: 20px;
+    }
+
+    .poll-question {
+      margin-bottom: 20px;
+    }
+
+    .poll-question input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .poll-options {
+      margin-bottom: 20px;
+    }
+
+    .poll-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .poll-option input {
+      flex: 1;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    .poll-option button {
+      padding: 10px;
+      border-radius: 8px;
+      background-color: var(--danger-color);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .add-option {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .add-option:hover {
+      background-color: #e0e0e0;
+    }
+
+    .poll-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .active-poll {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 300px;
+      background-color: var(--card-background);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 15px;
+      z-index: 999;
+      display: none;
+    }
+
+    .active-poll-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .active-poll-question {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .poll-option-item {
+      margin-bottom: 8px;
+    }
+
+    .poll-option-button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 8px 12px;
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .poll-option-button:hover {
+      background-color: #e0e0e0;
+    }
+
+    .poll-option-button.selected {
+      background-color: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    .poll-results {
+      margin-top: 15px;
+      display: none;
+    }
+
+    .poll-result-item {
+      margin-bottom: 8px;
+    }
+
+    .poll-result-bar {
+      height: 8px;
+      background-color: #e9ecef;
+      border-radius: 4px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+
+    .poll-result-fill {
+      height: 100%;
+      background-color: var(--primary-color);
+      border-radius: 4px;
+    }
+
+    .poll-result-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
   </style>
 </head>
 <body>
@@ -592,6 +771,9 @@
         <div class="action-buttons">
           <button class="btn btn-warning" id="toggleWhiteboard">
             <i class="fas fa-chalkboard"></i> Open Whiteboard
+          </button>
+          <button class="btn btn-chat" id="createPoll">
+            <i class="fas fa-poll"></i> Create Poll
           </button>
         </div>
       </div>
@@ -667,7 +849,59 @@
     </div>
   </div>
 
+  <!-- Poll Creation Overlay -->
+  <div class="poll-overlay" id="pollOverlay">
+    <div class="poll-header">
+      <h3><i class="fas fa-poll"></i> Create Poll</h3>
+      <button class="control-btn" id="closePoll" title="Close Poll Creator">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="poll-content">
+      <div class="poll-question">
+        <input type="text" id="pollQuestion" placeholder="Enter your poll question...">
+      </div>
+      <div class="poll-options" id="pollOptions">
+        <div class="poll-option">
+          <input type="text" placeholder="Option 1">
+          <button class="remove-option"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="poll-option">
+          <input type="text" placeholder="Option 2">
+          <button class="remove-option"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+      <button class="add-option" id="addPollOption">
+        <i class="fas fa-plus"></i> Add Option
+      </button>
+      <div class="poll-buttons">
+        <button class="btn btn-danger" id="cancelPoll">
+          Cancel
+        </button>
+        <button class="btn btn-primary" id="publishPoll">
+          Publish Poll
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Poll Display -->
+  <div class="active-poll" id="activePoll">
+    <div class="active-poll-header">
+      <h4>Live Poll</h4>
+      <button class="control-btn close-poll" title="Close Poll">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="active-poll-question" id="activePollQuestion"></div>
+    <div class="poll-options-list" id="pollOptionsList"></div>
+    <div class="poll-results" id="pollResults">
+      <div class="poll-result-text" id="pollResultText"></div>
+    </div>
+  </div>
+
   <script>
+    // All existing JavaScript variables remain
     const localVideo = document.getElementById("localVideo");
     const videosContainer = document.getElementById("videos");
     const connectionStatus = document.getElementById("connectionStatus");
@@ -692,6 +926,21 @@
     const sendMessageBtn = document.getElementById("sendMessage");
     const chatNotification = document.getElementById("chatNotification");
     
+    // New poll-related variables
+    const createPollBtn = document.getElementById("createPoll");
+    const pollOverlay = document.getElementById("pollOverlay");
+    const closePollBtn = document.getElementById("closePoll");
+    const pollQuestion = document.getElementById("pollQuestion");
+    const pollOptions = document.getElementById("pollOptions");
+    const addPollOptionBtn = document.getElementById("addPollOption");
+    const cancelPollBtn = document.getElementById("cancelPoll");
+    const publishPollBtn = document.getElementById("publishPoll");
+    const activePoll = document.getElementById("activePoll");
+    const activePollQuestion = document.getElementById("activePollQuestion");
+    const pollOptionsList = document.getElementById("pollOptionsList");
+    const pollResults = document.getElementById("pollResults");
+    const pollResultText = document.getElementById("pollResultText");
+    
     let localStream;
     let peers = {}; // peerId -> RTCPeerConnection
     let pendingPeers = []; // peers received before localStream ready
@@ -700,6 +949,12 @@
     let isStaff = false; // This would normally be set based on user role
     let userId = generateUserId();
     let unreadMessages = 0;
+    
+    // Poll state variables
+    let currentPoll = null;
+    let userVote = null;
+
+    const wspolls = new WebSocket("ws://" + location.host + "/wspolls");
 
     // Initialize the application
     function init() {
@@ -781,6 +1036,13 @@
         closeWhiteboardBtn.addEventListener('click', closeWhiteboard);
         reloadWhiteboardBtn.addEventListener('click', reloadWhiteboard);
         clearWhiteboardBtn.addEventListener('click', clearWhiteboard);
+        
+        // Poll events
+        createPollBtn.addEventListener('click', openPollCreator);
+        closePollBtn.addEventListener('click', closePollCreator);
+        addPollOptionBtn.addEventListener('click', addPollOption);
+        cancelPollBtn.addEventListener('click', closePollCreator);
+        publishPollBtn.addEventListener('click', publishPoll);
       }
       
       // Chat events
@@ -792,6 +1054,9 @@
           sendChatMessage();
         }
       });
+      
+      // Close active poll
+      activePoll.querySelector('.close-poll').addEventListener('click', closeActivePoll);
     }
 
     // Get local camera/mic
@@ -864,6 +1129,18 @@
           
         case "chat-message":
           addChatMessage(msg.sender, msg.message, msg.timestamp, false);
+          break;
+          
+        case "poll-created":
+          displayPoll(msg.poll);
+          break;
+          
+        case "poll-vote":
+          updatePollResults(msg.pollId, msg.results);
+          break;
+          
+        case "poll-ended":
+          endPoll(msg.pollId, msg.finalResults);
           break;
       }
     }
@@ -1273,6 +1550,209 @@
         <p>You have left the call</p>
       `;
       videosContainer.appendChild(emptyState);
+    }
+
+    // Poll functionality
+    function openPollCreator() {
+      pollOverlay.style.display = 'flex';
+      pollQuestion.value = '';
+      
+      // Clear existing options except the first two
+      const options = pollOptions.querySelectorAll('.poll-option');
+      for (let i = 2; i < options.length; i++) {
+        options[i].remove();
+      }
+      
+      // Reset first two options
+      const firstOption = options[0].querySelector('input');
+      const secondOption = options[1].querySelector('input');
+      firstOption.value = '';
+      secondOption.value = '';
+      firstOption.placeholder = 'Option 1';
+      secondOption.placeholder = 'Option 2';
+    }
+
+    function closePollCreator() {
+      pollOverlay.style.display = 'none';
+    }
+
+    function addPollOption() {
+      const optionCount = pollOptions.querySelectorAll('.poll-option').length;
+      const optionDiv = document.createElement('div');
+      optionDiv.className = 'poll-option';
+      optionDiv.innerHTML = `
+        <input type="text" placeholder="Option ${optionCount + 1}">
+        <button class="remove-option"><i class="fas fa-times"></i></button>
+      `;
+      pollOptions.appendChild(optionDiv);
+      
+      // Add event listener to the remove button
+      optionDiv.querySelector('.remove-option').addEventListener('click', function() {
+        optionDiv.remove();
+      });
+    }
+
+    function publishPoll() {
+      const question = pollQuestion.value.trim();
+      if (!question) {
+        alert('Please enter a poll question');
+        return;
+      }
+      
+      const optionInputs = pollOptions.querySelectorAll('input');
+      const options = [];
+      
+      for (let i = 0; i < optionInputs.length; i++) {
+        const optionText = optionInputs[i].value.trim();
+        if (optionText) {
+          options.push(optionText);
+        }
+      }
+      
+      if (options.length < 2) {
+        alert('Please add at least two options');
+        return;
+      }
+      
+      // Create poll object
+      const pollId = 'poll-' + Date.now();
+      const poll = {
+        id: pollId,
+        question: question,
+        options: options,
+        results: options.map(() => 0), // Initialize with zeros
+        totalVotes: 0
+      };
+      
+      // Send poll to server
+      if (wspolls.readyState === WebSocket.OPEN) {
+        wspolls.send(JSON.stringify({
+          type: 'create-poll',
+          poll: poll
+        }));
+        
+        // Store current poll
+        currentPoll = poll;
+        
+        // Close poll creator
+        closePollCreator();
+        
+        // Display the poll for the creator
+        displayPoll(poll);
+      }
+    }
+
+    function displayPoll(poll) {
+      activePollQuestion.textContent = poll.question;
+      pollOptionsList.innerHTML = '';
+      pollResults.style.display = 'none';
+      
+      // Create option buttons
+      poll.options.forEach((option, index) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'poll-option-item';
+        optionDiv.innerHTML = `
+          <button class="poll-option-button" data-index="${index}">${option}</button>
+        `;
+        pollOptionsList.appendChild(optionDiv);
+      });
+      
+      // Add event listeners to option buttons
+      const optionButtons = pollOptionsList.querySelectorAll('.poll-option-button');
+      optionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          if (userVote !== null) return; // Prevent voting twice
+          
+          const optionIndex = parseInt(this.getAttribute('data-index'));
+          voteInPoll(poll.id, optionIndex);
+          
+          // Highlight selected option
+          optionButtons.forEach(btn => btn.classList.remove('selected'));
+          this.classList.add('selected');
+          
+          userVote = optionIndex;
+        });
+      });
+      
+      // Show the active poll
+      activePoll.style.display = 'block';
+      currentPoll = poll;
+    }
+
+    function voteInPoll(pollId, optionIndex) {
+      if (wspolls.readyState === WebSocket.OPEN) {
+        wspolls.send(JSON.stringify({
+          type: 'vote-poll',
+          pollId: pollId,
+          optionIndex: optionIndex
+        }));
+      }
+    }
+
+    function updatePollResults(pollId, results) {
+      if (currentPoll && currentPoll.id === pollId) {
+        currentPoll.results = results;
+        currentPoll.totalVotes = results.reduce((sum, count) => sum + count, 0);
+        
+        // Show results if user has voted
+        if (userVote !== null) {
+          showPollResults();
+        }
+      }
+    }
+
+    function showPollResults() {
+      if (!currentPoll) return;
+      
+      pollResults.style.display = 'block';
+      pollOptionsList.style.display = 'none';
+      
+      let resultsHTML = '';
+      currentPoll.options.forEach((option, index) => {
+        const voteCount = currentPoll.results[index];
+        const percentage = currentPoll.totalVotes > 0 
+          ? Math.round((voteCount / currentPoll.totalVotes) * 100) 
+          : 0;
+        
+        resultsHTML += `
+          <div class="poll-result-item">
+            <div>${option}</div>
+            <div class="poll-result-bar">
+              <div class="poll-result-fill" style="width: ${percentage}%"></div>
+            </div>
+            <div class="poll-result-text">
+              <span>${voteCount} vote${voteCount !== 1 ? 's' : ''}</span>
+              <span>${percentage}%</span>
+            </div>
+          </div>
+        `;
+      });
+      
+      pollResults.innerHTML = resultsHTML;
+      pollResultText.textContent = `Total votes: ${currentPoll.totalVotes}`;
+    }
+
+    function endPoll(pollId, finalResults) {
+      if (currentPoll && currentPoll.id === pollId) {
+        currentPoll.results = finalResults;
+        currentPoll.totalVotes = finalResults.reduce((sum, count) => sum + count, 0);
+        
+        showPollResults();
+        
+        // Add a ended message
+        const endedText = document.createElement('div');
+        endedText.style.marginTop = '10px';
+        endedText.style.fontWeight = 'bold';
+        endedText.style.color = '#dc3545';
+        endedText.textContent = 'Poll ended';
+        pollResults.appendChild(endedText);
+      }
+    }
+
+    function closeActivePoll() {
+      activePoll.style.display = 'none';
+      currentPoll = null;
+      userVote = null;
     }
 
     // Initialize the application when the page loads

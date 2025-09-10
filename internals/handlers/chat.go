@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"CampusMoon/models"
-	"CampusMoon/storage"
+	"CampusMoon/internals/models"
+	"CampusMoon/internals/storage"
 	"database/sql"
 	"encoding/json"
 	"log"

@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"CampusMoon/storage"
+	"CampusMoon/internals/storage"
 	"html/template"
 	"net/http"
 )

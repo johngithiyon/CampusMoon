@@ -393,6 +393,18 @@
       background-color: rgba(0, 0, 0, 0.7);
     }
 
+    .participant-name-input {
+      margin-bottom: 20px;
+    }
+
+    .participant-name-input input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 768px) {
       .status-bar {
@@ -434,6 +446,13 @@
     </header>
 
     <div class="main-content">
+      <div class="card">
+        <h2><i class="fas fa-user"></i> Participant Information</h2>
+        <div class="participant-name-input">
+          <input type="text" id="participantName" placeholder="Enter your name">
+        </div>
+      </div>
+
       <div class="card">
         <h2><i class="fas fa-poll"></i> Poll Management</h2>
         <p>Create a new poll that will be instantly shared with all connected participants.</p>
@@ -499,6 +518,10 @@
           <input type="text" placeholder="Option 2">
           <button class="remove-option"><i class="fas fa-times"></i></button>
         </div>
+        <div class="poll-option">
+          <input type="text" placeholder="correct Answer">
+          <button class="remove-option"><i class="fas fa-times"></i></button>
+        </div>
       </div>
       <button class="add-option" id="addPollOption">
         <i class="fas fa-plus"></i> Add Option
@@ -536,14 +559,13 @@
       constructor() {
         this.listeners = [];
         this.connected = false;
-        this.participants = new Set();
+        this.participants = new Map(); // Changed to Map to store participant names
         this.participantId = 'user-' + Math.floor(Math.random() * 10000);
         
         // Simulate connection
         setTimeout(() => {
           this.connected = true;
           this.notifyListeners('open');
-          this.addParticipant(this.participantId);
           
           // Listen for storage events (simulating communication between tabs)
           window.addEventListener('storage', this.handleStorageEvent.bind(this));
@@ -587,8 +609,8 @@
         }
       }
       
-      addParticipant(id) {
-        this.participants.add(id);
+      addParticipant(id, name) {
+        this.participants.set(id, name);
         this.notifyListeners('participants', Array.from(this.participants));
       }
       
@@ -599,6 +621,7 @@
     }
 
     // DOM elements
+    const participantNameInput = document.getElementById("participantName");
     const createPollBtn = document.getElementById("createPoll");
     const pollOverlay = document.getElementById("pollOverlay");
     const closePollBtn = document.getElementById("closePoll");
@@ -622,7 +645,7 @@
     // Poll state variables
     let currentPoll = null;
     let userVote = null;
-    let participants = [];
+    let participants = new Map(); // Changed to Map to store participant names
     let pollResultsData = {};
     let correctAnswers = 0;
     let totalQuestions = 0;
@@ -632,6 +655,9 @@
     
     // Set up event listeners
     function setupEventListeners() {
+      // Participant name input
+      participantNameInput.addEventListener('change', updateParticipantName);
+      
       // Poll creation events
       createPollBtn.addEventListener('click', openPollCreator);
       closePollBtn.addEventListener('click', closePollCreator);
@@ -651,7 +677,7 @@
       });
       
       ws.addEventListener('participants', (participantsList) => {
-        participants = participantsList;
+        participants = new Map(participantsList);
         updateParticipantCount();
         updateParticipantsList();
       });
@@ -660,6 +686,19 @@
         const message = JSON.parse(event.data);
         handleIncomingMessage(message);
       });
+    }
+    
+    // Update participant name
+    function updateParticipantName() {
+      const name = participantNameInput.value.trim() || 'Anonymous';
+      ws.addParticipant(ws.participantId, name);
+      
+      // Send update to other participants
+      ws.send(JSON.stringify({
+        type: 'participant-updated',
+        participantId: ws.participantId,
+        participantName: name
+      }));
     }
     
     // Handle incoming WebSocket messages
@@ -678,7 +717,11 @@
           break;
           
         case "participant-joined":
-          ws.addParticipant(message.participantId);
+          ws.addParticipant(message.participantId, message.participantName || 'Anonymous');
+          break;
+          
+        case "participant-updated":
+          ws.addParticipant(message.participantId, message.participantName);
           break;
       }
     }
@@ -705,7 +748,7 @@
     
     // Update participant count
     function updateParticipantCount() {
-      const count = participants.length;
+      const count = participants.size;
       participantCount.textContent = `${count} participant${count !== 1 ? 's' : ''}`;
     }
     
@@ -713,15 +756,15 @@
     function updateParticipantsList() {
       participantsList.innerHTML = '';
       
-      if (participants.length === 0) {
+      if (participants.size === 0) {
         participantsList.innerHTML = '<p>No participants yet. Open this page in another tab to test the polling system.</p>';
         return;
       }
       
       const list = document.createElement('ul');
-      participants.forEach(participant => {
+      participants.forEach((name, id) => {
         const item = document.createElement('li');
-        item.textContent = `Participant: ${participant}`;
+        item.textContent = `${name}${id === ws.participantId ? ' (You)' : ''}`;
         list.appendChild(item);
       });
       
@@ -742,6 +785,7 @@
       // Reset first two options
       const firstOption = options[0].querySelector('input');
       const secondOption = options[1].querySelector('input');
+  
       firstOption.value = '';
       secondOption.value = '';
       firstOption.placeholder = 'Option 1';
@@ -945,15 +989,13 @@
       
       resultsContainer.appendChild(summary);
       
-      // Calculate correct answers (for demonstration, assume option 0 is correct)
-      correctAnswers = Object.values(pollResultsData).filter(vote => vote === 0).length;
-      totalQuestions = 1; // For this demo, we're only tracking one poll
+      // Get participant name
+      const participantName = participants.get(ws.participantId) || 'Participant';
       
       const results = document.createElement('div');
       results.innerHTML = `
-        <p>Correct answers: ${correctAnswers}/${participants.length}</p>
         <div class="attendance-message">
-          <i class="fas fa-check-circle"></i> Your attendance has been marked
+          <i class="fas fa-check-circle"></i> Attendance has been marked for ${participantName}
         </div>
       `;
       
@@ -1002,11 +1044,16 @@
       setupEventListeners();
       updateConnectionStatus('connecting');
       
+      // Set default participant name
+      participantNameInput.value = 'Participant ' + Math.floor(Math.random() * 1000);
+      updateParticipantName();
+      
       // Simulate receiving a participant join message
       setTimeout(() => {
         ws.send(JSON.stringify({
           type: 'participant-joined',
-          participantId: ws.participantId
+          participantId: ws.participantId,
+          participantName: participantNameInput.value
         }));
       }, 1000);
     });

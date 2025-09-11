@@ -405,6 +405,36 @@
       font-size: 1rem;
     }
 
+    .correct-answer-selector {
+      margin-bottom: 20px;
+    }
+
+    .correct-answer-selector select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      background-color: white;
+    }
+
+    .feedback-message {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .feedback-correct {
+      background-color: var(--success-color);
+      color: white;
+    }
+
+    .feedback-incorrect {
+      background-color: var(--danger-color);
+      color: white;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 768px) {
       .status-bar {
@@ -518,14 +548,17 @@
           <input type="text" placeholder="Option 2">
           <button class="remove-option"><i class="fas fa-times"></i></button>
         </div>
-        <div class="poll-option">
-          <input type="text" placeholder="correct Answer">
-          <button class="remove-option"><i class="fas fa-times"></i></button>
-        </div>
       </div>
       <button class="add-option" id="addPollOption">
         <i class="fas fa-plus"></i> Add Option
       </button>
+      <div class="correct-answer-selector">
+        <select id="correctAnswerSelect">
+          <option value="">Select correct answer (optional)</option>
+          <option value="0">Option 1</option>
+          <option value="1">Option 2</option>
+        </select>
+      </div>
       <div class="poll-buttons">
         <button class="btn btn-danger" id="cancelPoll">
           Cancel
@@ -550,6 +583,7 @@
     <div class="poll-results" id="pollResults">
       <div class="poll-result-text" id="pollResultText"></div>
     </div>
+    <div id="feedbackMessage" class="feedback-message" style="display: none;"></div>
   </div>
 
   <script>
@@ -628,6 +662,7 @@
     const pollQuestion = document.getElementById("pollQuestion");
     const pollOptions = document.getElementById("pollOptions");
     const addPollOptionBtn = document.getElementById("addPollOption");
+    const correctAnswerSelect = document.getElementById("correctAnswerSelect");
     const cancelPollBtn = document.getElementById("cancelPoll");
     const publishPollBtn = document.getElementById("publishPoll");
     const activePoll = document.getElementById("activePoll");
@@ -635,6 +670,7 @@
     const pollOptionsList = document.getElementById("pollOptionsList");
     const pollResults = document.getElementById("pollResults");
     const pollResultText = document.getElementById("pollResultText");
+    const feedbackMessage = document.getElementById("feedbackMessage");
     const connectionStatus = document.getElementById("connectionStatus");
     const statusText = document.getElementById("statusText");
     const participantCount = document.getElementById("participantCount");
@@ -647,8 +683,7 @@
     let userVote = null;
     let participants = new Map(); // Changed to Map to store participant names
     let pollResultsData = {};
-    let correctAnswers = 0;
-    let totalQuestions = 0;
+    let correctAnswerIndex = null;
     
     // Initialize WebSocket connection
     const ws = new PollWebSocket();
@@ -705,7 +740,7 @@
     function handleIncomingMessage(message) {
       switch(message.type) {
         case "poll-created":
-          displayPoll(message.poll);
+          displayPoll(message.poll, message.correctAnswerIndex);
           break;
           
         case "poll-vote":
@@ -775,6 +810,7 @@
     function openPollCreator() {
       pollOverlay.style.display = 'flex';
       pollQuestion.value = '';
+      correctAnswerSelect.selectedIndex = 0;
       
       // Clear existing options except the first two
       const options = pollOptions.querySelectorAll('.poll-option');
@@ -785,19 +821,39 @@
       // Reset first two options
       const firstOption = options[0].querySelector('input');
       const secondOption = options[1].querySelector('input');
-  
       firstOption.value = '';
       secondOption.value = '';
       firstOption.placeholder = 'Option 1';
       secondOption.placeholder = 'Option 2';
+      
+      // Update correct answer selector
+      updateCorrectAnswerSelector();
       
       // Add event listeners to remove buttons
       document.querySelectorAll('.remove-option').forEach(button => {
         button.addEventListener('click', function() {
           if (pollOptions.querySelectorAll('.poll-option').length > 2) {
             this.parentElement.remove();
+            updateCorrectAnswerSelector();
           }
         });
+      });
+    }
+    
+    function updateCorrectAnswerSelector() {
+      // Clear existing options except the first one
+      while (correctAnswerSelect.options.length > 1) {
+        correctAnswerSelect.remove(1);
+      }
+      
+      // Add options based on current poll options
+      const options = pollOptions.querySelectorAll('.poll-option input');
+      options.forEach((input, index) => {
+        const optionText = input.value.trim() || `Option ${index + 1}`;
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = optionText;
+        correctAnswerSelect.appendChild(option);
       });
     }
     
@@ -819,8 +875,12 @@
       optionDiv.querySelector('.remove-option').addEventListener('click', function() {
         if (pollOptions.querySelectorAll('.poll-option').length > 2) {
           optionDiv.remove();
+          updateCorrectAnswerSelector();
         }
       });
+      
+      // Update the correct answer selector
+      updateCorrectAnswerSelector();
     }
     
     function publishPoll() {
@@ -845,6 +905,9 @@
         return;
       }
       
+      // Get the correct answer index if selected
+      const correctAnswerIndex = correctAnswerSelect.value !== "" ? parseInt(correctAnswerSelect.value) : null;
+      
       // Create poll object
       const pollId = 'poll-' + Date.now();
       const poll = {
@@ -863,7 +926,8 @@
       // Send poll to other participants
       ws.send(JSON.stringify({
         type: 'poll-created',
-        poll: poll
+        poll: poll,
+        correctAnswerIndex: correctAnswerIndex
       }));
       
       // Store current poll
@@ -874,13 +938,17 @@
       closePollCreator();
       
       // Display the poll for the creator
-      displayPoll(poll);
+      displayPoll(poll, correctAnswerIndex);
     }
     
-    function displayPoll(poll) {
+    function displayPoll(poll, correctIndex) {
       activePollQuestion.textContent = poll.question;
       pollOptionsList.innerHTML = '';
       pollResults.style.display = 'none';
+      feedbackMessage.style.display = 'none';
+      
+      // Store the correct answer index
+      correctAnswerIndex = correctIndex;
       
       // Create option buttons
       poll.options.forEach((option, index) => {
@@ -906,12 +974,29 @@
           this.classList.add('selected');
           
           userVote = optionIndex;
+          
+          // Show feedback if there's a correct answer
+          if (correctAnswerIndex !== null) {
+            showFeedback(optionIndex);
+          }
         });
       });
       
       // Show the active poll
       activePoll.style.display = 'block';
       currentPoll = poll;
+    }
+    
+    function showFeedback(selectedIndex) {
+      feedbackMessage.style.display = 'block';
+      
+      if (selectedIndex === correctAnswerIndex) {
+        feedbackMessage.textContent = 'Correct answer! Attendance marked.';
+        feedbackMessage.className = 'feedback-message feedback-correct';
+      } else {
+        feedbackMessage.textContent = 'Incorrect answer. No attendance. Concentrate on studies!';
+        feedbackMessage.className = 'feedback-message feedback-incorrect';
+      }
     }
     
     function voteInPoll(pollId, optionIndex) {
@@ -957,9 +1042,13 @@
           ? Math.round((voteCount / currentPoll.totalVotes) * 100) 
           : 0;
         
+        // Highlight correct answer if available
+        const isCorrect = correctAnswerIndex !== null && index === correctAnswerIndex;
+        const highlightClass = isCorrect ? 'feedback-correct' : '';
+        
         resultsHTML += `
-          <div class="poll-result-item">
-            <div>${option}</div>
+          <div class="poll-result-item ${highlightClass}">
+            <div>${option} ${isCorrect ? '✓' : ''}</div>
             <div class="poll-result-bar">
               <div class="poll-result-fill" style="width: ${percentage}%"></div>
             </div>
@@ -992,12 +1081,30 @@
       // Get participant name
       const participantName = participants.get(ws.participantId) || 'Participant';
       
+      // Check if participant answered correctly
+      const participantVote = pollResultsData[ws.participantId];
+      const answeredCorrectly = correctAnswerIndex !== null && participantVote === correctAnswerIndex;
+      
       const results = document.createElement('div');
-      results.innerHTML = `
-        <div class="attendance-message">
-          <i class="fas fa-check-circle"></i> Attendance has been marked for ${participantName}
-        </div>
-      `;
+      if (answeredCorrectly) {
+        results.innerHTML = `
+          <div class="attendance-message">
+            <i class="fas fa-check-circle"></i> Attendance has been marked for ${participantName}
+          </div>
+        `;
+      } else if (correctAnswerIndex !== null) {
+        results.innerHTML = `
+          <div class="feedback-message feedback-incorrect">
+            <i class="fas fa-times-circle"></i> No attendance for ${participantName}. Concentrate on studies!
+          </div>
+        `;
+      } else {
+        results.innerHTML = `
+          <div class="attendance-message">
+            <i class="fas fa-check-circle"></i> Attendance has been marked for ${participantName}
+          </div>
+        `;
+      }
       
       resultsContainer.appendChild(results);
     }
@@ -1023,14 +1130,14 @@
       activePoll.style.display = 'none';
       currentPoll = null;
       userVote = null;
+      correctAnswerIndex = null;
     }
     
     function resetPoll() {
       currentPoll = null;
       userVote = null;
       pollResultsData = {};
-      correctAnswers = 0;
-      totalQuestions = 0;
+      correctAnswerIndex = null;
       
       resultsContainer.innerHTML = '<p>No poll results yet. Create a poll to see results here.</p>';
       

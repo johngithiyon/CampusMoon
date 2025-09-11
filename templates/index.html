@@ -25,6 +25,8 @@ header{display:flex;justify-content:space-between;align-items:center;padding:20p
 .btn-primary:hover{transform:translateY(-5px);box-shadow:0 10px 20px rgba(255,107,107,0.4);}
 .btn-secondary{background:linear-gradient(45deg,#4facfe,#00f2fe);color:white;}
 .btn-secondary:hover{transform:translateY(-5px);box-shadow:0 10px 20px rgba(79,172,254,0.4);}
+.btn-labs{background:linear-gradient(45deg,#9c27b0,#673ab7);color:white;}
+.btn-labs:hover{transform:translateY(-5px);box-shadow:0 10px 20px rgba(156,39,176,0.4);}
 .section-title{font-size:1.8rem;margin-bottom:25px;padding-bottom:10px;border-bottom:2px solid rgba(255,255,255,0.2);display:inline-block;}
 .videos-container{background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border-radius:20px;padding:30px;margin-bottom:40px;box-shadow:0 10px 30px rgba(0,0,0,0.2);animation:fadeIn 1.5s ease;}
 .video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:25px;}
@@ -59,12 +61,10 @@ footer{text-align:center;padding:20px;margin-top:40px;color:rgba(255,255,255,0.7
 <button><i class="fas fa-cog"></i> Settings</button>
 </div>
 </header>
-
 <section class="hero">
 <h1>Remote Classroom</h1>
 <p>Access live video streams and recorded lectures from anywhere, anytime. Enhance your learning experience with our platform.</p>
 </section>
-
 <div class="button-group">
 <button class="btn btn-primary">
 <a href="http://localhost:8080/meet"><i class="fas fa-video"></i> Live Video Stream</a>
@@ -72,17 +72,16 @@ footer{text-align:center;padding:20px;margin-top:40px;color:rgba(255,255,255,0.7
 <button class="btn btn-secondary" id="uploadBtn">
 <i class="fas fa-upload"></i> Upload Video
 </button>
+<button class="btn btn-labs" id="labsBtn">
+<a href="http://localhost:8080/labs"><i class="fas fa-flask"></i> Labs </a>
+</button>
 </div>
-
 <input type="file" id="videoInput" accept="video/*" style="display:none" />
-
 <div class="videos-container">
 <h2 class="section-title">Uploaded Videos</h2>
 <div class="video-grid" id="videoGrid"></div>
 </div>
-
 </div>
-
 <!-- Modal for Title & Description -->
 <div class="modal" id="uploadModal">
 <div class="modal-content">
@@ -93,7 +92,6 @@ footer{text-align:center;padding:20px;margin-top:40px;color:rgba(255,255,255,0.7
 <button id="cancelUpload">Cancel</button>
 </div>
 </div>
-
 <script>
 const uploadBtn = document.getElementById('uploadBtn');
 const videoInput = document.getElementById('videoInput');
@@ -101,8 +99,8 @@ const videoGrid = document.getElementById('videoGrid');
 const uploadModal = document.getElementById('uploadModal');
 const confirmUpload = document.getElementById('confirmUpload');
 const cancelUpload = document.getElementById('cancelUpload');
+const labsBtn = document.getElementById('labsBtn');
 let selectedFile = null;
-
 // Show modal on upload button click
 uploadBtn.addEventListener('click', () => videoInput.click());
 
@@ -111,14 +109,12 @@ videoInput.addEventListener('change', () => {
     selectedFile = videoInput.files[0];
     if (selectedFile) uploadModal.style.display = 'flex';
 });
-
 // Cancel upload
 cancelUpload.addEventListener('click', () => {
     uploadModal.style.display = 'none';
     selectedFile = null;
     videoInput.value = '';
 });
-
 // Confirm upload
 confirmUpload.addEventListener('click', async () => {
     const title = document.getElementById('videoTitle').value.trim();
@@ -127,38 +123,32 @@ confirmUpload.addEventListener('click', async () => {
         alert('Please enter title and select a file'); 
         return; 
     }
-
     const formData = new FormData();
     formData.append('video', selectedFile);
     formData.append('title', title);
     formData.append('description', description);
-
     try {
         const res = await fetch('http://localhost:8080/upload', { 
             method: 'POST', 
             body: formData 
         });
-
         if (res.ok) {
             alert('Video uploaded successfully');
             loadVideos();
         } else {
             alert('Upload failed');
         }
-
         // ✅ Move these outside the else block
         uploadModal.style.display = 'none';
         selectedFile = null;
         videoInput.value = '';
         document.getElementById('videoTitle').value = '';
         document.getElementById('videoDesc').value = '';
-
     } catch(err) { 
         console.error('Error uploading video:', err); 
         alert('Upload error'); 
     }
 });
-
 async function loadVideos() {
     videoGrid.innerHTML = '';
     try {
@@ -184,7 +174,6 @@ async function loadVideos() {
         });
     } catch(err) { console.error('Error fetching videos:', err); }
 }
-
 // Initial load
 loadVideos();
 </script>

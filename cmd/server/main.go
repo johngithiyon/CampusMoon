@@ -37,10 +37,11 @@ func main() {
 	http.HandleFunc("/student", handlers.ServeStudent)
 	http.HandleFunc("/staff", handlers.ServeStaff)
 	http.HandleFunc("/login", handlers.LoginHandler)
+	http.HandleFunc("/labs",handlers.ServeLabs)
 
 	//poll
 
-	http.HandleFunc("/wspolls",handlers.Handlepoll)
+	http.HandleFunc("/polls", handlers.ServePoll)
 	fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
 }

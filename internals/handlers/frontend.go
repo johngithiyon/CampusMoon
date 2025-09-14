@@ -34,3 +34,7 @@ func ServeWelcome(w http.ResponseWriter, r *http.Request) {
 	tmpl, _ := template.New("welcome.html").ParseFiles("templates/welcome.html")
 	tmpl.Execute(w, nil)
 }
+
+func Cs(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "templates/cs.html")
+}

@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question</title>
+    <style>
+        /* Base Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            color: #1a73e8;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .add-question-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .add-question-btn:hover {
+            background-color: #3367d6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+        
+        .add-question-btn:before {
+            content: "+";
+            font-size: 24px;
+            margin-right: 8px;
+        }
+        
+        .form-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            display: none;
+            animation: slideDown 0.5s ease-out;
+            transform-origin: top;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: scaleY(0);
+            }
+            to {
+                opacity: 1;
+                transform: scaleY(1);
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #444;
+            font-size: 16px;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            border-color: #4285f4;
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .submit-btn {
+            background-color: #34a853;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 30px auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .submit-btn:hover {
+            background-color: #2d8e47;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+        
+        .questions-container {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Changed to exactly 2 columns */
+            gap: 80px; /* Significantly increased gap for more space between columns */
+        }
+        
+        /* Responsive design for smaller screens */
+        @media (max-width: 768px) {
+            .questions-container {
+                grid-template-columns: 1fr; /* Single column on smaller screens */
+                gap: 30px;
+            }
+        }
+        
+        .question-card {
+            background-color: white;
+            padding: 25px; /* Increased padding */
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            min-height: 400px; /* Changed to min-height for flexibility */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .question-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        
+        .question-card h3 {
+            margin-top: 0;
+            color: #1a73e8;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 12px;
+            font-size: 1.2rem;
+        }
+        
+        .question-card .section {
+            margin-bottom: 20px; /* Increased margin */
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .question-card .section-title {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px; /* Increased margin */
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .question-card pre {
+            background-color: #f8f9fa;
+            padding: 12px; /* Increased padding */
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 120px; /* Increased max-height */
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.5; /* Increased line-height */
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+            grid-column: 1 / -1;
+        }
+        
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #323232;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Additional Styles */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: #333;
+            transition: transform 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            transform: rotate(180deg);
+        }
+        
+        body.dark-mode {
+            background-color: #202124;
+            color: #e8eaed;
+        }
+        
+        body.dark-mode .header h1 {
+            color: #8ab4f8;
+        }
+        
+        body.dark-mode .form-container,
+        body.dark-mode .question-card {
+            background-color: #292a2d;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        body.dark-mode input,
+        body.dark-mode textarea {
+            background-color: #202124;
+            color: #e8eaed;
+            border-color: #5f6368;
+        }
+        
+        body.dark-mode label {
+            color: #e8eaed;
+        }
+        
+        body.dark-mode .question-card h3 {
+            color: #8ab4f8;
+            border-bottom-color: #5f6368;
+        }
+        
+        body.dark-mode .question-card .section-title {
+            color: #9aa0a6;
+        }
+        
+        body.dark-mode .question-card pre {
+            background-color: #202124;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(234, 67, 53, 0.8);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 10;
+        }
+        
+        .question-card:hover .delete-btn {
+            opacity: 1;
+        }
+        
+        .delete-btn:hover {
+            transform: scale(1.1);
+            background-color: rgba(234, 67, 53, 1);
+        }
+        
+        .expand-btn {
+            background: none;
+            border: none;
+            color: #1a73e8;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .expand-btn:hover {
+            text-decoration: underline;
+        }
+        
+        .card-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        
+        .question-card.expanded .card-details {
+            max-height: 400px; /* Increased max-height */
+        }
+        
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #4285f4;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .toast.success {
+            background-color: #34a853;
+        }
+        
+        .toast.error {
+            background-color: #ea4335;
+        }
+        
+        .toast.warning {
+            background-color: #fbbc05;
+        }
+        
+        .toast.info {
+            background-color: #4285f4;
+        }
+        
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.7);
+            animation: progress 3s linear forwards;
+        }
+        
+        @keyframes progress {
+            from {
+                width: 100%;
+            }
+            to {
+                width: 0%;
+            }
+        }
+        
+        /* Review System Styles */
+        .rating-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            gap: 5px;
+        }
+        
+        .star {
+            font-size: 18px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.2s;
+        }
+        
+        .star:hover,
+        .star.active {
+            color: #fbbc05;
+            transform: scale(1.1);
+        }
+        
+        .star:hover ~ .star {
+            color: #ddd;
+        }
+        
+        .rating-value {
+            margin-left: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .review-section {
+            margin-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 15px;
+        }
+        
+        .review-title {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .review-text {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+            max-height: 80px; /* Increased max-height */
+            overflow-y: auto;
+        }
+        
+        .review-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .review-btn {
+            background: none;
+            border: none;
+            color: #1a73e8;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .review-btn:hover {
+            background-color: #e8f0fe;
+        }
+        
+        body.dark-mode .review-section {
+            border-top-color: #5f6368;
+        }
+        
+        body.dark-mode .review-title {
+            color: #9aa0a6;
+        }
+        
+        body.dark-mode .review-text {
+            color: #e8eaed;
+        }
+        
+        body.dark-mode .review-btn:hover {
+            background-color: #1f3245;
+        }
+        
+        .review-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .review-modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            color: #333;
+            margin: 0;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        .close-modal:hover {
+            color: #333;
+        }
+        
+        .modal-rating {
+            margin-bottom: 20px;
+        }
+        
+        .modal-review-text {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+        
+        .modal-review-text:focus {
+            border-color: #4285f4;
+            outline: none;
+        }
+        
+        .submit-review-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .submit-review-btn:hover {
+            background-color: #3367d6;
+        }
+        
+        body.dark-mode .review-modal-content {
+            background-color: #292a2d;
+        }
+        
+        body.dark-mode .modal-title {
+            color: #e8eaed;
+        }
+        
+        body.dark-mode .close-modal {
+            color: #9aa0a6;
+        }
+        
+        body.dark-mode .close-modal:hover {
+            color: #e8eaed;
+        }
+        
+        body.dark-mode .modal-review-text {
+            background-color: #202124;
+            color: #e8eaed;
+            border-color: #5f6368;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Question</h1>
+        <button class="theme-toggle" id="themeToggle">🌙</button>
+        <button class="add-question-btn" id="addQuestionBtn">Add Question</button>
+    </div>
+    
+    <div class="form-container" id="questionFormContainer">
+        <form id="questionForm">
+            <div class="form-group">
+                <label for="question">Question:</label>
+                <textarea id="question" name="question" placeholder="Enter your question here..." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="input">Input:</label>
+                <textarea id="input" name="input" placeholder="Enter input parameters..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="output">Output:</label>
+                <textarea id="output" name="output" placeholder="Enter expected output..."></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn">Submit Question</button>
+        </form>
+    </div>
+    
+    <div class="spinner" id="spinner"></div>
+    
+    <div class="questions-container" id="questionsContainer">
+        <div class="empty-state" id="emptyState">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>No questions added yet. Click "Add Question" to get started!</p>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast">
+        <span id="toastMessage">Question added successfully!</span>
+        <div class="toast-progress"></div>
+    </div>
+    
+    <div class="review-modal" id="reviewModal">
+        <div class="review-modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Your Review</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            
+            <div class="modal-rating">
+                <div class="section-title">Rating:</div>
+                <div class="rating-container" id="modalRating">
+                    <span class="star" data-rating="1">★</span>
+                    <span class="star" data-rating="2">★</span>
+                    <span class="star" data-rating="3">★</span>
+                    <span class="star" data-rating="4">★</span>
+                    <span class="star" data-rating="5">★</span>
+                    <span class="rating-value">0/5</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="reviewText">Your Review:</label>
+                <textarea id="reviewText" class="modal-review-text" placeholder="Write your review here..."></textarea>
+            </div>
+            
+            <button class="submit-review-btn" id="submitReview">Submit Review</button>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const addQuestionBtn = document.getElementById('addQuestionBtn');
+            const questionFormContainer = document.getElementById('questionFormContainer');
+            const questionForm = document.getElementById('questionForm');
+            const questionsContainer = document.getElementById('questionsContainer');
+            const emptyState = document.getElementById('emptyState');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const themeToggle = document.getElementById('themeToggle');
+            const spinner = document.getElementById('spinner');
+            const reviewModal = document.getElementById('reviewModal');
+            const closeModal = document.getElementById('closeModal');
+            const submitReview = document.getElementById('submitReview');
+            const modalRating = document.getElementById('modalRating');
+            const reviewText = document.getElementById('reviewText');
+            
+            // State variables
+            let currentCardForReview = null;
+            let currentRating = 0;
+            
+            // Theme toggle functionality
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                if (document.body.classList.contains('dark-mode')) {
+                    themeToggle.textContent = '☀️';
+                } else {
+                    themeToggle.textContent = '🌙';
+                }
+            });
+            
+            // Show form when "Add Question" is clicked
+            addQuestionBtn.addEventListener('click', function() {
+                questionFormContainer.style.display = 'block';
+                questionFormContainer.scrollIntoView({ behavior: 'smooth' });
+                
+                // Reset animation for form groups
+                const formGroups = document.querySelectorAll('.form-group');
+                formGroups.forEach(group => {
+                    group.style.animation = 'none';
+                    setTimeout(() => {
+                        group.style.animation = '';
+                    }, 10);
+                });
+            });
+            
+            // Handle form submission
+            questionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loading spinner
+                spinner.style.display = 'block';
+                
+                // Simulate API call delay
+                setTimeout(() => {
+                    // Get form values
+                    const question = document.getElementById('question').value;
+                    const input = document.getElementById('input').value;
+                    const output = document.getElementById('output').value;
+                    
+                    // Hide empty state if it's the first question
+                    if (emptyState) {
+                        emptyState.style.display = 'none';
+                    }
+                    
+                    // Create question card
+                    const questionCard = createQuestionCard(question, input, output);
+                    
+                    // Add to questions container
+                    questionsContainer.appendChild(questionCard);
+                    
+                    // Reset form and hide it
+                    questionForm.reset();
+                    questionFormContainer.style.display = 'none';
+                    
+                    // Hide loading spinner
+                    spinner.style.display = 'none';
+                    
+                    // Show toast notification
+                    showToast('Question added successfully!', 'success');
+                    
+                    // Scroll to the new question
+                    setTimeout(() => {
+                        questionCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                    
+                    // Add event listeners to the new card
+                    setupCardEvents(questionCard);
+                }, 800); // Simulate network delay
+            });
+            
+            // Create question card
+            function createQuestionCard(question, input, output) {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'question-card';
+                
+                questionCard.innerHTML = `
+                    <button class="delete-btn" data-tooltip="Delete question">×</button>
+                    <h3>Question</h3>
+                    <div class="section">
+                        <div class="section-title">Question:</div>
+                        <pre>${question}</pre>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">Input:</div>
+                        <pre>${input || 'No input provided'}</pre>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">Output:</div>
+                        <pre>${output || 'No output provided'}</pre>
+                    </div>
+                    <div class="card-details">
+                        <div class="rating-container" data-rating="0">
+                            <span class="star" data-rating="1">★</span>
+                            <span class="star" data-rating="2">★</span>
+                            <span class="star" data-rating="3">★</span>
+                            <span class="star" data-rating="4">★</span>
+                            <span class="star" data-rating="5">★</span>
+                            <span class="rating-value">0/5</span>
+                        </div>
+                        <div class="review-actions">
+                            <button class="review-btn add-review-btn">Add Review</button>
+                        </div>
+                    </div>
+                    <button class="expand-btn">Show Details <span>▼</span></button>
+                `;
+                
+                return questionCard;
+            }
+            
+            // Setup card events
+            function setupCardEvents(card) {
+                const deleteBtn = card.querySelector('.delete-btn');
+                const expandBtn = card.querySelector('.expand-btn');
+                const details = card.querySelector('.card-details');
+                const expandIcon = expandBtn.querySelector('span');
+                const addReviewBtn = card.querySelector('.add-review-btn');
+                
+                // Delete button functionality
+                deleteBtn.addEventListener('click', function() {
+                    card.classList.add('deleting');
+                    showToast('Question deleted', 'info');
+                    setTimeout(() => {
+                        card.remove();
+                        
+                        // Show empty state if no questions left
+                        if (questionsContainer.children.length === 1) {
+                            emptyState.style.display = 'block';
+                        }
+                    }, 500);
+                });
+                
+                // Expand button functionality
+                expandBtn.addEventListener('click', function() {
+                    card.classList.toggle('expanded');
+                    if (card.classList.contains('expanded')) {
+                        expandBtn.innerHTML = 'Hide Details <span>▲</span>';
+                    } else {
+                        expandBtn.innerHTML = 'Show Details <span>▼</span>';
+                    }
+                });
+                
+                // Add review button functionality
+                if (addReviewBtn) {
+                    addReviewBtn.addEventListener('click', function() {
+                        currentCardForReview = card;
+                        reviewModal.style.display = 'flex';
+                        
+                        // Reset modal state
+                        currentRating = 0;
+                        reviewText.value = '';
+                        updateModalRating();
+                    });
+                }
+                
+                // Rating functionality
+                const stars = card.querySelectorAll('.star');
+                stars.forEach(star => {
+                    star.addEventListener('click', function() {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        updateCardRating(card, rating);
+                    });
+                    
+                    star.addEventListener('mouseover', function() {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        highlightStars(card, rating);
+                    });
+                });
+                
+                const ratingContainer = card.querySelector('.rating-container');
+                if (ratingContainer) {
+                    ratingContainer.addEventListener('mouseleave', function() {
+                        const currentRating = parseInt(this.getAttribute('data-rating') || 0);
+                        highlightStars(card, currentRating);
+                    });
+                }
+            }
+            
+            // Update card rating
+            function updateCardRating(card, rating) {
+                const ratingContainer = card.querySelector('.rating-container');
+                ratingContainer.setAttribute('data-rating', rating);
+                highlightStars(card, rating);
+                
+                const ratingValue = card.querySelector('.rating-value');
+                if (ratingValue) {
+                    ratingValue.textContent = `${rating}/5`;
+                }
+                
+                showToast(`You rated this question ${rating} star${rating !== 1 ? 's' : ''}`, 'success');
+            }
+            
+            // Highlight stars based on rating
+            function highlightStars(card, rating) {
+                const stars = card.querySelectorAll('.star');
+                stars.forEach((star, index) => {
+                    if (index < rating) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Update modal rating
+            function updateModalRating() {
+                const stars = modalRating.querySelectorAll('.star');
+                stars.forEach((star, index) => {
+                    if (index < currentRating) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+                
+                const ratingValue = modalRating.querySelector('.rating-value');
+                ratingValue.textContent = `${currentRating}/5`;
+            }
+            
+            // Modal rating functionality
+            const modalStars = modalRating.querySelectorAll('.star');
+            modalStars.forEach(star => {
+                star.addEventListener('click', function() {
+                    currentRating = parseInt(this.getAttribute('data-rating'));
+                    updateModalRating();
+                });
+                
+                star.addEventListener('mouseover', function() {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    const stars = modalRating.querySelectorAll('.star');
+                    stars.forEach((s, index) => {
+                        if (index < rating) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+                });
+            });
+            
+            modalRating.addEventListener('mouseleave', function() {
+                updateModalRating();
+            });
+            
+            // Close modal
+            closeModal.addEventListener('click', function() {
+                reviewModal.style.display = 'none';
+            });
+            
+            // Submit review
+            submitReview.addEventListener('click', function() {
+                if (currentRating === 0) {
+                    showToast('Please select a rating', 'warning');
+                    return;
+                }
+                
+                if (!reviewText.value.trim()) {
+                    showToast('Please write a review', 'warning');
+                    return;
+                }
+                
+                // Update the card with the review
+                if (currentCardForReview) {
+                    // Update rating
+                    updateCardRating(currentCardForReview, currentRating);
+                    
+                    // Update or add review text
+                    let reviewTextElement = currentCardForReview.querySelector('.review-text');
+                    if (!reviewTextElement) {
+                        // Create review section if it doesn't exist
+                        const reviewSection = document.createElement('div');
+                        reviewSection.className = 'review-section';
+                        reviewSection.innerHTML = `
+                            <div class="review-title">Review:</div>
+                            <div class="review-text"></div>
+                            <div class="review-actions">
+                                <button class="review-btn edit-review-btn">Edit Review</button>
+                                <button class="review-btn delete-review-btn">Delete Review</button>
+                            </div>
+                        `;
+                        
+                        const cardDetails = currentCardForReview.querySelector('.card-details');
+                        if (cardDetails) {
+                            cardDetails.appendChild(reviewSection);
+                        }
+                        
+                        reviewTextElement = currentCardForReview.querySelector('.review-text');
+                        
+                        // Add event listeners to the new buttons
+                        const editReviewBtn = currentCardForReview.querySelector('.edit-review-btn');
+                        const deleteReviewBtn = currentCardForReview.querySelector('.delete-review-btn');
+                        
+                        editReviewBtn.addEventListener('click', function() {
+                            currentCardForReview = currentCardForReview;
+                            currentRating = parseInt(currentCardForReview.querySelector('.rating-container').getAttribute('data-rating') || 0);
+                            reviewText.value = reviewTextElement.textContent;
+                            updateModalRating();
+                            reviewModal.style.display = 'flex';
+                        });
+                        
+                        deleteReviewBtn.addEventListener('click', function() {
+                            reviewSection.remove();
+                            showToast('Review deleted', 'info');
+                        });
+                    }
+                    
+                    reviewTextElement.textContent = reviewText.value;
+                }
+                
+                // Close modal and show success message
+                reviewModal.style.display = 'none';
+                showToast('Review submitted successfully!', 'success');
+            });
+            
+            // Toast notification function
+            function showToast(message, type = 'success') {
+                toastMessage.textContent = message;
+                toast.className = 'toast ' + type;
+                toast.style.display = 'block';
+                
+                // Reset progress bar animation
+                const progressBar = toast.querySelector('.toast-progress');
+                progressBar.style.animation = 'none';
+                setTimeout(() => {
+                    progressBar.style.animation = '';
+                }, 10);
+                
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 3000);
+            }
+            
+            // Form validation
+            const questionTextarea = document.getElementById('question');
+            questionTextarea.addEventListener('blur', function() {
+                if (!this.value.trim()) {
+                    this.parentElement.classList.add('invalid');
+                    showToast('Question is required', 'error');
+                } else {
+                    this.parentElement.classList.remove('invalid');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

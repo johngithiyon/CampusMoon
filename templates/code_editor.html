@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Monaco Code Runner</title>
+
+  <!-- Monaco Editor CSS -->
+  <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/editor/editor.main.min.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .editor-container {
+      height: 400px;
+    }
+
+    #monaco-editor {
+      height: 100%;
+      width: 100%;
+      border-top: 1px solid #eee;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: #f9f9f9;
+    }
+
+    #run-btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #run-btn:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
+
+    .output-container {
+      padding: 20px;
+    }
+
+    #output {
+      background: #f8f9fa;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      padding: 15px;
+      min-height: 150px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+
+    .language-selector {
+      margin: 10px 20px 0 20px;
+    }
+
+    select {
+      padding: 5px;
+      font-size: 16px;
+    }
+
+    .error {
+      color: #e74c3c;
+    }
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Monaco Code Runner</h1>
+      <p>Write and execute Python, C, or Go code</p>
+    </header>
+
+    <div class="language-selector">
+      <label for="language-select">Language:</label>
+      <select id="language-select">
+        <option value="python">Python</option>
+        <option value="c">C</option>
+        <option value="go">Go</option>
+      </select>
+    </div>
+
+    <div class="editor-container">
+      <div id="monaco-editor"></div>
+    </div>
+
+    <div class="controls">
+      <button id="run-btn"><i class="fas fa-play"></i> Run Code</button>
+      <div class="status" id="status">Ready</div>
+    </div>
+
+    <div class="output-container">
+      <div><strong>Output:</strong></div>
+      <div id="output">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Monaco Editor Loader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
+  <script>
+    let editor;
+    let language = 'python';
+    const defaultCode = {
+      python: `print("Hello from Python!")`,
+      c: `#include <stdio.h>\nint main() {\n    printf("Hello from C!\\n");\n    return 0;\n}`,
+      go: `package main\nimport "fmt"\nfunc main() {\n    fmt.Println("Hello from Go!")\n}`
+    };
+
+    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' } });
+    require(['vs/editor/editor.main'], function () {
+      editor = monaco.editor.create(document.getElementById('monaco-editor'), {
+        value: defaultCode[language],
+        language: language,
+        theme: "vs-dark",
+        automaticLayout: true,
+      });
+    });
+
+    document.getElementById('language-select').addEventListener('change', function () {
+      language = this.value;
+      const model = monaco.editor.createModel(defaultCode[language], language);
+      editor.setModel(model);
+    });
+
+    document.getElementById('run-btn').addEventListener('click', async () => {
+      const code = editor.getValue();
+      const runBtn = document.getElementById('run-btn');
+      const status = document.getElementById('status');
+      const output = document.getElementById('output');
+
+      if (!code.trim()) {
+        output.innerHTML = `<span class="error">Please write some code first.</span>`;
+        return;
+      }
+
+      runBtn.disabled = true;
+      runBtn.innerHTML = `<i class="fas fa-spinner spinner"></i> Running...`;
+      status.textContent = 'Running...';
+      output.textContent = 'Waiting for server response...';
+
+      try {
+        const res = await fetch('http://localhost:8080/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ language, code })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          output.textContent = data.output || "Code executed successfully (no output)";
+        } else {
+          output.innerHTML = `<span class="error">Error: ${data.error || res.statusText}</span>`;
+        }
+
+        status.textContent = 'Execution complete';
+      } catch (err) {
+        console.error(err);
+        output.innerHTML = `<span class="error">Execution failed: ${err.message}</span>`;
+        status.textContent = 'Execution failed';
+      } finally {
+        runBtn.disabled = false;
+        runBtn.innerHTML = `<i class="fas fa-play"></i> Run Code`;
+      }
+    });
+  </script>
+</body>
+</html>

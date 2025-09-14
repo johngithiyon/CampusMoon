@@ -48,6 +48,13 @@ func main() {
 	http.HandleFunc("/polls", handlers.ServePoll)	
 	http.HandleFunc("/ws_poll", handlers.HandleConnectionsPoll)
 	go handlers.HandleMessagesPoll()
+
+	//code 
+	http.HandleFunc("/run", handlers.RunHandler)
+	http.HandleFunc("/code", handlers.ServeCodeRunner)
+	http.HandleFunc("/cs", handlers.Cs)
+	// Start server
 	fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
+
 }

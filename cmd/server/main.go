@@ -22,6 +22,8 @@ func main() {
 	http.HandleFunc("/upload", handlers.UploadHandler)
 	http.HandleFunc("/videos", handlers.VideosHandler)
 	http.HandleFunc("/delete", handlers.DeleteVideoHandler)
+	http.HandleFunc("/watch", handlers.VideoPageHandler)
+
 
 
 	// WebRTC + Chat (pass DB)

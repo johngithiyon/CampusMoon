@@ -21,6 +21,8 @@ func main() {
 	http.HandleFunc("/meet", handlers.ServeMeet)
 	http.HandleFunc("/upload", handlers.UploadHandler)
 	http.HandleFunc("/videos", handlers.VideosHandler)
+	http.HandleFunc("/delete", handlers.DeleteVideoHandler)
+
 
 	// WebRTC + Chat (pass DB)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {

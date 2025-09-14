@@ -12,6 +12,11 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
+
+type DeleteRequest struct {
+	Filename string `json:"filename"`
+}
+
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -81,4 +86,36 @@ func VideosHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(videos)
+}
+
+
+func DeleteVideoHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req DeleteRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil || req.Filename == "" {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Remove from MinIO
+	err = storage.MinioClient.RemoveObject(context.Background(), storage.BucketName, req.Filename, minio.RemoveObjectOptions{})
+	if err != nil {
+		http.Error(w, "Failed to delete from MinIO", http.StatusInternalServerError)
+		return
+	}
+
+	// Remove from DB
+	_, err = storage.DB.Exec("DELETE FROM videos WHERE filename = $1", req.Filename)
+	if err != nil {
+		http.Error(w, "Failed to delete from DB", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "✅ Video deleted successfully")
 }

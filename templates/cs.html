@@ -616,6 +616,49 @@
             color: #e8eaed;
             border-color: #5f6368;
         }
+        
+        /* Code Editor Button Styles */
+        .code-editor-btn {
+            background-color: #f25c54;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-left: 15px;
+        }
+        
+        .code-editor-btn:hover {
+            background-color: #e0483f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+        
+        .code-editor-btn:before {
+            content: "</>";
+            font-size: 18px;
+            margin-right: 8px;
+        }
+        
+        .question-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .question-card .code-editor-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -642,7 +685,10 @@
                 <textarea id="output" name="output" placeholder="Enter expected output..."></textarea>
             </div>
             
-            <button type="submit" class="submit-btn">Submit Question</button>
+            <div class="question-actions">
+                <button type="submit" class="submit-btn">Submit Question</button>
+                <button type="button" class="code-editor-btn" id="formCodeEditorBtn">Try in Code Editor</button>
+            </div>
         </form>
     </div>
     
@@ -694,6 +740,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             // DOM Elements
             const addQuestionBtn = document.getElementById('addQuestionBtn');
+            const codeEditorBtn = document.getElementById('codeEditorBtn');
+            const formCodeEditorBtn = document.getElementById('formCodeEditorBtn');
             const questionFormContainer = document.getElementById('questionFormContainer');
             const questionForm = document.getElementById('questionForm');
             const questionsContainer = document.getElementById('questionsContainer');
@@ -711,6 +759,12 @@
             // State variables
             let currentCardForReview = null;
             let currentRating = 0;
+            
+            // Function to redirect to code editor
+            function redirectToCodeEditor() {
+                // You can pass question data as URL parameters if needed
+                window.location.href = 'code_editor.html';
+            }
             
             // Theme toggle functionality
             themeToggle.addEventListener('click', function() {
@@ -735,6 +789,24 @@
                         group.style.animation = '';
                     }, 10);
                 });
+            });
+            
+            // Redirect to code editor when "Open Code Editor" button is clicked
+            codeEditorBtn.addEventListener('click', redirectToCodeEditor);
+            
+            // Redirect to code editor when "Try in Code Editor" button is clicked in form
+            formCodeEditorBtn.addEventListener('click', function() {
+                // Get form values to potentially pass to the code editor
+                const question = document.getElementById('question').value;
+                const input = document.getElementById('input').value;
+                const output = document.getElementById('output').value;
+                
+                // Store the values in sessionStorage to use in the code editor
+                if (question) sessionStorage.setItem('currentQuestion', question);
+                if (input) sessionStorage.setItem('currentInput', input);
+                if (output) sessionStorage.setItem('currentOutput', output);
+                
+                redirectToCodeEditor();
             });
             
             // Handle form submission
@@ -816,6 +888,7 @@
                         </div>
                     </div>
                     <button class="expand-btn">Show Details <span>▼</span></button>
+                    <button class="code-editor-btn">Code Editor</button>
                 `;
                 
                 return questionCard;
@@ -828,6 +901,7 @@
                 const details = card.querySelector('.card-details');
                 const expandIcon = expandBtn.querySelector('span');
                 const addReviewBtn = card.querySelector('.add-review-btn');
+                const codeEditorBtn = card.querySelector('.code-editor-btn');
                 
                 // Delete button functionality
                 deleteBtn.addEventListener('click', function() {
@@ -851,6 +925,21 @@
                     } else {
                         expandBtn.innerHTML = 'Show Details <span>▼</span>';
                     }
+                });
+                
+                // Code editor button functionality
+                codeEditorBtn.addEventListener('click', function() {
+                    // Get question data from the card
+                    const question = card.querySelector('.section:nth-child(2) pre').textContent;
+                    const input = card.querySelector('.section:nth-child(3) pre').textContent;
+                    const output = card.querySelector('.section:nth-child(4) pre').textContent;
+                    
+                    // Store the values in sessionStorage to use in the code editor
+                    sessionStorage.setItem('currentQuestion', question);
+                    sessionStorage.setItem('currentInput', input);
+                    sessionStorage.setItem('currentOutput', output);
+                    
+                    redirectToCodeEditor();
                 });
                 
                 // Add review button functionality
@@ -1056,5 +1145,4 @@
         });
     </script>
 </body>
-
 </html>

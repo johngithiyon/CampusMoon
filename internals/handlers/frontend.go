@@ -38,3 +38,7 @@ func ServeWelcome(w http.ResponseWriter, r *http.Request) {
 func Cs(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "templates/cs.html")
 }
+
+func Serveelabs(w http.ResponseWriter,r *http.Request) {
+	http.ServeFile(w,r,"templates/e.html")
+}

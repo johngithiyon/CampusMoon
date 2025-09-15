@@ -7,6 +7,7 @@
 
   <!-- Monaco Editor CSS -->
   <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/editor/editor.main.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: sans-serif;
@@ -49,7 +50,7 @@
       background: #f9f9f9;
     }
 
-    #run-btn {
+    #run-btn, #next-page-btn {
       background: #3498db;
       color: white;
       border: none;
@@ -60,6 +61,11 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      transition: background 0.2s;
+    }
+
+    #run-btn:hover, #next-page-btn:hover {
+      background: #2980b9;
     }
 
     #run-btn:disabled {
@@ -128,6 +134,7 @@
 
     <div class="controls">
       <button id="run-btn"><i class="fas fa-play"></i> Run Code</button>
+      <button id="next-page-btn"><i class="fas fa-arrow-right"></i> Send to Page</button>
       <div class="status" id="status">Ready</div>
     </div>
 
@@ -137,14 +144,13 @@
     </div>
   </div>
 
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <!-- Monaco Editor Loader -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
   <script>
     let editor;
     let language = 'python';
+    let latestOutput = ""; // Store the latest output for navigation
+
     const defaultCode = {
       python: `print("Hello from Python!")`,
       c: `#include <stdio.h>\nint main() {\n    printf("Hello from C!\\n");\n    return 0;\n}`,
@@ -194,6 +200,7 @@
 
         if (res.ok) {
           output.textContent = data.output || "Code executed successfully (no output)";
+          latestOutput = data.output; // Store for next page
         } else {
           output.innerHTML = `<span class="error">Error: ${data.error || res.statusText}</span>`;
         }
@@ -207,6 +214,17 @@
         runBtn.disabled = false;
         runBtn.innerHTML = `<i class="fas fa-play"></i> Run Code`;
       }
+    });
+
+    // Redirect to another page with output
+    document.getElementById('next-page-btn').addEventListener('click', () => {
+      if (!latestOutput) {
+        alert("Please run code before navigating.");
+        return;
+      }
+
+      const encodedOutput = encodeURIComponent(latestOutput);
+      window.location.href = `http://localhost:8080/cs.html?output=${encodedOutput}`;
     });
   </script>
 </body>

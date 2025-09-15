@@ -53,6 +53,7 @@ func main() {
 	http.HandleFunc("/run", handlers.RunHandler)
 	http.HandleFunc("/code", handlers.ServeCodeRunner)
 	http.HandleFunc("/cs", handlers.Cs)
+	http.HandleFunc("/elabs",handlers.Serveelabs)
 	// Start server
 	fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))

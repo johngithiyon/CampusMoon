@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electronic Virtual Labs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #0d47a1;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+        
+        .lab-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .lab-box {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid #e0e0e0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .lab-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: #0d47a1;
+        }
+        
+        .lab-image-container {
+            width: 100%;
+            height: 180px;
+            overflow: hidden;
+            position: relative;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f8f9fa;
+        }
+        
+        .lab-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        
+        /* Special styling for DC Circuit image to remove bottom text */
+        .dc-circuit-image .lab-image {
+            height: 75%;
+            width: auto;
+            margin-top: -25px;
+            position: relative;
+            top: -10px;
+        }
+        
+        .lab-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .lab-name {
+            font-weight: 600;
+            color: #0d47a1;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+        
+        .lab-description {
+            color: #555;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            flex-grow: 1;
+        }
+        
+        .iframe-container {
+            width: 100%;
+            height: 85vh;
+            border: 2px solid #0d47a1;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background-color: white;
+            display: none;
+        }
+        
+        .iframe-container.active {
+            display: block;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .back-button {
+            display: none;
+            margin: 20px 0;
+            padding: 14px 30px;
+            background-color: #0d47a1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 8px rgba(13, 71, 161, 0.3);
+        }
+        
+        .back-button:hover {
+            background-color: #1565c0;
+        }
+        
+        .back-button.active {
+            display: inline-block;
+        }
+        
+        @media (max-width: 768px) {
+            .lab-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .lab-name {
+                font-size: 1.2rem;
+            }
+            
+            .lab-image-container {
+                height: 160px;
+            }
+            
+            .dc-circuit-image .lab-image {
+                height: 70%;
+                margin-top: -20px;
+                top: -5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>ECE Virtual Labs</h1>
+    
+    <div class="lab-grid" id="labGrid">
+        <!-- Row 1 -->
+        <div class="lab-box" data-iframe="https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_en.html">
+            <div class="lab-image-container">
+                <img src="https://img.freepik.com/premium-vector/circuit-logo-template-vector-illustration-icon-design_806019-3730.jpg" alt="Circuit Construction Kit" class="lab-image">
+            </div>
+            <div class="lab-content">
+                <div class="lab-name">Circuit Construction Kit</div>
+                <div class="lab-description">
+                    Interactive 3D circuit builder with realistic components. Ideal for teaching Ohm's Law, Kirchhoff's Laws, and basic circuit analysis.
+                </div>
+            </div>
+        </div>
+        
+        <div class="lab-box" data-iframe="https://www.falstad.com/circuit/circuitjs.html">
+            <div class="lab-image-container">
+                <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Falstad Circuit" class="lab-image">
+            </div>
+            <div class="lab-content">
+                <div class="lab-name">Falstad Circuit</div>
+                <div class="lab-description">
+                    Advanced 3D circuit visualization with real-time current flow animation. Great for understanding complex circuit behavior and electronics concepts.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Row 2 -->
+        <div class="lab-box" data-iframe="https://phet.colorado.edu/sims/html/ohms-law/latest/ohms-law_en.html">
+            <div class="lab-image-container">
+                <img src="https://www.edbod.com/wp-content/uploads/2023/11/OHMS-Law-wal.png" alt="Ohm's Law" class="lab-image">
+            </div>
+            <div class="lab-content">
+                <div class="lab-name">Ohm's Law</div>
+                <div class="lab-description">
+                    Interactive simulation to explore the relationship between voltage, current, and resistance. Visualize how changes in these parameters affect circuit behavior.
+                </div>
+            </div>
+        </div>
+        
+        <div class="lab-box" data-iframe="https://phet.colorado.edu/sims/html/circuit-construction-kit-dc-virtual-lab/latest/circuit-construction-kit-dc-virtual-lab_en.html">
+            <div class="lab-image-container dc-circuit-image">
+                <img src="https://dc-circuits.com/uploads/allimg/20220820/1-220R020461W44.png" alt="DC Circuit" class="lab-image">
+            </div>
+            <div class="lab-content">
+                <div class="lab-name">DC Circuit</div>
+                <div class="lab-description">
+                    Advanced DC circuit simulation with realistic components. Build series and parallel circuits, measure voltage and current, and explore circuit behavior.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Row 3 -->
+        <div class="lab-box" data-iframe="https://phet.colorado.edu/sims/html/capacitor-lab-basics/latest/capacitor-lab-basics_en.html">
+            <div class="lab-image-container">
+                <img src="https://img.freepik.com/premium-vector/capacitor-symbol-vector-symbol-design-engineering-symbols_773275-696.jpg" alt="Capacitor" class="lab-image">
+            </div>
+            <div class="lab-content">
+                <div class="lab-name">Capacitor</div>
+                <div class="lab-description">
+                    Explore how a capacitor works in this interactive 3D lab. Change the size of the plates and add a dielectric to see the effect on capacitance.
+                </div>
+            </div>
+        </div>
+        
+        <div class="lab-box" data-iframe="https://phet.colorado.edu/sims/html/resistance-in-a-wire/latest/resistance-in-a-wire_en.html">
+            <div class="lab-image-container">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPifkHJlJqKqbDgKy-JVdNxnbjFJ4jMWuNUkED-bm8qS8fCf53LdKBDTmFi7o912aR0QM&usqp=CAU" alt="Resistance in a Wire" class="lab-image">
+            </div>
+            <div class="lab-content">
+                <div class="lab-name">Resistance in a Wire</div>
+                <div class="lab-description">
+                    Interactive simulation to explore how resistivity, length, and area of cross-section affect the resistance of a wire. Visualize electron flow and resistance changes.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button id="backButton" class="back-button">← Back to Lab List</button>
+    
+    <div id="iframeContainer" class="iframe-container">
+        <iframe id="labIframe" src="" allowfullscreen></iframe>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const labGrid = document.getElementById('labGrid');
+            const iframeContainer = document.getElementById('iframeContainer');
+            const labIframe = document.getElementById('labIframe');
+            const backButton = document.getElementById('backButton');
+            const labBoxes = document.querySelectorAll('.lab-box');
+            
+            // Add click event to each lab box
+            labBoxes.forEach(box => {
+                box.addEventListener('click', function() {
+                    const iframeUrl = this.getAttribute('data-iframe');
+                    
+                    // Set iframe source
+                    labIframe.src = iframeUrl;
+                    
+                    // Show iframe container and back button
+                    iframeContainer.classList.add('active');
+                    backButton.classList.add('active');
+                    
+                    // Hide grid
+                    labGrid.style.display = 'none';
+                    
+                    // Scroll to top of iframe
+                    window.scrollTo({
+                        top: iframeContainer.offsetTop - 20,
+                        behavior: 'smooth'
+                    });
+                });
+            });
+            
+            // Back button functionality
+            backButton.addEventListener('click', function() {
+                // Hide iframe container and back button
+                iframeContainer.classList.remove('active');
+                backButton.classList.remove('active');
+                
+                // Show grid
+                labGrid.style.display = 'grid';
+                
+                // Scroll to top of grid
+                window.scrollTo({
+                    top: labGrid.offsetTop - 20,
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

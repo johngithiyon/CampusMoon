@@ -4,29 +4,36 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
-	"CampusMoon/internals/storage"
 	"CampusMoon/internals/handlers"
+	"CampusMoon/internals/storage"
 )
 
 func main() {
-	// Init DB
+	// Initialize database and MinIO
 	storage.InitDB()
-
-	// Init MinIO
 	storage.InitMinIO()
 
-	// Routes
-	http.HandleFunc("/", handlers.ServeHome)
+	// Setup SMTP Config from environment variables
+	handlers.SMTPConfig = handlers.SMTPConfiguration{
+		Host:     getEnv("SMTP_HOST", "smtp.gmail.com"),
+		Port:     getEnv("SMTP_PORT", "587"),
+		Username: getEnv("SMTP_USERNAME", ""),
+		Password: getEnv("SMTP_PASSWORD", ""),
+		From:     getEnv("SMTP_FROM", ""),
+	}
+
+	// Setup routes
+	http.HandleFunc("/email", handlers.ServeEmail)
+	http.HandleFunc("/send-email", handlers.SendEmailHandler)
 	http.HandleFunc("/meet", handlers.ServeMeet)
 	http.HandleFunc("/upload", handlers.UploadHandler)
 	http.HandleFunc("/videos", handlers.VideosHandler)
 	http.HandleFunc("/delete", handlers.DeleteVideoHandler)
 	http.HandleFunc("/watch", handlers.VideoPageHandler)
 
-
-
-	// WebRTC + Chat (pass DB)
+	// WebRTC + Chat
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		handlers.Handlewebrtc(w, r, storage.DB)
 	})
@@ -41,21 +48,30 @@ func main() {
 	http.HandleFunc("/student", handlers.ServeStudent)
 	http.HandleFunc("/staff", handlers.ServeStaff)
 	http.HandleFunc("/login", handlers.LoginHandler)
-	http.HandleFunc("/labs",handlers.ServeLabs)
+	http.HandleFunc("/labs", handlers.ServeLabs)
 
-	//poll
-
-	http.HandleFunc("/polls", handlers.ServePoll)	
+	// Poll
+	http.HandleFunc("/polls", handlers.ServePoll)
 	http.HandleFunc("/ws_poll", handlers.HandleConnectionsPoll)
 	go handlers.HandleMessagesPoll()
 
-	//code 
+	// Code runner
 	http.HandleFunc("/run", handlers.RunHandler)
 	http.HandleFunc("/code", handlers.ServeCodeRunner)
 	http.HandleFunc("/cs", handlers.Cs)
-	http.HandleFunc("/elabs",handlers.Serveelabs)
-	// Start server
-	fmt.Println("🚀 Server running at http://localhost:8080")
-	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
+	http.HandleFunc("/elabs", handlers.Serveelabs)
 
+	http.HandleFunc("/", handlers.ServeHome)
+
+	// Start server
+	port := getEnv("PORT", "8080")
+	fmt.Printf("🚀 Server running at http://localhost:%s\n", port)
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, nil))
+}
+
+func getEnv(key, defaultVal string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return defaultVal
 }

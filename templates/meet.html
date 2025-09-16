@@ -800,9 +800,43 @@
     .avatar-control-btn:hover {
       background-color: rgba(0, 0, 0, 0.7);
     }
+    
+    /* New Send Mail Button Styles */
+    .mail-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      z-index: 1003;
+    }
+    
+    .mail-button:hover {
+      background-color: #3a5ad9;
+      transform: scale(1.05);
+    }
+    
+    .mail-button i {
+      font-size: 1.2rem;
+    }
   </style>
 </head>
 <body>
+  <!-- New Send Mail Button -->
+  <button class="mail-button" title="Send Mail" onclick="window.location.href='http://localhost:8080/email'">
+    <i class="fas fa-envelope"></i>
+  </button>
+
   <div class="container">
     <header>
       <h1>Multiparty Video Chat with Sign Language</h1>

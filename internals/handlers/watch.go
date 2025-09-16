@@ -6,6 +6,7 @@ import (
     "fmt"
     "html/template"
     "net/http"
+
 )
 
 type VideoPageData struct {
@@ -18,21 +19,37 @@ type VideoPageData struct {
 var tmpl = template.Must(template.ParseFiles("templates/watch.html"))
 
 func VideoPageHandler(w http.ResponseWriter, r *http.Request) {
-    // Get video ID from query string
+    // Get parameters from query string
     id := r.URL.Query().Get("id")
-    if id == "" {
-        http.Error(w, "Missing video ID", http.StatusBadRequest)
+    filename := r.URL.Query().Get("filename")
+    
+    // Get title and description from query parameters if available
+    title := r.URL.Query().Get("title")
+    description := r.URL.Query().Get("description")
+    
+    if id == "" && filename == "" {
+        http.Error(w, "Missing video identifier", http.StatusBadRequest)
         return
     }
 
-    // Get video info from DB
-    var title, description, filename string
+    var dbTitle, dbDescription, dbFilename string
     var notesFilename sql.NullString
-    err := storage.DB.QueryRow(`
-        SELECT title, description, filename, notes_filename
-        FROM videos
-        WHERE id = $1
-    `, id).Scan(&title, &description, &filename, &notesFilename)
+    var err error
+
+    // Query by ID if provided, otherwise by filename
+    if id != "" {
+        err = storage.DB.QueryRow(`
+            SELECT title, description, filename, notes_filename
+            FROM videos
+            WHERE id = $1
+        `, id).Scan(&dbTitle, &dbDescription, &dbFilename, &notesFilename)
+    } else {
+        err = storage.DB.QueryRow(`
+            SELECT title, description, filename, notes_filename
+            FROM videos
+            WHERE filename = $1
+        `, filename).Scan(&dbTitle, &dbDescription, &dbFilename, &notesFilename)
+    }
 
     if err != nil {
         if err == sql.ErrNoRows {
@@ -41,6 +58,19 @@ func VideoPageHandler(w http.ResponseWriter, r *http.Request) {
             http.Error(w, "Database error", http.StatusInternalServerError)
         }
         return
+    }
+
+    // Use title and description from query parameters if provided, otherwise use DB values
+    if title == "" {
+        title = dbTitle
+    }
+    if description == "" {
+        description = dbDescription
+    }
+    
+    // If filename was not provided in the query, use the one from DB
+    if filename == "" {
+        filename = dbFilename
     }
 
     // Construct full URLs

@@ -181,6 +181,31 @@
     .video-delete-btn{background:rgba(255,255,255,0.1);border:none;padding:8px 12px;border-radius:20px;color:white;cursor:pointer;transition:all 0.3s ease;}
     .video-delete-btn:hover{background:rgba(255,0,0,0.3);}
     
+    /* Search results message */
+    .search-results-message {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.9);
+      display: none;
+    }
+    
+    /* Clear search button */
+    .clear-search-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      margin-left: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: none;
+    }
+    .clear-search-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
     /* Modal Styles */
     .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;justify-content:center;align-items:center;}
     .modal-content{background:#222;padding:30px;border-radius:15px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;}
@@ -262,7 +287,10 @@
       <div class="subject-search-container">
         <input type="text" id="subjectSearchInput" placeholder="Search in this subject..." data-translate-placeholder="search_subject_content">
         <button id="subjectSearchBtn"><i class="fas fa-search"></i></button>
+        <button id="clearSearchBtn" class="clear-search-btn"><i class="fas fa-times"></i></button>
       </div>
+
+      <div id="searchResultsMessage" class="search-results-message"></div>
 
       <div class="subject-actions">
         <button class="subject-action-btn" id="uploadBtn">
@@ -320,6 +348,10 @@
               </label>
             </div>
           </div>
+          <!-- Hidden field for subject ID -->
+          <div class="form-group" style="display: none;">
+            <input type="hidden" id="subjectId" name="subjectId">
+          </div>
           <div class="progress-container" id="progressContainer">
             <div class="progress-bar">
               <div class="progress" id="progressBar"></div>
@@ -363,6 +395,8 @@
         "back": "Back",
         "upload_videos": "Upload Videos",
         "chatbot": "Chatbot",
+        "no_results": "No videos found matching your search.",
+        "showing_results": "Showing {count} videos matching your search.",
         // Subject translations
         "artificial_intelligence": "Artificial Intelligence",
         "ai_desc": "Machine learning, neural networks, and intelligent systems",
@@ -409,6 +443,8 @@
         "back": "திரும்பு",
         "upload_videos": "வீடியோக்களைப் பதிவேற்று",
         "chatbot": "அரட்டை இயந்திரம்",
+        "no_results": "உங்கள் தேடலுக்கு பொருந்தும் வீடியோக்கள் எதுவும் இல்லை.",
+        "showing_results": "உங்கள் தேடலுக்கு பொருந்தும் {count} வீடியோக்களைக் காட்டுகிறது.",
         // Subject translations
         "artificial_intelligence": "செயற்கை நுண்ணறிவு",
         "ai_desc": "இயந்திர கற்றல், நரம்பியல் நெட்வொர்க்குகள் மற்றும் நுண்ணறிவு அமைப்புகள்",
@@ -455,6 +491,8 @@
         "back": "वापस",
         "upload_videos": "वीडियो अपलोड करें",
         "chatbot": "चैटबॉट",
+        "no_results": "आपकी खोज से मेल खाने वाला कोई वीडियो नहीं मिला।",
+        "showing_results": "आपकी खोज से मेल खाने वाले {count} वीडियो दिखा रहे हैं।",
         // Subject translations
         "artificial_intelligence": "कृत्रिम बुद्धिमत्ता",
         "ai_desc": "मशीन लर्निंग, न्यूरल नेटवर्क और इंटेलिजेंट सिस्टम",
@@ -501,6 +539,8 @@
         "back": "वापस",
         "upload_videos": "वीडियो अपलोड करो",
         "chatbot": "चैटबॉट",
+        "no_results": "आपकी खोज से मेल खाने वाला कोई वीडियो नहीं मिला।",
+        "showing_results": "आपकी खोज से मेल खाने वाले {count} वीडियो दिखा रहे हैं।",
         // Subject translations
         "artificial_intelligence": "कृत्रिम बुद्धिमत्ता",
         "ai_desc": "मशीन लर्निंग, न्यूरल नेटवर्क और इंटेलिजेंट सिस्टम",
@@ -527,6 +567,8 @@
 
     // Language management
     let currentLanguage = 'en';
+    let currentSubjectId = null; // Track current subject ID
+    let allVideos = []; // Store all videos for the current subject
 
     function setLanguage(lang) {
       if (!translations[lang]) return;
@@ -617,6 +659,7 @@
 
     // Show subject page
     function showSubjectPage(subjectId) {
+      currentSubjectId = subjectId; // Store the current subject ID
       const subject = subjects.find(s => s.id === subjectId);
       if (!subject) return;
       
@@ -627,6 +670,11 @@
       document.getElementById('subjectTitle').textContent = subjectName;
       document.getElementById('mainPage').style.display = 'none';
       document.getElementById('subjectPage').style.display = 'block';
+      
+      // Clear search when entering a new subject
+      document.getElementById('subjectSearchInput').value = '';
+      document.getElementById('clearSearchBtn').style.display = 'none';
+      document.getElementById('searchResultsMessage').style.display = 'none';
       
       // Load videos for this subject
       loadVideos();
@@ -641,13 +689,15 @@
     // Load videos from the backend
     async function loadVideos() {
       try {
-        const response = await fetch('http://localhost:8080/videos');
+        // Include the current subject ID in the request
+        const response = await fetch(`http://localhost:8080/videos?subjectId=${currentSubjectId}`);
         if (!response.ok) {
           throw new Error('Failed to load videos');
         }
         
         const videos = await response.json();
-        displayVideos(videos);
+        allVideos = videos; // Store all videos for filtering
+        displayVideos(allVideos); // Display all videos initially
       } catch (error) {
         console.error('Error loading videos:', error);
         // Show error message to user
@@ -704,6 +754,36 @@
       });
     }
 
+    // Filter videos based on search term
+    function filterVideos(searchTerm) {
+      if (!searchTerm) {
+        // If search term is empty, show all videos
+        displayVideos(allVideos);
+        document.getElementById('searchResultsMessage').style.display = 'none';
+        return;
+      }
+      
+      const term = searchTerm.toLowerCase();
+      const filteredVideos = allVideos.filter(video => {
+        const title = video.title ? video.title.toLowerCase() : '';
+        const description = video.description ? video.description.toLowerCase() : '';
+        return title.includes(term) || description.includes(term);
+      });
+      
+      displayVideos(filteredVideos);
+      
+      // Show search results message
+      const resultsMessage = document.getElementById('searchResultsMessage');
+      resultsMessage.style.display = 'block';
+      
+      if (filteredVideos.length === 0) {
+        resultsMessage.textContent = translations[currentLanguage].no_results || "No videos found matching your search.";
+      } else {
+        const message = translations[currentLanguage].showing_results || "Showing {count} videos matching your search.";
+        resultsMessage.textContent = message.replace('{count}', filteredVideos.length);
+      }
+    }
+
     // Play video - redirect to watch page with all video information
     function playVideo(filename, title, description) {
       // Create a URL with all video parameters
@@ -727,7 +807,10 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ filename: filename })
+          body: JSON.stringify({ 
+            filename: filename,
+            subjectId: currentSubjectId // Include subject ID in delete request
+          })
         });
         
         if (!response.ok) {
@@ -737,6 +820,15 @@
         // Remove the video card from the UI
         const videoCard = buttonElement.closest('.video-card');
         videoCard.remove();
+        
+        // Also remove from allVideos array
+        allVideos = allVideos.filter(video => video.filename !== filename);
+        
+        // If there's an active search, re-apply the filter
+        const searchTerm = document.getElementById('subjectSearchInput').value;
+        if (searchTerm) {
+          filterVideos(searchTerm);
+        }
         
         // Show success message
         alert('Video deleted successfully');
@@ -780,12 +872,17 @@
       // Set up subject page search functionality
       const subjectSearchInput = document.getElementById('subjectSearchInput');
       const subjectSearchBtn = document.getElementById('subjectSearchBtn');
+      const clearSearchBtn = document.getElementById('clearSearchBtn');
       
       function performSubjectSearch() {
         const searchTerm = subjectSearchInput.value.trim();
+        filterVideos(searchTerm);
+        
+        // Show/hide clear button based on search term
         if (searchTerm) {
-          alert(`Searching for "${searchTerm}" in this subject`);
-          // Here you would implement the actual search functionality
+          clearSearchBtn.style.display = 'inline-block';
+        } else {
+          clearSearchBtn.style.display = 'none';
         }
       }
       
@@ -797,6 +894,14 @@
       
       subjectSearchBtn.addEventListener('click', performSubjectSearch);
       
+      // Clear search functionality
+      clearSearchBtn.addEventListener('click', function() {
+        subjectSearchInput.value = '';
+        clearSearchBtn.style.display = 'none';
+        document.getElementById('searchResultsMessage').style.display = 'none';
+        displayVideos(allVideos);
+      });
+      
       // Set up upload modal
       const uploadModal = document.getElementById('uploadModal');
       const uploadBtn = document.getElementById('uploadBtn');
@@ -804,6 +909,8 @@
       const cancelUpload = document.getElementById('cancelUpload');
       
       uploadBtn.addEventListener('click', function() {
+        // Set the current subject ID in the hidden form field
+        document.getElementById('subjectId').value = currentSubjectId;
         uploadModal.style.display = 'flex';
       });
       

@@ -1,387 +1,262 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>{{.Title}}</title>
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
-    min-height: 100vh;
-    padding: 40px 20px;
-    color: #333;
-    position: relative;
-    overflow-x: hidden;
-}
-
-body::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
-    animation: floatingOrbs 20s ease-in-out infinite;
-    pointer-events: none;
-}
-
-@keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-}
-
-@keyframes floatingOrbs {
-    0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
-    33% { transform: translate(30px, -30px) rotate(120deg); }
-    66% { transform: translate(-20px, 20px) rotate(240deg); }
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(50px);
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Campus Moon - Watch Video</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+    body {background:linear-gradient(-45deg,#6a11cb,#2575fc,#0099cc,#4facfe);background-size:400% 400%;animation:gradientBG 15s ease infinite;min-height:100vh;color:#fff;padding:20px;}
+    @keyframes gradientBG {0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+    .container{max-width:1200px;margin:0 auto;}
+    header{display:flex;justify-content:space-between;align-items:center;padding:20px 0;margin-bottom:30px;border-bottom:1px solid rgba(255,255,255,0.2);}
+    
+    .logo{font-size:1.8rem;font-weight:700;color:#fff;text-shadow:0 0 10px rgba(0,0,0,0.3);display:flex;align-items:center;}
+    .logo i{margin-right:10px;color:#ffcc00;} /* Changed color to yellow */
+    
+    .user-actions{display:flex;gap:15px;align-items:center;}
+    
+    .language-selector {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 12px 20px;
+      border-radius: 50px;
+      color: white;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+
+    .language-selector:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     }
-}
 
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
-    }
-    40% {
-        transform: translateY(-10px);
-    }
-    60% {
-        transform: translateY(-5px);
-    }
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-@keyframes shimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-}
-
-.container {
-    max-width: 1000px;
-    margin: 0 auto;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 25px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 
-                0 0 0 1px rgba(255, 255, 255, 0.05);
-    padding: 50px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    animation: fadeInUp 1s ease-out;
-}
-
-.container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 6px;
-    background: linear-gradient(90deg, 
-        transparent,
-        rgba(79, 172, 254, 0.6),
-        rgba(0, 242, 254, 0.8),
-        rgba(79, 172, 254, 0.6),
-        transparent
-    );
-    animation: shimmer 3s infinite;
-}
-
-h1 {
-    color: #2c3e50;
-    font-size: 3rem;
-    margin-bottom: 20px;
-    font-weight: 800;
-    position: relative;
-    display: inline-block;
-    animation: slideInLeft 1s ease-out 0.3s both;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Removed the h1::after section that created the underline */
-
-.description {
-    font-size: 1.2rem;
-    color: #5d6d7e;
-    max-width: 800px;
-    margin: 0 auto 40px;
-    line-height: 1.8;
-    animation: fadeInUp 1s ease-out 0.6s both;
-    font-weight: 400;
-}
-
-.video-container {
-    position: relative;
-    margin: 40px auto;
-    max-width: 900px;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-    background: #000;
-    animation: scaleIn 1s ease-out 0.9s both;
-    transition: all 0.3s ease;
-}
-
-.video-container:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
-}
-
-.video-container::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, #4facfe, #00f2fe, #ff9a9e, #fecfef);
-    background-size: 400% 400%;
-    animation: gradientShift 8s ease infinite;
-    border-radius: 20px;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.video-container:hover::before {
-    opacity: 1;
-}
-
-video {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: 20px;
-    position: relative;
-    z-index: 1;
-}
-
-.notes {
-    margin-top: 50px;
-    padding: 30px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 248, 255, 0.9) 100%);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    display: inline-block;
-    animation: fadeInUp 1s ease-out 1.2s both;
-    position: relative;
-    overflow: hidden;
-}
-
-.notes::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    animation: shimmer 2s infinite;
-    animation-delay: 2s;
-}
-
-.notes p {
-    font-size: 1.1rem;
-    color: #34495e;
-    margin-bottom: 20px;
-    font-weight: 600;
-}
-
-.notes a {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #667eea 100%);
-    background-size: 300% 300%;
-    color: white;
-    text-decoration: none;
-    padding: 15px 30px;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 1rem;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
-    position: relative;
-    overflow: hidden;
-    animation: bounce 2s infinite 3s;
-}
-
-.notes a::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.6s ease;
-}
-
-.notes a:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 15px 35px rgba(79, 172, 254, 0.5);
-    background-position: 100% 0;
-    animation: pulse 1.5s infinite;
-}
-
-.notes a:hover::before {
-    left: 100%;
-}
-
-.notes a:active {
-    transform: translateY(-2px) scale(1.02);
-}
-
-.notes a i {
-    font-size: 1.3rem;
-    animation: bounce 1s infinite 4s;
-}
-
-/* Floating particles */
-.container::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-image: 
-        radial-gradient(2px 2px at 20px 30px, rgba(79, 172, 254, 0.3), transparent),
-        radial-gradient(2px 2px at 40px 70px, rgba(255, 154, 158, 0.3), transparent),
-        radial-gradient(1px 1px at 90px 40px, rgba(0, 242, 254, 0.3), transparent),
-        radial-gradient(1px 1px at 130px 80px, rgba(102, 126, 234, 0.3), transparent);
-    background-repeat: repeat;
-    background-size: 200px 100px;
-    animation: floatingParticles 20s linear infinite;
-    pointer-events: none;
-    z-index: -1;
-}
-
-@keyframes floatingParticles {
-    0% { transform: translateY(0px); }
-    100% { transform: translateY(-200px); }
-}
-
-@media (max-width: 768px) {
-    body {
-        padding: 20px 15px;
+    .language-selector option {
+      background: #2a2a2a;
+      color: white;
+      padding: 10px;
     }
     
-    .container {
-        padding: 30px 20px;
-    }
-   
-    h1 {
-        font-size: 2.2rem;
-    }
-   
-    .description {
-        font-size: 1rem;
-    }
-   
-    .notes {
-        padding: 25px 20px;
-        width: 100%;
-        margin-top: 30px;
+    .video-section {
+      margin-bottom: 40px;
     }
     
-    .notes a {
-        padding: 12px 25px;
-        font-size: 0.9rem;
+    .video-title-overlay {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .video-title {
+      font-size: 2.2rem;
+      font-weight: 600;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      display: inline-block;
+      padding: 10px 30px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 50px;
+      backdrop-filter: blur(5px);
     }
     
     .video-container {
-        margin: 30px auto;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
-}
 
-@media (max-width: 480px) {
-    h1 {
-        font-size: 1.8rem;
+    .video-player {
+      width: 100%;
+      aspect-ratio: 16 / 9;
     }
     
-    .container {
-        padding: 25px 15px;
-        margin: 20px 10px;
+    .pdf-section {
+      text-align: center;
+      margin-bottom: 40px;
     }
-}
-</style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    .pdf-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+      color: white;
+      padding: 15px 30px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+    }
+
+    .pdf-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6);
+    }
+    
+    .video-info {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .video-description {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .resources {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .resources h2 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+      display: inline-block;
+    }
+
+    .resource-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(45deg, #4facfe, #00f2fe);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      margin-right: 15px;
+      margin-bottom: 15px;
+    }
+
+    .resource-link:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .no-resources {
+      color: rgba(255, 255, 255, 0.7);
+      font-style: italic;
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      padding: 6px 10px; /* Reduced padding to make button narrower */
+      border-radius: 50px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px; /* Reduced gap between icon and text */
+      text-decoration: none;
+      margin-bottom: 20px;
+      font-size: 0.85rem; /* Reduced font size */
+      font-weight: 500; /* Reduced font weight */
+      width: fit-content; /* Ensure button only takes up necessary space */
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    footer{text-align:center;padding:20px;padding-bottom:50px;color:rgba(255,255,255,0.7);border-top:1px solid rgba(255,255,255,0.2);}
+  </style>
 </head>
 <body>
-<div class="container">
-    <h1>{{.Title}}</h1>
-   
-    <div class="video-container">
-        <video controls>
+  <div class="container">
+    <header>
+      <div class="logo"><i class="fas fa-moon"></i> Campus Moon</div>
+      <div class="user-actions">
+        <select id="languageSelector" class="language-selector">
+          <option value="en">English</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+          <option value="hi">हिंदी (Hindi)</option>
+          <option value="rj">राजस्थानी (Rajasthani)</option>
+        </select>
+      </div>
+    </header>
+
+    <main>
+      <a href="/index.html" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back
+      </a>
+
+      <div class="video-section">
+        <div class="video-title-overlay">
+          <h1 class="video-title">{{.Title}}</h1>
+        </div>
+
+        <div class="video-container">
+          <video class="video-player" controls autoplay>
             <source src="{{.VideoURL}}" type="video/mp4">
             Your browser does not support the video tag.
-        </video>
-    </div>
-    
-    <p class="description">{{.Description}}</p>
-   
-    {{if .NotesURL}}
-    <div class="notes">
-        <p><strong>Notes:</strong></p>
-        <a href="{{.NotesURL}}" target="_blank">
-            <i class="fas fa-file-alt"></i> View Notes
-        </a>
-    </div>
-    {{end}}
-</div>
+          </video>
+        </div>
+
+        {{if .NotesURL}}
+        <div class="pdf-section">
+          <a href="{{.NotesURL}}" class="pdf-button" target="_blank">
+            <i class="fas fa-file-pdf"></i>
+            <span>View PDF</span>
+          </a>
+        </div>
+        {{end}}
+      </div>
+
+      <div class="video-info">
+        <p class="video-description">{{.Description}}</p>
+      </div>
+
+      <div class="resources">
+        <h2>Resources</h2>
+        <div class="resource-links">
+          {{if .NotesURL}}
+            <!-- Additional resources can be added here -->
+          {{else}}
+            <p class="no-resources">No additional resources available for this video.</p>
+          {{end}}
+        </div>
+      </div>
+    </main>
+
+    <footer><span>Campus Moon &copy; 2025</span></footer>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set up language selector event
+      document.getElementById('languageSelector').addEventListener('change', function() {
+        localStorage.setItem('preferredLanguage', this.value);
+      });
+      
+      // Set the language selector to the stored preference if available
+      const savedLang = localStorage.getItem('preferredLanguage');
+      if (savedLang) {
+        document.getElementById('languageSelector').value = savedLang;
+      }
+    });
+  </script>
 </body>
 </html>

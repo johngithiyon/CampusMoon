@@ -6,18 +6,17 @@
   <title>Campus Moon - Remote Classroom</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <style>
-   
-  /* same styles you had, plus some for detail view */
-  * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+    * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
     body {background:linear-gradient(-45deg,#6a11cb,#2575fc,#0099cc,#4facfe);background-size:400% 400%;animation:gradientBG 15s ease infinite;min-height:100vh;color:#fff;padding:20px;}
     @keyframes gradientBG {0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
     .container{max-width:1200px;margin:0 auto;}
     header{display:flex;justify-content:space-between;align-items:center;padding:20px 0;margin-bottom:30px;border-bottom:1px solid rgba(255,255,255,0.2);}
     .logo{font-size:2.5rem;font-weight:700;color:#fff;text-shadow:0 0 10px rgba(0,0,0,0.3);display:flex;align-items:center;}
     .logo i{margin-right:10px;color:#ffcc00;}
-    .user-actions{display:flex;gap:15px;}
+    .user-actions{display:flex;gap:15px;align-items:center;}
     .user-actions button{background:rgba(255,255,255,0.1);border:none;padding:10px 20px;border-radius:50px;color:white;cursor:pointer;transition:all 0.3s ease;backdrop-filter:blur(10px);}
     .user-actions button:hover{background:rgba(255,255,255,0.2);transform:translateY(-2px);}
+    .language-selector {background:rgba(255,255,255,0.1);border:none;padding:10px 15px;border-radius:50px;color:white;cursor:pointer;backdrop-filter:blur(10px);}
     .hero{text-align:center;margin-bottom:40px;animation:fadeIn 1s ease;}
     .hero h1{font-size:3rem;margin-bottom:15px;text-shadow:0 2px 10px rgba(0,0,0,0.2);}
     .hero p{font-size:1.2rem;max-width:700px;margin:0 auto;opacity:0.9;}
@@ -59,6 +58,29 @@
     .detail-view video { width: 100%; max-width: 800px; display: block; margin: 0 auto; }
     .detail-view .notes-link { margin-top: 20px; text-align: center; }
     .back-btn { margin: 20px; cursor: pointer; color: #fff; text-decoration: underline; }
+
+    .language-selector {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 15px;
+  border-radius: 50px;
+  color: white;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.language-selector:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Style the dropdown options */
+.language-selector option {
+  background: #2a2a2a;
+  color: white;
+  padding: 10px;
+}
   </style>
 </head>
 <body>
@@ -66,51 +88,182 @@
     <header>
       <div class="logo"><i class="fas fa-moon"></i> Campus Moon</div>
       <div class="user-actions">
-        <button><i class="fas fa-user"></i> Admin Panel</button>
-        <button><i class="fas fa-cog"></i> Settings</button>
+        <select id="languageSelector" class="language-selector">
+          <option value="en">English</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+          <option value="hi">हिंदी (Hindi)</option>
+          <option value="rj">राजस्थानी (Rajasthani)</option>
+        </select>
+        <button><i class="fas fa-user"></i> <span data-translate="admin_panel">Admin Panel</span></button>
+        <button><i class="fas fa-cog"></i> <span data-translate="settings">Settings</span></button>
       </div>
     </header>
 
     <section class="hero">
-      <h1>Remote Classroom</h1>
-      <p>Access live video streams and recorded lectures from anywhere, anytime. Enhance your learning experience with our platform.</p>
+      <h1 data-translate="remote_classroom">Remote Classroom</h1>
+      <p data-translate="hero_description">Access live video streams and recorded lectures from anywhere, anytime. Enhance your learning experience with our platform.</p>
     </section>
 
     <div class="button-group">
       <button class="btn btn-primary">
-        <a href="http://localhost:8080/meet" style="color:white;text-decoration:none;"><i class="fas fa-video"></i> Live Video Stream</a>
+        <a href="http://localhost:8080/meet" style="color:white;text-decoration:none;"><i class="fas fa-video"></i> <span data-translate="live_video">Live Video Stream</span></a>
       </button>
       <button class="btn btn-secondary" id="uploadBtn">
-        <i class="fas fa-upload"></i> Upload Video
+        <i class="fas fa-upload"></i> <span data-translate="upload_video">Upload Video</span>
       </button>
       <button class="btn btn-labs" id="labsBtn">
-        <a href="http://localhost:8080/labs" style="color:white;text-decoration:none;"><i class="fas fa-flask"></i> Labs</a>
+        <a href="http://localhost:8080/labs" style="color:white;text-decoration:none;"><i class="fas fa-flask"></i> <span data-translate="labs">Labs</span></a>
       </button>
     </div>
 
     <input type="file" id="videoInput" accept="video/*" style="display:none" />
 
     <div class="videos-container">
-      <h2 class="section-title">Uploaded Videos</h2>
+      <h2 class="section-title" data-translate="uploaded_videos">Uploaded Videos</h2>
       <div class="video-grid" id="videoGrid"></div>
     </div>
 
     <!-- Upload Modal -->
     <div class="modal" id="uploadModal">
       <div class="modal-content">
-        <h2>Upload Video</h2>
-        <input type="text" id="videoTitle" placeholder="Enter video title" required />
-        <textarea id="videoDesc" placeholder="Enter video description"></textarea>
+        <h2 data-translate="upload_video">Upload Video</h2>
+        <input type="text" id="videoTitle" placeholder="Enter video title" data-translate-placeholder="enter_video_title" required />
+        <textarea id="videoDesc" placeholder="Enter video description" data-translate-placeholder="enter_video_description"></textarea>
         <input type="file" id="notesInput" accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx" />
-        <button id="confirmUpload">Upload</button>
-        <button id="cancelUpload">Cancel</button>
+        <button id="confirmUpload" data-translate="upload">Upload</button>
+        <button id="cancelUpload" data-translate="cancel">Cancel</button>
       </div>
     </div>
 
-    <footer>Campus Moon &copy; 2025</footer>
+    <footer><span data-translate="copyright">Campus Moon &copy; 2025</span></footer>
   </div>
 
   <script>
+    // Translation dictionaries
+    const translations = {
+      en: {
+        "admin_panel": "Admin Panel",
+        "settings": "Settings",
+        "remote_classroom": "Remote Classroom",
+        "hero_description": "Access live video streams and recorded lectures from anywhere, anytime. Enhance your learning experience with our platform.",
+        "live_video": "Live Video Stream",
+        "upload_video": "Upload Video",
+        "labs": "Labs",
+        "uploaded_videos": "Uploaded Videos",
+        "enter_video_title": "Enter video title",
+        "enter_video_description": "Enter video description",
+        "upload": "Upload",
+        "cancel": "Cancel",
+        "copyright": "Campus Moon © 2025",
+        "delete": "Delete",
+        "uploaded": "Uploaded"
+      },
+      ta: {
+        "admin_panel": "நிர்வாக குழு",
+        "settings": "அமைப்புகள்",
+        "remote_classroom": "தொலைதூர வகுப்பறை",
+        "hero_description": "எங்கிருந்தும், எப்போது வேண்டுமானாலும் நேரடி வீடியோ ஸ்ட்ரீம்கள் மற்றும் பதிவுசெய்யப்பட்ட விரிவுரைகளை அணுகவும். எங்கள் தளத்துடன் உங்கள் கற்றல் அனுபவத்தை மேம்படுத்தவும்.",
+        "live_video": "நேரடி வீடியோ ஸ்ட்ரீம்",
+        "upload_video": "வீடியோ பதிவேற்றம்",
+        "labs": "ஆய்வகங்கள்",
+        "uploaded_videos": "பதிவேற்றப்பட்ட வீடியோக்கள்",
+        "enter_video_title": "வீடியோ தலைப்பை உள்ளிடவும்",
+        "enter_video_description": "வீடியோ விளக்கத்தை உள்ளிடவும்",
+        "upload": "பதிவேற்றம்",
+        "cancel": "ரத்து செய்",
+        "copyright": "கேம்பஸ் மூன் © 2025",
+        "delete": "அழி",
+        "uploaded": "பதிவேற்றப்பட்டது"
+      },
+      hi: {
+        "admin_panel": "व्यवस्थापन पैनल",
+        "settings": "सेटिंग्स",
+        "remote_classroom": "रिमोट कक्षा",
+        "hero_description": "कहीं से भी, कभी भी लाइव वीडियो स्ट्रीम और रिकॉर्डेड लेक्चर तक पहुंचें। हमारे प्लेटफॉर्म के साथ अपने सीखने के अनुभव को बढ़ाएं।",
+        "live_video": "लाइव वीडियो स्ट्रीम",
+        "upload_video": "वीडियो अपलोड करें",
+        "labs": "प्रयोगशालाएं",
+        "uploaded_videos": "अपलोड किए गए वीडियो",
+        "enter_video_title": "वीडियो शीर्षक दर्ज करें",
+        "enter_video_description": "वीडियो विवरण दर्ज करें",
+        "upload": "अपलोड करें",
+        "cancel": "रद्द करें",
+        "copyright": "कैंपस मून © 2025",
+        "delete": "हटाएं",
+        "uploaded": "अपलोड किया गया"
+      },
+      rj: {
+        "admin_panel": "प्रशासन पैनल",
+        "settings": "सेटिंग्स",
+        "remote_classroom": "रिमोट कक्षा",
+        "hero_description": "कत्थै सूं, कभै भी लाइव वीडियो स्ट्रीम आ रिकॉर्डेड लेक्चरां तक पहुंचो। आपले प्लेटफॉर्म सूं आपणे सीखणे के अनुभव बढ़ावो।",
+        "live_video": "लाइव वीडियो स्ट्रीम",
+        "upload_video": "वीडियो अपलोड करो",
+        "labs": "प्रयोगशालाएं",
+        "uploaded_videos": "अपलोड किया गया वीडियो",
+        "enter_video_title": "वीडियो शीर्षक भरो",
+        "enter_video_description": "वीडियो विवरण भरो",
+        "upload": "अपलोड करो",
+        "cancel": "रद्द करो",
+        "copyright": "कैंपस मून © 2025",
+        "delete": "मिटावो",
+        "uploaded": "अपलोड किया"
+      }
+    };
+
+    // Language management
+    let currentLanguage = 'en';
+
+    function setLanguage(lang) {
+      if (!translations[lang]) return;
+      
+      currentLanguage = lang;
+      localStorage.setItem('preferredLanguage', lang);
+      document.getElementById('languageSelector').value = lang;
+      
+      // Update all translatable elements
+      document.querySelectorAll('[data-translate]').forEach(element => {
+        const key = element.getAttribute('data-translate');
+        if (translations[lang][key]) {
+          element.textContent = translations[lang][key];
+        }
+      });
+      
+      // Update all placeholder texts
+      document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-translate-placeholder');
+        if (translations[lang][key]) {
+          element.setAttribute('placeholder', translations[lang][key]);
+        }
+      });
+    }
+
+    function getPreferredLanguage() {
+      // Check localStorage first
+      const savedLang = localStorage.getItem('preferredLanguage');
+      if (savedLang) return savedLang;
+      
+      // Then check browser language
+      const browserLang = navigator.language || navigator.userLanguage;
+      if (browserLang.startsWith('ta')) return 'ta';
+      if (browserLang.startsWith('hi')) return 'hi';
+      if (browserLang.startsWith('mr') || browserLang.startsWith('gu')) return 'rj'; // Approximate for Rajasthani
+      
+      return 'en'; // Default to English
+    }
+
+    // Initialize language
+    document.addEventListener('DOMContentLoaded', function() {
+      const preferredLang = getPreferredLanguage();
+      setLanguage(preferredLang);
+      
+      // Set up language selector event
+      document.getElementById('languageSelector').addEventListener('change', function() {
+        setLanguage(this.value);
+      });
+    });
+
+    // Original app functionality
     const uploadBtn = document.getElementById('uploadBtn');
     const videoInput = document.getElementById('videoInput');
     const notesInput = document.getElementById('notesInput');
@@ -207,9 +360,15 @@
             <div class="video-info">
               <h3 class="video-title">${video.title}</h3>
               <p class="video-desc">${video.description}</p>
-              <div class="video-meta"><span>Uploaded</span></div>
+              <div class="video-meta"><span data-translate="uploaded">Uploaded</span></div>
             </div>
           `;
+
+          // Apply translation to the uploaded text
+          const uploadedSpan = card.querySelector('[data-translate="uploaded"]');
+          if (uploadedSpan && translations[currentLanguage] && translations[currentLanguage]["uploaded"]) {
+            uploadedSpan.textContent = translations[currentLanguage]["uploaded"];
+          }
 
           // 🆕 Redirect to watch page instead of showing inline detail
           card.addEventListener('click', (e) => {

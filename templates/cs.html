@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Question</title>
+    <title>Question Manager</title>
     <style>
         /* Base Styles */
         body {
@@ -131,24 +131,24 @@
         .questions-container {
             margin-top: 40px;
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* Changed to exactly 2 columns */
-            gap: 80px; /* Significantly increased gap for more space between columns */
+            grid-template-columns: repeat(2, 1fr);
+            gap: 80px;
         }
         
         /* Responsive design for smaller screens */
         @media (max-width: 768px) {
             .questions-container {
-                grid-template-columns: 1fr; /* Single column on smaller screens */
+                grid-template-columns: 1fr;
                 gap: 30px;
             }
         }
         
         .question-card {
             background-color: white;
-            padding: 25px; /* Increased padding */
+            padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            min-height: 400px; /* Changed to min-height for flexibility */
+            min-height: 400px;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -156,6 +156,7 @@
             animation: fadeIn 0.5s ease-out;
             overflow: hidden;
             position: relative;
+            cursor: pointer;
         }
         
         @keyframes fadeIn {
@@ -183,7 +184,7 @@
         }
         
         .question-card .section {
-            margin-bottom: 20px; /* Increased margin */
+            margin-bottom: 20px;
             flex: 1;
             overflow: hidden;
         }
@@ -191,7 +192,7 @@
         .question-card .section-title {
             font-weight: 600;
             color: #555;
-            margin-bottom: 8px; /* Increased margin */
+            margin-bottom: 8px;
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -199,14 +200,14 @@
         
         .question-card pre {
             background-color: #f8f9fa;
-            padding: 12px; /* Increased padding */
+            padding: 12px;
             border-radius: 6px;
             overflow-x: auto;
             white-space: pre-wrap;
-            max-height: 120px; /* Increased max-height */
+            max-height: 120px;
             overflow-y: auto;
             font-size: 14px;
-            line-height: 1.5; /* Increased line-height */
+            line-height: 1.5;
         }
         
         .empty-state {
@@ -355,7 +356,7 @@
         }
         
         .question-card.expanded .card-details {
-            max-height: 400px; /* Increased max-height */
+            max-height: 400px;
         }
         
         .spinner {
@@ -457,7 +458,7 @@
             font-size: 14px;
             color: #666;
             line-height: 1.4;
-            max-height: 80px; /* Increased max-height */
+            max-height: 80px;
             overflow-y: auto;
         }
         
@@ -617,53 +618,31 @@
             border-color: #5f6368;
         }
         
-        /* Code Editor Button Styles */
-        .code-editor-btn {
-            background-color: #f25c54;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-left: 15px;
-        }
-        
-        .code-editor-btn:hover {
-            background-color: #e0483f;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
-        }
-        
-        .code-editor-btn:before {
-            content: "</>";
-            font-size: 18px;
-            margin-right: 8px;
-        }
-        
-        .question-actions {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-        
-        .question-card .code-editor-btn {
+        /* Verification badge */
+        .verification-badge {
             position: absolute;
-            bottom: 15px;
-            right: 15px;
-            padding: 8px 16px;
-            font-size: 14px;
+            top: 10px;
+            left: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .verified {
+            background-color: #34a853;
+            color: white;
+        }
+        
+        .not-verified {
+            background-color: #ea4335;
+            color: white;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Question</h1>
+        <h1>Question Manager</h1>
         <button class="theme-toggle" id="themeToggle">🌙</button>
         <button class="add-question-btn" id="addQuestionBtn">Add Question</button>
     </div>
@@ -681,14 +660,11 @@
             </div>
             
             <div class="form-group">
-                <label for="output">Output:</label>
-                <textarea id="output" name="output" placeholder="Enter expected output..."></textarea>
+                <label for="expectedOutput">Expected Output:</label>
+                <textarea id="expectedOutput" name="expectedOutput" placeholder="Enter expected output..."></textarea>
             </div>
             
-            <div class="question-actions">
-                <button type="submit" class="submit-btn">Submit Question</button>
-                <button type="button" class="code-editor-btn" id="formCodeEditorBtn">Try in Code Editor</button>
-            </div>
+            <button type="submit" class="submit-btn">Submit Question</button>
         </form>
     </div>
     
@@ -740,8 +716,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             // DOM Elements
             const addQuestionBtn = document.getElementById('addQuestionBtn');
-            const codeEditorBtn = document.getElementById('codeEditorBtn');
-            const formCodeEditorBtn = document.getElementById('formCodeEditorBtn');
             const questionFormContainer = document.getElementById('questionFormContainer');
             const questionForm = document.getElementById('questionForm');
             const questionsContainer = document.getElementById('questionsContainer');
@@ -755,14 +729,52 @@
             const submitReview = document.getElementById('submitReview');
             const modalRating = document.getElementById('modalRating');
             const reviewText = document.getElementById('reviewText');
+            const expectedOutput = document.getElementById('expectedOutput');
             
             // State variables
             let currentCardForReview = null;
             let currentRating = 0;
             
+            // Check for output verification on page load
+            checkOutputVerification();
+            
+            // Function to check output verification
+            function checkOutputVerification() {
+                const receivedOutput = sessionStorage.getItem('output');
+                const questionId = sessionStorage.getItem('currentQuestionId');
+                
+                if (receivedOutput && questionId) {
+                    const questionCard = document.querySelector(`[data-id="${questionId}"]`);
+                    if (questionCard) {
+                        const expectedOutput = questionCard.querySelector('.expected-output').textContent;
+                        
+                        if (receivedOutput.trim() === expectedOutput.trim()) {
+                            showToast('Output verified successfully!', 'success');
+                            questionCard.classList.add('verified');
+                            questionCard.querySelector('.verification-badge').textContent = 'Verified';
+                            questionCard.querySelector('.verification-badge').className = 'verification-badge verified';
+                        } else {
+                            showToast('Output verification failed!', 'error');
+                            questionCard.querySelector('.verification-badge').textContent = 'Not Verified';
+                            questionCard.querySelector('.verification-badge').className = 'verification-badge not-verified';
+                        }
+                    }
+                    
+                    // Clear the stored values
+                    sessionStorage.removeItem('output');
+                    sessionStorage.removeItem('currentQuestionId');
+                }
+            }
+            
             // Function to redirect to code editor
-            function redirectToCodeEditor() {
-                // You can pass question data as URL parameters if needed
+            function redirectToCodeEditor(question, input, output, id) {
+                // Store the values in sessionStorage to use in the code editor
+                sessionStorage.setItem('currentQuestion', question);
+                sessionStorage.setItem('currentInput', input);
+                sessionStorage.setItem('currentOutput', output);
+                sessionStorage.setItem('currentQuestionId', id);
+                
+                // Redirect to the code editor
                 window.location.href = 'code_editor.html';
             }
             
@@ -791,24 +803,6 @@
                 });
             });
             
-            // Redirect to code editor when "Open Code Editor" button is clicked
-            codeEditorBtn.addEventListener('click', redirectToCodeEditor);
-            
-            // Redirect to code editor when "Try in Code Editor" button is clicked in form
-            formCodeEditorBtn.addEventListener('click', function() {
-                // Get form values to potentially pass to the code editor
-                const question = document.getElementById('question').value;
-                const input = document.getElementById('input').value;
-                const output = document.getElementById('output').value;
-                
-                // Store the values in sessionStorage to use in the code editor
-                if (question) sessionStorage.setItem('currentQuestion', question);
-                if (input) sessionStorage.setItem('currentInput', input);
-                if (output) sessionStorage.setItem('currentOutput', output);
-                
-                redirectToCodeEditor();
-            });
-            
             // Handle form submission
             questionForm.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -821,7 +815,8 @@
                     // Get form values
                     const question = document.getElementById('question').value;
                     const input = document.getElementById('input').value;
-                    const output = document.getElementById('output').value;
+                    const output = document.getElementById('expectedOutput').value;
+                    const id = Date.now().toString(); // Generate unique ID
                     
                     // Hide empty state if it's the first question
                     if (emptyState) {
@@ -829,7 +824,7 @@
                     }
                     
                     // Create question card
-                    const questionCard = createQuestionCard(question, input, output);
+                    const questionCard = createQuestionCard(question, input, output, id);
                     
                     // Add to questions container
                     questionsContainer.appendChild(questionCard);
@@ -850,16 +845,18 @@
                     }, 100);
                     
                     // Add event listeners to the new card
-                    setupCardEvents(questionCard);
+                    setupCardEvents(questionCard, id);
                 }, 800); // Simulate network delay
             });
             
             // Create question card
-            function createQuestionCard(question, input, output) {
+            function createQuestionCard(question, input, output, id) {
                 const questionCard = document.createElement('div');
                 questionCard.className = 'question-card';
+                questionCard.dataset.id = id;
                 
                 questionCard.innerHTML = `
+                    <div class="verification-badge">Not Verified</div>
                     <button class="delete-btn" data-tooltip="Delete question">×</button>
                     <h3>Question</h3>
                     <div class="section">
@@ -871,8 +868,8 @@
                         <pre>${input || 'No input provided'}</pre>
                     </div>
                     <div class="section">
-                        <div class="section-title">Output:</div>
-                        <pre>${output || 'No output provided'}</pre>
+                        <div class="section-title">Expected Output:</div>
+                        <pre class="expected-output">${output || 'No output provided'}</pre>
                     </div>
                     <div class="card-details">
                         <div class="rating-container" data-rating="0">
@@ -888,23 +885,40 @@
                         </div>
                     </div>
                     <button class="expand-btn">Show Details <span>▼</span></button>
-                    <button class="code-editor-btn">Code Editor</button>
                 `;
                 
                 return questionCard;
             }
             
             // Setup card events
-            function setupCardEvents(card) {
+            function setupCardEvents(card, id) {
                 const deleteBtn = card.querySelector('.delete-btn');
                 const expandBtn = card.querySelector('.expand-btn');
                 const details = card.querySelector('.card-details');
                 const expandIcon = expandBtn.querySelector('span');
                 const addReviewBtn = card.querySelector('.add-review-btn');
-                const codeEditorBtn = card.querySelector('.code-editor-btn');
+                
+                // Make the entire card clickable (except for buttons)
+                card.addEventListener('click', function(e) {
+                    // Don't trigger if clicking on buttons or interactive elements
+                    if (e.target.tagName === 'BUTTON' || 
+                        e.target.closest('button') || 
+                        e.target.classList.contains('star')) {
+                        return;
+                    }
+                    
+                    // Get question data from the card
+                    const question = card.querySelector('.section:nth-child(3) pre').textContent;
+                    const input = card.querySelector('.section:nth-child(4) pre').textContent;
+                    const output = card.querySelector('.section:nth-child(5) pre').textContent;
+                    
+                    // Redirect to code editor with the question data
+                    redirectToCodeEditor(question, input, output, id);
+                });
                 
                 // Delete button functionality
-                deleteBtn.addEventListener('click', function() {
+                deleteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent card click event
                     card.classList.add('deleting');
                     showToast('Question deleted', 'info');
                     setTimeout(() => {
@@ -918,7 +932,8 @@
                 });
                 
                 // Expand button functionality
-                expandBtn.addEventListener('click', function() {
+                expandBtn.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent card click event
                     card.classList.toggle('expanded');
                     if (card.classList.contains('expanded')) {
                         expandBtn.innerHTML = 'Hide Details <span>▲</span>';
@@ -927,24 +942,10 @@
                     }
                 });
                 
-                // Code editor button functionality
-                codeEditorBtn.addEventListener('click', function() {
-                    // Get question data from the card
-                    const question = card.querySelector('.section:nth-child(2) pre').textContent;
-                    const input = card.querySelector('.section:nth-child(3) pre').textContent;
-                    const output = card.querySelector('.section:nth-child(4) pre').textContent;
-                    
-                    // Store the values in sessionStorage to use in the code editor
-                    sessionStorage.setItem('currentQuestion', question);
-                    sessionStorage.setItem('currentInput', input);
-                    sessionStorage.setItem('currentOutput', output);
-                    
-                    redirectToCodeEditor();
-                });
-                
                 // Add review button functionality
                 if (addReviewBtn) {
-                    addReviewBtn.addEventListener('click', function() {
+                    addReviewBtn.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent card click event
                         currentCardForReview = card;
                         reviewModal.style.display = 'flex';
                         
@@ -958,12 +959,13 @@
                 // Rating functionality
                 const stars = card.querySelectorAll('.star');
                 stars.forEach(star => {
-                    star.addEventListener('click', function() {
+                    star.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent card click event
                         const rating = parseInt(this.getAttribute('data-rating'));
                         updateCardRating(card, rating);
                     });
                     
-                    star.addEventListener('mouseover', function() {
+                    star.addEventListener('mouseover', function(e) {
                         const rating = parseInt(this.getAttribute('data-rating'));
                         highlightStars(card, rating);
                     });
@@ -1092,7 +1094,8 @@
                         const editReviewBtn = currentCardForReview.querySelector('.edit-review-btn');
                         const deleteReviewBtn = currentCardForReview.querySelector('.delete-review-btn');
                         
-                        editReviewBtn.addEventListener('click', function() {
+                        editReviewBtn.addEventListener('click', function(e) {
+                            e.stopPropagation(); // Prevent card click event
                             currentCardForReview = currentCardForReview;
                             currentRating = parseInt(currentCardForReview.querySelector('.rating-container').getAttribute('data-rating') || 0);
                             reviewText.value = reviewTextElement.textContent;
@@ -1100,7 +1103,8 @@
                             reviewModal.style.display = 'flex';
                         });
                         
-                        deleteReviewBtn.addEventListener('click', function() {
+                        deleteReviewBtn.addEventListener('click', function(e) {
+                            e.stopPropagation(); // Prevent card click event
                             reviewSection.remove();
                             showToast('Review deleted', 'info');
                         });

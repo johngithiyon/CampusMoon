@@ -3,43 +3,314 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Monaco Code Runner</title>
+  <title>Code Editor</title>
 
   <!-- Monaco Editor CSS -->
   <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/editor/editor.main.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    * {
+      transition: background-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                 color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                 border-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+                 transform 0.3s ease, box-shadow 0.3s ease, 
+                 opacity 0.3s ease, filter 0.3s ease;
+    }
+    
     body {
-      font-family: sans-serif;
-      background: #f5f7fa;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4efe9 100%);
       padding: 20px;
       margin: 0;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    body.night-mode {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e6e6e6;
     }
 
     .container {
-      max-width: 1000px;
+      width: 95%;
+      max-width: 1600px;
+      height: 85vh;
       margin: auto;
       background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
       overflow: hidden;
+      transform: translateY(0);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .night-mode .container {
+      background: #2d2d44;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .night-mode .container:hover {
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
     }
 
     header {
-      background: #2c3e50;
+      background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
       color: white;
       padding: 20px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #3498db, #2ecc71, #e74c3c, #f39c12, #9b59b6);
+      background-size: 500% 500%;
+      animation: gradientShift 8s ease infinite;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .night-mode header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+    }
+
+    .theme-toggle {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 25px;
+      padding: 5px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(5px);
+      overflow: hidden;
+    }
+
+    .theme-btn {
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+
+    .theme-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      transform: scale(0);
+      transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      z-index: -1;
+    }
+
+    .theme-btn:hover::before {
+      transform: scale(1);
+    }
+
+    .theme-btn.active {
+      background: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .theme-btn i {
+      transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+
+    .theme-btn.active i.fa-sun {
+      color: #FFD700;
+      transform: rotate(360deg) scale(1.2);
+      filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+    }
+
+    .theme-btn.active i.fa-moon {
+      color: #BDC3C7;
+      transform: rotate(30deg) scale(1.2);
+      filter: drop-shadow(0 0 8px rgba(189, 195, 199, 0.6));
+    }
+
+    .main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .editor-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #eee;
+      position: relative;
+    }
+
+    .night-mode .editor-panel {
+      border-right: 1px solid #444;
+    }
+
+    .language-selector {
+      padding: 15px 20px;
+      background: #f9f9f9;
+      position: relative;
+      z-index: 10;
+    }
+
+    .night-mode .language-selector {
+      background: #252536;
+    }
+
+    .language-selector label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .night-mode .language-selector label {
+      color: #e6e6e6;
+    }
+
+    select {
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 15px;
+      background-color: white;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 18px center;
+      background-size: 18px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      font-weight: 500;
+      cursor: pointer;
+      transform-origin: center;
+    }
+
+    select:hover {
+      border-color: #3498db;
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .night-mode select {
+      background-color: #2d2d44;
+      border: 2px solid #555;
+      color: #e6e6e6;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e6e6e6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .night-mode select:hover {
+      border-color: #3498db;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
+      transform: translateY(-3px) scale(1.01);
+    }
+
+    .night-mode select:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.3);
+    }
+
+    /* Custom dropdown options with border-radius */
+    select option {
+      border-radius: 12px;
+      padding: 12px 15px;
+      margin: 5px;
+      background: white;
+      color: #333;
+      transition: all 0.3s ease;
+    }
+
+    .night-mode select option {
+      background: #2d2d44;
+      color: #e6e6e6;
+    }
+
+    select option:hover, 
+    select option:focus, 
+    select option:active, 
+    select option:checked {
+      background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+      color: white;
+      border-radius: 12px;
+      transform: scale(1.02);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
     .editor-container {
-      height: 400px;
+      flex: 1;
+      position: relative;
+      overflow: hidden;
     }
 
     #monaco-editor {
       height: 100%;
       width: 100%;
-      border-top: 1px solid #eee;
+    }
+
+    .output-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0; /* Needed for proper flexbox scaling */
+    }
+
+    .output-header {
+      padding: 15px 20px;
+      background: #f9f9f9;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .night-mode .output-header {
+      background: #252536;
+      border-bottom: 1px solid #444;
     }
 
     .controls {
@@ -48,58 +319,107 @@
       align-items: center;
       padding: 15px 20px;
       background: #f9f9f9;
+      border-top: 1px solid #eee;
     }
 
-    #run-btn, #next-page-btn {
-      background: #3498db;
+    .night-mode .controls {
+      background: #252536;
+      border-top: 1px solid #444;
+    }
+
+    #run-btn {
+      background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 4px;
+      padding: 12px 24px;
+      border-radius: 10px;
       cursor: pointer;
-      font-weight: 500;
+      font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 8px;
-      transition: background 0.2s;
+      gap: 10px;
+      box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      position: relative;
+      overflow: hidden;
     }
 
-    #run-btn:hover, #next-page-btn:hover {
-      background: #2980b9;
+    #run-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.7s ease;
+    }
+
+    #run-btn:hover::before {
+      left: 100%;
+    }
+
+    #run-btn:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+    }
+
+    #run-btn:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 3px 8px rgba(52, 152, 219, 0.3);
     }
 
     #run-btn:disabled {
       background: #95a5a6;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .night-mode #run-btn:disabled {
+      background: #4a4a6a;
     }
 
     .output-container {
+      flex: 1;
       padding: 20px;
+      overflow: auto;
     }
 
     #output {
       background: #f8f9fa;
       border: 1px solid #eee;
-      border-radius: 4px;
-      padding: 15px;
-      min-height: 150px;
+      border-radius: 12px;
+      padding: 18px;
+      height: calc(100% - 40px);
       font-family: 'Consolas', 'Monaco', monospace;
       font-size: 14px;
       white-space: pre-wrap;
       overflow: auto;
+      transition: all 0.3s ease;
     }
 
-    .language-selector {
-      margin: 10px 20px 0 20px;
+    #output:hover {
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
     }
 
-    select {
-      padding: 5px;
-      font-size: 16px;
+    .night-mode #output {
+      background: #2a2a3a;
+      border: 1px solid #444;
+      color: #e6e6e6;
+    }
+
+    .night-mode #output:hover {
+      box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.08);
     }
 
     .error {
       color: #e74c3c;
+    }
+
+    .night-mode .error {
+      color: #ff6b6b;
     }
 
     .spinner {
@@ -110,69 +430,213 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    .status {
+      font-size: 14px;
+      color: #7f8c8d;
+      font-weight: 500;
+    }
+
+    .night-mode .status {
+      color: #a0a0c0;
+    }
+
+    /* Enhanced animations for theme switching */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
+    .pulse {
+      animation: pulse 0.5s ease;
+    }
+
+    /* Ripple effect for buttons */
+    .ripple {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ripple:after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%);
+      transform-origin: 50% 50%;
+    }
+
+    .ripple:hover:after {
+      animation: ripple 1s ease-out;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 1;
+      }
+      20% {
+        transform: scale(50, 50);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(100, 100);
+        opacity: 0;
+      }
+    }
+
+    /* Glow animation for theme toggle */
+    @keyframes glow {
+      0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.6); }
+      50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+      100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.6); }
+    }
+
+    .theme-btn.active i.fa-sun {
+      animation: glow 2s infinite;
+    }
+
+    @keyframes moonGlow {
+      0% { box-shadow: 0 0 5px rgba(189, 195, 199, 0.6); }
+      50% { box-shadow: 0 0 20px rgba(189, 195, 199, 0.8); }
+      100% { box-shadow: 0 0 5px rgba(189, 195, 199, 0.6); }
+    }
+
+    .theme-btn.active i.fa-moon {
+      animation: moonGlow 2s infinite;
+    }
+
+    /* Floating animation for container */
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .container {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    /* Responsive design */
+    @media (max-width: 900px) {
+      .main-content {
+        flex-direction: column;
+      }
+      
+      .editor-panel {
+        border-right: none;
+        border-bottom: 1px solid #eee;
+      }
+      
+      .night-mode .editor-panel {
+        border-bottom: 1px solid #444;
+      }
+      
+      .container {
+        height: auto;
+        min-height: 90vh;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Monaco Code Runner</h1>
+      <h1>Code Editor</h1>
       <p>Write and execute Python, C, or Go code</p>
+      <div class="theme-toggle">
+        <button id="day-btn" class="theme-btn active"><i class="fas fa-sun"></i> Day</button>
+        <button id="night-btn" class="theme-btn"><i class="fas fa-moon"></i> Night</button>
+      </div>
     </header>
 
-    <div class="language-selector">
-      <label for="language-select">Language:</label>
-      <select id="language-select">
-        <option value="python">Python</option>
-        <option value="c">C</option>
-        <option value="go">Go</option>
-      </select>
-    </div>
+    <div class="main-content">
+      <div class="editor-panel">
+        <div class="language-selector">
+          <label for="language-select">Language:</label>
+          <select id="language-select">
+            <option value="python">Python</option>
+            <option value="c">C</option>
+            <option value="go">Go</option>
+          </select>
+        </div>
 
-    <div class="editor-container">
-      <div id="monaco-editor"></div>
+        <div class="editor-container">
+          <div id="monaco-editor"></div>
+        </div>
+      </div>
+
+      <div class="output-panel">
+        <div class="output-header">
+          <div><strong>Output:</strong></div>
+        </div>
+        <div class="output-container">
+          <div id="output">Output will appear here...</div>
+        </div>
+      </div>
     </div>
 
     <div class="controls">
-      <button id="run-btn"><i class="fas fa-play"></i> Run Code</button>
-      <button id="next-page-btn"><i class="fas fa-arrow-right"></i> Send to Page</button>
+      <button id="run-btn" class="ripple"><i class="fas fa-play"></i> Run Code</button>
       <div class="status" id="status">Ready</div>
     </div>
-
-    <div class="output-container">
-      <div><strong>Output:</strong></div>
-      <div id="output">Output will appear here...</div>
-    </div>
   </div>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- Monaco Editor Loader -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
   <script>
     let editor;
     let language = 'python';
-    let latestOutput = ""; // Store the latest output for navigation
-
     const defaultCode = {
       python: `print("Hello from Python!")`,
       c: `#include <stdio.h>\nint main() {\n    printf("Hello from C!\\n");\n    return 0;\n}`,
       go: `package main\nimport "fmt"\nfunc main() {\n    fmt.Println("Hello from Go!")\n}`
     };
 
+    // Initialize Monaco Editor
     require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' } });
     require(['vs/editor/editor.main'], function () {
       editor = monaco.editor.create(document.getElementById('monaco-editor'), {
         value: defaultCode[language],
         language: language,
-        theme: "vs-dark",
+        theme: "vs",
         automaticLayout: true,
+        minimap: { enabled: false }
       });
     });
 
+    // Language selector functionality
     document.getElementById('language-select').addEventListener('change', function () {
       language = this.value;
       const model = monaco.editor.createModel(defaultCode[language], language);
       editor.setModel(model);
+      
+      // Add a subtle animation when changing language
+      document.querySelector('.language-selector').classList.add('pulse');
+      setTimeout(() => {
+        document.querySelector('.language-selector').classList.remove('pulse');
+      }, 500);
     });
 
+    // Run code functionality
     document.getElementById('run-btn').addEventListener('click', async () => {
       const code = editor.getValue();
       const runBtn = document.getElementById('run-btn');
@@ -200,7 +664,6 @@
 
         if (res.ok) {
           output.textContent = data.output || "Code executed successfully (no output)";
-          latestOutput = data.output; // Store for next page
         } else {
           output.innerHTML = `<span class="error">Error: ${data.error || res.statusText}</span>`;
         }
@@ -216,15 +679,61 @@
       }
     });
 
-    // Redirect to another page with output
-    document.getElementById('next-page-btn').addEventListener('click', () => {
-      if (!latestOutput) {
-        alert("Please run code before navigating.");
-        return;
-      }
+    // Day/Night mode toggle functionality
+    const dayBtn = document.getElementById('day-btn');
+    const nightBtn = document.getElementById('night-btn');
+    const body = document.body;
 
-      const encodedOutput = encodeURIComponent(latestOutput);
-      window.location.href = `http://localhost:8080/cs.html?output=${encodedOutput}`;
+    dayBtn.addEventListener('click', () => {
+      if (!body.classList.contains('night-mode')) return;
+      
+      body.classList.remove('night-mode');
+      dayBtn.classList.add('active');
+      nightBtn.classList.remove('active');
+      
+      // Change Monaco editor theme
+      if (editor) {
+        monaco.editor.setTheme('vs');
+      }
+      
+      // Add animation effect
+      document.querySelector('.container').classList.add('fade-in');
+      setTimeout(() => {
+        document.querySelector('.container').classList.remove('fade-in');
+      }, 500);
+    });
+
+    nightBtn.addEventListener('click', () => {
+      if (body.classList.contains('night-mode')) return;
+      
+      body.classList.add('night-mode');
+      nightBtn.classList.add('active');
+      dayBtn.classList.remove('active');
+      
+      // Change Monaco editor theme
+      if (editor) {
+        monaco.editor.setTheme('vs-dark');
+      }
+      
+      // Add animation effect
+      document.querySelector('.container').classList.add('fade-in');
+      setTimeout(() => {
+        document.querySelector('.container').classList.remove('fade-in');
+      }, 500);
+    });
+
+    // Add hover effect to theme buttons
+    const themeButtons = document.querySelectorAll('.theme-btn');
+    themeButtons.forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        btn.style.transform = 'translateY(-3px) scale(1.05)';
+      });
+      
+      btn.addEventListener('mouseleave', () => {
+        if (!btn.classList.contains('active')) {
+          btn.style.transform = 'translateY(0) scale(1)';
+        }
+      });
     });
   </script>
 </body>

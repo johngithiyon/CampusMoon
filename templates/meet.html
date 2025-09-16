@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multiparty Video Chat with Whiteboard & Chat</title>
+  <title>Multiparty Video Chat with Sign Language</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Three.js for 3D avatar -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -205,7 +205,7 @@
     .btn-danger:hover {
       background-color: #bd2130;
     }
-    
+   
     .btn-warning {
       background-color: var(--warning-color);
       color: var(--dark-color);
@@ -213,7 +213,7 @@
     .btn-warning:hover {
       background-color: #e0a800;
     }
-    
+   
     .btn-chat {
       background-color: #6f42c1;
       color: white;
@@ -408,23 +408,23 @@
       .video-grid {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       }
-      
+     
       .status-bar {
         flex-direction: column;
         gap: 15px;
         text-align: center;
       }
-      
+     
       .action-buttons {
         width: 100%;
         justify-content: center;
         flex-wrap: wrap;
       }
-      
+     
       .whiteboard-overlay {
         padding: 10px;
       }
-      
+     
       .chat-overlay {
         width: 95%;
         height: 80%;
@@ -434,20 +434,20 @@
       header h1 {
         font-size: 2rem;
       }
-      
+     
       .video-grid {
         grid-template-columns: 1fr;
       }
-      
+     
       .btn {
         padding: 8px 16px;
         font-size: 0.9rem;
       }
-      
+     
       .chat-header {
         padding: 10px 15px;
       }
-      
+     
       .chat-input-container {
         padding: 10px;
       }
@@ -460,7 +460,7 @@
     .video-container.new {
       animation: fadeIn 0.5s ease;
     }
-    
+   
     /* Animation for new messages */
     @keyframes slideIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -637,99 +637,175 @@
       font-size: 0.85rem;
       margin-top: 2px;
     }
-    
-    /* Sign Language Converter Styles */
-    .sign-language-overlay {
+   
+    /* Sign Language Converter Styles - MODIFIED */
+    .sign-language-panel {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.85);
+      bottom: 20px;
+      right: 20px;
+      width: 350px;
+      background-color: var(--card-background);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
       display: none;
       flex-direction: column;
-      z-index: 1003;
-      padding: 20px;
+      z-index: 998;
+      max-height: 70vh;
+      transition: all 0.3s ease;
     }
-    
+   
     .sign-language-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 20px;
-      background-color: var(--dark-color);
+      padding: 12px 15px;
+      background-color: var(--primary-color);
       color: white;
       border-top-left-radius: var(--border-radius);
       border-top-right-radius: var(--border-radius);
+      cursor: move;
     }
-    
-    .sign-language-container {
+   
+    .sign-language-content {
       flex: 1;
-      background-color: var(--card-background);
-      border-bottom-left-radius: var(--border-radius);
-      border-bottom-right-radius: var(--border-radius);
-      overflow: hidden;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
-    
+   
     .sign-language-viewport {
       flex: 1;
       position: relative;
       background-color: #f0f0f0;
+      min-height: 200px;
+      border-bottom: 1px solid #eee;
     }
-    
+   
     .sign-language-transcript {
       height: 150px;
       background-color: var(--dark-color);
       color: white;
-      padding: 15px;
+      padding: 10px;
       overflow-y: auto;
+      border-bottom-left-radius: var(--border-radius);
+      border-bottom-right-radius: var(--border-radius);
     }
-    
+   
     .transcript-item {
       margin-bottom: 8px;
       padding: 8px;
       background-color: rgba(255, 255, 255, 0.1);
       border-radius: 4px;
+      font-size: 0.85rem;
     }
-    
+   
     .gloss {
       color: #f1c40f;
       font-weight: bold;
     }
-    
+   
     .sign-language-controls {
       display: flex;
-      gap: 10px;
-      margin-top: 15px;
-      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-top: 1px solid #eee;
     }
-    
+   
     .sign-language-status {
       position: absolute;
       top: 10px;
       left: 10px;
-      padding: 5px 10px;
+      padding: 4px 8px;
       background-color: rgba(0, 0, 0, 0.7);
       color: white;
       border-radius: 4px;
-      font-size: 0.9rem;
+      font-size: 0.75rem;
+      z-index: 10;
     }
-    
+   
     .sign-language-status.active {
       background-color: var(--success-color);
     }
-    
+   
     .sign-language-status.inactive {
       background-color: var(--danger-color);
+    }
+   
+    .sign-language-controls .btn {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+   
+    .sign-language-minimized {
+      width: 200px;
+      height: 50px;
+    }
+   
+    .sign-language-minimized .sign-language-content {
+      display: none;
+    }
+   
+    .sign-language-minimized .sign-language-header {
+      border-radius: var(--border-radius);
+    }
+   
+    .sign-language-minimize {
+      cursor: pointer;
+    }
+   
+    .sign-language-minimized .sign-language-minimize i:before {
+      content: "\f067"; /* fa-plus */
+    }
+   
+    /* Teacher indicator */
+    .teacher-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: var(--success-color);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      z-index: 10;
+    }
+   
+    /* Avatar controls for students */
+    .avatar-controls {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      display: flex;
+      gap: 5px;
+      z-index: 10;
+    }
+   
+    .avatar-control-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+   
+    .avatar-control-btn:hover {
+      background-color: rgba(0, 0, 0, 0.7);
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Multiparty Video Chat</h1>
+      <h1>Multiparty Video Chat with Sign Language</h1>
       <p>Connect with multiple participants in real-time</p>
     </header>
     <div class="main-content">
@@ -781,12 +857,12 @@
           <div class="status-indicator" id="connectionStatus"></div>
           <span id="statusText">Connecting...</span>
         </div>
-        
+       
         <div class="participant-count">
           <i class="fas fa-users"></i>
           <span id="participantCount">1 participant</span>
         </div>
-        
+       
         <div class="action-buttons">
           <button class="btn btn-chat" id="toggleChat">
             <i class="fas fa-comments"></i> Chat
@@ -802,7 +878,7 @@
       </div>
     </div>
   </div>
-  
+ 
   <!-- Whiteboard Overlay -->
   <div class="whiteboard-overlay" id="whiteboardOverlay">
     <div class="whiteboard-header">
@@ -823,7 +899,7 @@
       </button>
     </div>
   </div>
-  
+ 
   <!-- Chat Overlay -->
   <div class="chat-overlay" id="chatOverlay">
     <div class="chat-header">
@@ -846,7 +922,7 @@
       </button>
     </div>
   </div>
-  
+ 
   <!-- Poll Creation Overlay -->
   <div class="poll-overlay" id="pollOverlay">
     <div class="poll-header">
@@ -882,7 +958,7 @@
       </div>
     </div>
   </div>
-  
+ 
   <!-- Active Poll Display -->
   <div class="active-poll" id="activePoll">
     <div class="active-poll-header">
@@ -897,18 +973,35 @@
       <div class="poll-result-text" id="pollResultText"></div>
     </div>
   </div>
-  
-  <!-- Sign Language Overlay -->
-  <div class="sign-language-overlay" id="signLanguageOverlay">
+ 
+  <!-- Sign Language Panel - MODIFIED -->
+  <div class="sign-language-panel" id="signLanguagePanel">
     <div class="sign-language-header">
-      <h3><i class="fas fa-sign-language"></i> Sign Language Interpreter</h3>
-      <button class="control-btn" id="closeSignLanguage" title="Close Sign Language">
-        <i class="fas fa-times"></i>
-      </button>
+      <h3><i class="fas fa-sign-language"></i> Sign Language</h3>
+      <div>
+        <button class="control-btn sign-language-minimize" id="minimizeSignLanguage" title="Minimize">
+          <i class="fas fa-minus"></i>
+        </button>
+        <button class="control-btn" id="closeSignLanguage" title="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
     </div>
-    <div class="sign-language-container">
+    <div class="sign-language-content">
       <div class="sign-language-viewport" id="signLanguageViewport">
         <div class="sign-language-status inactive" id="signLanguageStatus">Inactive</div>
+        <div class="teacher-indicator" id="teacherIndicator" style="display: none;">TEACHER</div>
+        <div class="avatar-controls" id="avatarControls" style="display: none;">
+          <button class="avatar-control-btn" id="zoomIn" title="Zoom In">
+            <i class="fas fa-search-plus"></i>
+          </button>
+          <button class="avatar-control-btn" id="zoomOut" title="Zoom Out">
+            <i class="fas fa-search-minus"></i>
+          </button>
+          <button class="avatar-control-btn" id="resetView" title="Reset View">
+            <i class="fas fa-compress"></i>
+          </button>
+        </div>
       </div>
       <div class="sign-language-transcript" id="signLanguageTranscript">
         <h3>Transcript & Sign Language</h3>
@@ -923,7 +1016,7 @@
         <i class="fas fa-stop"></i> Stop
       </button>
       <button class="btn btn-warning" id="clearTranscript">
-        <i class="fas fa-trash"></i> Clear Transcript
+        <i class="fas fa-trash"></i> Clear
       </button>
     </div>
   </div>
@@ -953,7 +1046,7 @@
     const chatInput = document.getElementById("chatInput");
     const sendMessageBtn = document.getElementById("sendMessage");
     const chatNotification = document.getElementById("chatNotification");
-    
+   
     // New poll-related variables
     const createPollBtn = document.getElementById("createPoll");
     const pollOverlay = document.getElementById("pollOverlay");
@@ -968,11 +1061,12 @@
     const pollOptionsList = document.getElementById("pollOptionsList");
     const pollResults = document.getElementById("pollResults");
     const pollResultText = document.getElementById("pollResultText");
-    
-    // Sign Language Converter variables
+   
+    // Sign Language Converter variables - MODIFIED
     const toggleSignLanguageBtn = document.getElementById("toggleSignLanguage");
-    const signLanguageOverlay = document.getElementById("signLanguageOverlay");
+    const signLanguagePanel = document.getElementById("signLanguagePanel");
     const closeSignLanguageBtn = document.getElementById("closeSignLanguage");
+    const minimizeSignLanguageBtn = document.getElementById("minimizeSignLanguage");
     const signLanguageViewport = document.getElementById("signLanguageViewport");
     const signLanguageStatus = document.getElementById("signLanguageStatus");
     const signLanguageTranscript = document.getElementById("signLanguageTranscript");
@@ -980,7 +1074,12 @@
     const startSignLanguageBtn = document.getElementById("startSignLanguage");
     const stopSignLanguageBtn = document.getElementById("stopSignLanguage");
     const clearTranscriptBtn = document.getElementById("clearTranscript");
-    
+    const teacherIndicator = document.getElementById("teacherIndicator");
+    const avatarControls = document.getElementById("avatarControls");
+    const zoomInBtn = document.getElementById("zoomIn");
+    const zoomOutBtn = document.getElementById("zoomOut");
+    const resetViewBtn = document.getElementById("resetView");
+   
     let localStream;
     let peers = {}; // peerId -> RTCPeerConnection
     let pendingPeers = []; // peers received before localStream ready
@@ -989,19 +1088,22 @@
     let isStaff = false; // This would normally be set based on user role
     let userId = generateUserId();
     let unreadMessages = 0;
-    
+   
     // Poll state variables
     let currentPoll = null;
     let userVote = null;
     const wspolls = new WebSocket("ws://" + location.host + "/wspolls");
-    
-    // Sign Language state variables
+   
+    // Sign Language state variables - MODIFIED
     let recognition;
     let isSignLanguageActive = false;
     let scene, camera, renderer, avatar;
     let animationMixer;
     const clock = new THREE.Clock();
-    
+    let isMinimized = false;
+    let isTeacher = false;
+    let cameraDistance = 5;
+   
     // Gloss dictionary for sign language
     const glossDict = {
       // Basic greetings
@@ -1009,7 +1111,7 @@
       "hi": "HELLO",
       "goodbye": "GOODBYE",
       "bye": "GOODBYE",
-      
+     
       // Common classroom phrases
       "welcome": "WELCOME",
       "class": "CLASS",
@@ -1018,26 +1120,26 @@
       "understand": "UNDERSTAND",
       "question": "QUESTION",
       "answer": "ANSWER",
-      
+     
       // Subjects
       "math": "MATH",
       "science": "SCIENCE",
       "history": "HISTORY",
       "english": "ENGLISH",
-      
+     
       // Actions
       "look": "LOOK",
       "listen": "LISTEN",
       "read": "READ",
       "write": "WRITE",
       "think": "THINK",
-      
+     
       // Time expressions
       "now": "NOW",
       "later": "LATER",
       "before": "BEFORE",
       "after": "AFTER",
-      
+     
       // Pronouns
       "i": "I",
       "me": "ME",
@@ -1046,7 +1148,7 @@
       "she": "SHE",
       "we": "WE",
       "they": "THEY",
-      
+     
       // Common verbs
       "be": "BE",
       "have": "HAVE",
@@ -1139,7 +1241,7 @@
       "reach": "REACH",
       "kill": "KILL",
       "remain": "REMAIN",
-      
+     
       // Common nouns
       "time": "TIME",
       "year": "YEAR",
@@ -1242,106 +1344,109 @@
       "force": "FORCE",
       "education": "EDUCATION"
     };
-    
+   
     // Initialize the application
     function init() {
       // For demonstration, let's assume user is staff
       // In a real application, this would be set based on authentication
       checkIfStaff();
-      
+     
       connectWebSocket();
       setupEventListeners();
       getLocalMedia();
-      
+     
       // Initialize Sign Language Converter
       initSignLanguage();
     }
-    
+   
     // Generate a random user ID
     function generateUserId() {
       return 'user-' + Math.floor(Math.random() * 10000);
     }
-    
+   
     // Check if user is staff (for demonstration purposes)
     function checkIfStaff() {
       // In a real app, this would check user role from authentication
       // For demo, we'll use a URL parameter or prompt
       const urlParams = new URLSearchParams(window.location.search);
       isStaff = urlParams.has('staff') || confirm("Are you a staff member?");
-      
+     
       if (isStaff) {
         staffControls.style.display = 'block';
+        isTeacher = true;
+        teacherIndicator.style.display = 'block';
       }
     }
-    
+   
     // Connect to WebSocket server
     function connectWebSocket() {
       try {
         ws = new WebSocket("ws://" + location.host + "/ws");
         updateConnectionStatus('connecting');
-        
+       
         ws.onopen = () => {
           console.log("WebSocket connection established");
           updateConnectionStatus('connected');
-          
+         
           // Send user info to server
-          ws.send(JSON.stringify({ 
-            type: "user-info", 
+          ws.send(JSON.stringify({
+            type: "user-info",
             userId: userId,
-            isStaff: isStaff 
+            isStaff: isStaff
           }));
         };
-        
+       
         ws.onclose = () => {
           console.log("WebSocket connection closed");
           updateConnectionStatus('disconnected');
           // Try to reconnect after 3 seconds
           setTimeout(connectWebSocket, 3000);
         };
-        
+       
         ws.onerror = (error) => {
           console.error("WebSocket error:", error);
           updateConnectionStatus('error');
         };
-        
+       
         // Handle signaling messages
         ws.onmessage = handleSignalingMessage;
-        
+       
       } catch (error) {
         console.error("Failed to connect WebSocket:", error);
         updateConnectionStatus('error');
       }
     }
-    
+   
     // Set up UI event listeners
     function setupEventListeners() {
       leaveCallBtn.addEventListener('click', leaveCall);
       shareScreenBtn.addEventListener('click', toggleScreenShare);
       toggleAudioBtn.addEventListener('click', toggleAudio);
       toggleVideoBtn.addEventListener('click', toggleVideo);
-      
+     
       // Whiteboard events
       if (isStaff) {
         toggleWhiteboardBtn.addEventListener('click', toggleWhiteboard);
         closeWhiteboardBtn.addEventListener('click', closeWhiteboard);
         reloadWhiteboardBtn.addEventListener('click', reloadWhiteboard);
         clearWhiteboardBtn.addEventListener('click', clearWhiteboard);
-        
+       
         // Poll events
         createPollBtn.addEventListener('click', openPollCreator);
         closePollBtn.addEventListener('click', closePollCreator);
         addPollOptionBtn.addEventListener('click', addPollOption);
         cancelPollBtn.addEventListener('click', closePollCreator);
         publishPollBtn.addEventListener('click', publishPoll);
-        
-        // Sign Language events
+       
+        // Sign Language events - MODIFIED
         toggleSignLanguageBtn.addEventListener('click', toggleSignLanguage);
         closeSignLanguageBtn.addEventListener('click', closeSignLanguage);
+        minimizeSignLanguageBtn.addEventListener('click', toggleMinimize);
         startSignLanguageBtn.addEventListener('click', startSignLanguageRecognition);
         stopSignLanguageBtn.addEventListener('click', stopSignLanguageRecognition);
         clearTranscriptBtn.addEventListener('click', clearTranscript);
       }
-      
+     
       // Chat events
       toggleChatBtn.addEventListener('click', toggleChat);
       closeChatBtn.addEventListener('click', closeChat);
@@ -1351,11 +1456,18 @@
           sendChatMessage();
         }
       });
-      
+     
       // Close active poll
       activePoll.querySelector('.close-poll').addEventListener('click', closeActivePoll);
+     
+      // Avatar controls for students - MODIFIED
+      if (!isTeacher) {
+        zoomInBtn.addEventListener('click', () => adjustCameraZoom(0.5));
+        zoomOutBtn.addEventListener('click', () => adjustCameraZoom(-0.5));
+        resetViewBtn.addEventListener('click', resetCameraView);
+      }
     }
-    
+   
     // Get local camera/mic
     function getLocalMedia() {
       navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -1372,7 +1484,7 @@
           statusText.textContent = "Unable to access camera/microphone";
         });
     }
-    
+   
     // Handle signaling messages
     async function handleSignalingMessage(event) {
       const msg = JSON.parse(event.data);
@@ -1387,7 +1499,7 @@
           });
           updateParticipantCount();
           break;
-          
+         
         case "new-peer":
           if(localStream) {
             createPeerConnection(msg.id, false);
@@ -1396,7 +1508,7 @@
           }
           updateParticipantCount();
           break;
-          
+         
         case "offer":
           const pc = createPeerConnection(msg.from, false);
           await pc.setRemoteDescription(new RTCSessionDescription(msg.offer));
@@ -1404,42 +1516,52 @@
           await pc.setLocalDescription(answer);
           ws.send(JSON.stringify({ type: "answer", answer, to: msg.from }));
           break;
-          
+         
         case "answer":
           if (peers[msg.from]) {
             await peers[msg.from].setRemoteDescription(new RTCSessionDescription(msg.answer));
           }
           break;
-          
+         
         case "ice-candidate":
           if (peers[msg.from]) {
             peers[msg.from].addIceCandidate(new RTCIceCandidate(msg.candidate));
           }
           break;
-          
+         
         case "peer-disconnected":
           removePeerConnection(msg.id);
           updateParticipantCount();
           break;
-          
+         
         case "chat-message":
           addChatMessage(msg.sender, msg.message, msg.timestamp, false);
           break;
-          
+         
         case "poll-created":
           displayPoll(msg.poll);
           break;
-          
+         
         case "poll-vote":
           updatePollResults(msg.pollId, msg.results);
           break;
-          
+         
         case "poll-ended":
           endPoll(msg.pollId, msg.finalResults);
           break;
+         
+        // NEW: Handle sign language updates - MODIFIED
+        case "sign-language-update":
+          if (!isTeacher) {
+            // Students receive and display sign language updates
+            const { transcript, gloss } = msg;
+            addTranscriptItem(transcript, gloss);
+            animateAvatar(gloss);
+          }
+          break;
       }
     }
-    
+   
     // Create peer connection
     function createPeerConnection(peerId, isOfferer) {
       if(peers[peerId]) return peers[peerId];
@@ -1470,23 +1592,23 @@
           // Remove empty state if it exists
           const emptyState = videosContainer.querySelector('.empty-state');
           if (emptyState) emptyState.remove();
-          
+         
           videoElement = document.createElement('video');
           videoElement.id = "remote-" + peerId;
           videoElement.autoplay = true;
           videoElement.playsInline = true;
-          
+         
           const videoContainer = document.createElement('div');
           videoContainer.className = 'video-container new';
           videoContainer.appendChild(videoElement);
-          
+         
           const videoInfo = document.createElement('div');
           videoInfo.className = 'video-info';
           videoInfo.innerHTML = `<span>Participant user</span>`;
-          
+         
           videoContainer.appendChild(videoInfo);
           videosContainer.appendChild(videoContainer);
-          
+         
           // Remove the 'new' class after animation completes
           setTimeout(() => videoContainer.classList.remove('new'), 500);
         }
@@ -1506,19 +1628,19 @@
       }
       return pc;
     }
-    
+   
     // Remove peer connection
     function removePeerConnection(peerId) {
       if(peers[peerId]) {
         peers[peerId].close();
         delete peers[peerId];
       }
-      
+     
       const videoElement = document.getElementById("remote-" + peerId);
       if(videoElement) {
         videoElement.closest('.video-container').remove();
       }
-      
+     
       // Show empty state if no participants
       if(videosContainer.children.length === 0) {
         const emptyState = document.createElement('div');
@@ -1530,7 +1652,7 @@
         videosContainer.appendChild(emptyState);
       }
     }
-    
+   
     // Toggle audio mute/unmute
     function toggleAudio() {
       if (localStream) {
@@ -1538,15 +1660,15 @@
         if (audioTracks.length > 0) {
           const newState = !audioTracks[0].enabled;
           audioTracks[0].enabled = newState;
-          
+         
           toggleAudioBtn.classList.toggle('muted-audio', !newState);
-          toggleAudioBtn.innerHTML = newState ? 
-            '<i class="fas fa-microphone"></i>' : 
+          toggleAudioBtn.innerHTML = newState ?
+            '<i class="fas fa-microphone"></i>' :
             '<i class="fas fa-microphone-slash"></i>';
         }
       }
     }
-    
+   
     // Toggle video on/off
     function toggleVideo() {
       if (localStream) {
@@ -1554,15 +1676,15 @@
         if (videoTracks.length > 0) {
           const newState = !videoTracks[0].enabled;
           videoTracks[0].enabled = newState;
-          
+         
           toggleVideoBtn.classList.toggle('muted-video', !newState);
-          toggleVideoBtn.innerHTML = newState ? 
-            '<i class="fas fa-video"></i>' : 
+          toggleVideoBtn.innerHTML = newState ?
+            '<i class="fas fa-video"></i>' :
             '<i class="fas fa-video-slash"></i>';
         }
       }
     }
-    
+   
     // Toggle screen sharing
     function toggleScreenShare() {
       if (isScreenSharing) {
@@ -1584,7 +1706,7 @@
             isScreenSharing = true;
             shareScreenBtn.innerHTML = '<i class="fas fa-times"></i> Stop Sharing';
             shareScreenBtn.classList.add('btn-danger');
-            
+           
             // Handle when the user stops screen sharing
             stream.getVideoTracks()[0].onended = () => {
               if (isScreenSharing) {
@@ -1597,12 +1719,12 @@
           });
       }
     }
-    
+   
     // Replace the current stream with a new one
     function replaceStream(newStream) {
       // Update local video element
       localVideo.srcObject = newStream;
-      
+     
       // Update all peer connections
       Object.values(peers).forEach(pc => {
         // Remove existing tracks
@@ -1612,46 +1734,46 @@
             pc.removeTrack(s);
           }
         });
-        
+       
         // Add new tracks
         newStream.getTracks().forEach(track => {
           pc.addTrack(track, newStream);
         });
       });
-      
+     
       // Close the old stream
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
       }
-      
+     
       localStream = newStream;
       updateMediaControls();
     }
-    
+   
     // Update media control buttons based on current state
     function updateMediaControls() {
       if (localStream) {
         const audioTracks = localStream.getAudioTracks();
         const videoTracks = localStream.getVideoTracks();
-        
+       
         if (audioTracks.length > 0) {
           const audioEnabled = audioTracks[0].enabled;
           toggleAudioBtn.classList.toggle('muted-audio', !audioEnabled);
-          toggleAudioBtn.innerHTML = audioEnabled ? 
-            '<i class="fas fa-microphone"></i>' : 
+          toggleAudioBtn.innerHTML = audioEnabled ?
+            '<i class="fas fa-microphone"></i>' :
             '<i class="fas fa-microphone-slash"></i>';
         }
-        
+       
         if (videoTracks.length > 0) {
           const videoEnabled = videoTracks[0].enabled;
           toggleVideoBtn.classList.toggle('muted-video', !videoEnabled);
-          toggleVideoBtn.innerHTML = videoEnabled ? 
-            '<i class="fas fa-video"></i>' : 
+          toggleVideoBtn.innerHTML = videoEnabled ?
+            '<i class="fas fa-video"></i>' :
             '<i class="fas fa-video-slash"></i>';
         }
       }
     }
-    
+   
     // Toggle whiteboard visibility
     function toggleWhiteboard() {
       if (whiteboardOverlay.style.display === 'flex') {
@@ -1660,7 +1782,7 @@
         openWhiteboard();
       }
     }
-    
+   
     // Open whiteboard
     function openWhiteboard() {
       whiteboardOverlay.style.display = 'flex';
@@ -1668,7 +1790,7 @@
       toggleWhiteboardBtn.classList.add('btn-danger');
       toggleWhiteboardBtn.classList.remove('btn-warning');
     }
-    
+   
     // Close whiteboard
     function closeWhiteboard() {
       whiteboardOverlay.style.display = 'none';
@@ -1676,12 +1798,12 @@
       toggleWhiteboardBtn.classList.remove('btn-danger');
       toggleWhiteboardBtn.classList.add('btn-warning');
     }
-    
+   
     // Reload whiteboard
     function reloadWhiteboard() {
       whiteboardFrame.src = whiteboardFrame.src;
     }
-    
+   
     // Clear whiteboard
     function clearWhiteboard() {
       if (confirm("Are you sure you want to clear the whiteboard? This will remove all drawings.")) {
@@ -1690,7 +1812,7 @@
         reloadWhiteboard();
       }
     }
-    
+   
     // Toggle chat visibility
     function toggleChat() {
       if (chatOverlay.style.display === 'flex') {
@@ -1699,7 +1821,7 @@
         openChat();
       }
     }
-    
+   
     // Open chat
     function openChat() {
       chatOverlay.style.display = 'flex';
@@ -1708,59 +1830,59 @@
       unreadMessages = 0;
       updateChatNotification();
     }
-    
+   
     // Close chat
     function closeChat() {
       chatOverlay.style.display = 'none';
     }
-    
+   
     // Send chat message
     function sendChatMessage() {
       const message = chatInput.value.trim();
       if (message && ws.readyState === WebSocket.OPEN) {
         const timestamp = new Date().toISOString();
-        
+       
         // Add message to UI immediately
         //addChatMessage("You", timestamp, true); // message removed
-        
+       
         // Send message to server
-        ws.send(JSON.stringify({ 
-          type: "chat-message", 
+        ws.send(JSON.stringify({
+          type: "chat-message",
           sender: userId,
           message: message,
           timestamp: timestamp
         }));
-        
+       
         // Clear input
         chatInput.value = "";
       }
     }
-    
+   
     // Add chat message to UI
     function addChatMessage(sender, message, timestamp, isSent) {
       const messageElement = document.createElement('div');
       messageElement.className = `message ${isSent ? 'sent' : 'received'}`;
-      
+     
       const time = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
+     
       messageElement.innerHTML = `
         ${!isSent ? `<div class="message-sender">${sender}</div>` : ''}
         <div>${message}</div>
         <div class="message-time">${time}</div>
       `;
-      
+     
       chatMessages.appendChild(messageElement);
-      
+     
       // Scroll to bottom
       chatMessages.scrollTop = chatMessages.scrollHeight;
-      
+     
             // Update notification if chat is not open
             if (chatOverlay.style.display !== 'flex') {
         unreadMessages++;
         updateChatNotification();
       }
     }
-    
+   
     // Update chat notification badge
     function updateChatNotification() {
       if (unreadMessages > 0) {
@@ -1770,11 +1892,11 @@
         chatNotification.style.display = 'none';
       }
     }
-    
+   
     // Update connection status indicator
     function updateConnectionStatus(status) {
       connectionStatus.className = 'status-indicator';
-      
+     
       switch(status) {
         case 'connected':
           connectionStatus.classList.add('connected');
@@ -1794,41 +1916,41 @@
           break;
       }
     }
-    
+   
     // Update participant count
     function updateParticipantCount() {
       const count = Object.keys(peers).length + 1; // +1 for local user
       participantCount.textContent = `${count} participant${count !== 1 ? 's' : ''}`;
     }
-    
+   
     // Leave the call
     function leaveCall() {
       // Close all peer connections
       Object.keys(peers).forEach(peerId => {
         removePeerConnection(peerId);
       });
-      
+     
       // Stop local stream
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
       }
-      
+     
       // Close WebSocket connection
       if (ws) {
         ws.close();
       }
-      
+     
       // Update UI
       updateConnectionStatus('disconnected');
       statusText.textContent = 'Call ended';
       participantCount.textContent = '0 participants';
-      
+     
       // Disable buttons
       leaveCallBtn.disabled = true;
       shareScreenBtn.disabled = true;
       toggleAudioBtn.disabled = true;
       toggleVideoBtn.disabled = true;
-      
+     
       // Show message
       const emptyState = document.createElement('div');
       emptyState.className = 'empty-state';
@@ -1838,18 +1960,18 @@
       `;
       videosContainer.appendChild(emptyState);
     }
-    
+   
     // Poll functionality
     function openPollCreator() {
       pollOverlay.style.display = 'flex';
       pollQuestion.value = '';
-      
+     
       // Clear existing options except the first two
       const options = pollOptions.querySelectorAll('.poll-option');
       for (let i = 2; i < options.length; i++) {
         options[i].remove();
       }
-      
+     
       // Reset first two options
       const firstOption = options[0].querySelector('input');
       const secondOption = options[1].querySelector('input');
@@ -1858,11 +1980,11 @@
       firstOption.placeholder = 'Option 1';
       secondOption.placeholder = 'Option 2';
     }
-    
+   
     function closePollCreator() {
       pollOverlay.style.display = 'none';
     }
-    
+   
     function addPollOption() {
       const optionCount = pollOptions.querySelectorAll('.poll-option').length;
       const optionDiv = document.createElement('div');
@@ -1872,35 +1994,35 @@
         <button class="remove-option"><i class="fas fa-times"></i></button>
       `;
       pollOptions.appendChild(optionDiv);
-      
+     
       // Add event listener to the remove button
       optionDiv.querySelector('.remove-option').addEventListener('click', function() {
         optionDiv.remove();
       });
     }
-    
+   
     function publishPoll() {
       const question = pollQuestion.value.trim();
       if (!question) {
         alert('Please enter a poll question');
         return;
       }
-      
+     
       const optionInputs = pollOptions.querySelectorAll('input');
       const options = [];
-      
+     
       for (let i = 0; i < optionInputs.length; i++) {
         const optionText = optionInputs[i].value.trim();
         if (optionText) {
           options.push(optionText);
         }
       }
-      
+     
       if (options.length < 2) {
         alert('Please add at least two options');
         return;
       }
-      
+     
       // Create poll object
       const pollId = 'poll-' + Date.now();
       const poll = {
@@ -1910,30 +2032,30 @@
         results: options.map(() => 0), // Initialize with zeros
         totalVotes: 0
       };
-      
+     
       // Send poll to server
       if (wspolls.readyState === WebSocket.OPEN) {
         wspolls.send(JSON.stringify({
           type: 'create-poll',
           poll: poll
         }));
-        
+       
         // Store current poll
         currentPoll = poll;
-        
+       
         // Close poll creator
         closePollCreator();
-        
+       
         // Display the poll for the creator
         displayPoll(poll);
       }
     }
-    
+   
     function displayPoll(poll) {
       activePollQuestion.textContent = poll.question;
       pollOptionsList.innerHTML = '';
       pollResults.style.display = 'none';
-      
+     
       // Create option buttons
       poll.options.forEach((option, index) => {
         const optionDiv = document.createElement('div');
@@ -1943,29 +2065,29 @@
         `;
         pollOptionsList.appendChild(optionDiv);
       });
-      
+     
       // Add event listeners to option buttons
       const optionButtons = pollOptionsList.querySelectorAll('.poll-option-button');
       optionButtons.forEach(button => {
         button.addEventListener('click', function() {
           if (userVote !== null) return; // Prevent voting twice
-          
+         
           const optionIndex = parseInt(this.getAttribute('data-index'));
           voteInPoll(poll.id, optionIndex);
-          
+         
           // Highlight selected option
           optionButtons.forEach(btn => btn.classList.remove('selected'));
           this.classList.add('selected');
-          
+         
           userVote = optionIndex;
         });
       });
-      
+     
       // Show the active poll
       activePoll.style.display = 'block';
       currentPoll = poll;
     }
-    
+   
     function voteInPoll(pollId, optionIndex) {
       if (wspolls.readyState === WebSocket.OPEN) {
         wspolls.send(JSON.stringify({
@@ -1975,32 +2097,32 @@
         }));
       }
     }
-    
+   
     function updatePollResults(pollId, results) {
       if (currentPoll && currentPoll.id === pollId) {
         currentPoll.results = results;
         currentPoll.totalVotes = results.reduce((sum, count) => sum + count, 0);
-        
+       
         // Show results if user has voted
         if (userVote !== null) {
           showPollResults();
         }
       }
     }
-    
+   
     function showPollResults() {
       if (!currentPoll) return;
-      
+     
       pollResults.style.display = 'block';
       pollOptionsList.style.display = 'none';
-      
+     
       let resultsHTML = '';
       currentPoll.options.forEach((option, index) => {
         const voteCount = currentPoll.results[index];
-        const percentage = currentPoll.totalVotes > 0 
-          ? Math.round((voteCount / currentPoll.totalVotes) * 100) 
+        const percentage = currentPoll.totalVotes > 0
+          ? Math.round((voteCount / currentPoll.totalVotes) * 100)
           : 0;
-        
+       
         resultsHTML += `
           <div class="poll-result-item">
             <div>${option}</div>
@@ -2014,18 +2136,18 @@
           </div>
         `;
       });
-      
+     
       pollResults.innerHTML = resultsHTML;
       pollResultText.textContent = `Total votes: ${currentPoll.totalVotes}`;
     }
-    
+   
     function endPoll(pollId, finalResults) {
       if (currentPoll && currentPoll.id === pollId) {
         currentPoll.results = finalResults;
         currentPoll.totalVotes = finalResults.reduce((sum, count) => sum + count, 0);
-        
+       
         showPollResults();
-        
+       
         // Add a ended message
         const endedText = document.createElement('div');
         endedText.style.marginTop = '10px';
@@ -2035,26 +2157,26 @@
         pollResults.appendChild(endedText);
       }
     }
-    
+   
     function closeActivePoll() {
       activePoll.style.display = 'none';
       currentPoll = null;
       userVote = null;
     }
-    
-    // Sign Language Converter Functions
+   
+    // Sign Language Converter Functions - MODIFIED
     function initSignLanguage() {
       // Initialize Three.js scene
       initThreeJS();
-      
-      // Initialize speech recognition
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+     
+      // Initialize speech recognition (only for teachers)
+      if (isTeacher && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'en-US';
-        
+       
         recognition.onresult = function(event) {
           let finalTranscript = '';
           for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -2067,50 +2189,61 @@
             const gloss = translateToGloss(finalTranscript);
             addTranscriptItem(finalTranscript, gloss);
             animateAvatar(gloss);
+           
+            // Send to students via WebSocket
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({
+                type: "sign-language-update",
+                transcript: finalTranscript,
+                gloss: gloss
+              }));
+            }
           }
         };
-        
+       
         recognition.onerror = function(event) {
           console.error('Speech recognition error', event.error);
           signLanguageStatus.textContent = 'Error: ' + event.error;
           signLanguageStatus.className = 'sign-language-status inactive';
         };
-        
+       
         recognition.onend = function() {
           if (isSignLanguageActive) {
             // Restart recognition if it's supposed to be active
             recognition.start();
           }
         };
+      } else if (!isTeacher) {
+        console.log('Speech recognition not needed for students');
       } else {
         console.error('Speech recognition not supported');
         signLanguageStatus.textContent = 'Not supported';
         signLanguageStatus.className = 'sign-language-status inactive';
       }
     }
-    
+   
     function initThreeJS() {
       // Create scene
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0xf0f0f0);
-      
+     
       // Create camera
       camera = new THREE.PerspectiveCamera(75, signLanguageViewport.clientWidth / signLanguageViewport.clientHeight, 0.1, 1000);
-      camera.position.z = 5;
-      
+      camera.position.z = cameraDistance;
+     
       // Create renderer
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(signLanguageViewport.clientWidth, signLanguageViewport.clientHeight);
       signLanguageViewport.appendChild(renderer.domElement);
-      
+     
       // Add lighting
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
       scene.add(ambientLight);
-      
+     
       const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
       directionalLight.position.set(1, 1, 1);
       scene.add(directionalLight);
-      
+     
       // Load avatar model
       const loader = new THREE.GLTFLoader();
       loader.load('https://threejs.org/examples/models/gltf/Xbot.glb', function(gltf) {
@@ -2118,34 +2251,34 @@
         avatar.scale.set(0.5, 0.5, 0.5);
         avatar.position.y = -1;
         scene.add(avatar);
-        
+       
         // Setup animation mixer
         if (gltf.animations && gltf.animations.length) {
-       animationMixer = new THREE.AnimationMixer(avatar);
+          animationMixer = new THREE.AnimationMixer(avatar);
         }
       });
-      
+     
       // Handle window resize
       window.addEventListener('resize', function() {
         camera.aspect = signLanguageViewport.clientWidth / signLanguageViewport.clientHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(signLanguageViewport.clientWidth, signLanguageViewport.clientHeight);
       });
-      
+     
       // Start animation loop
       animate();
     }
-    
+   
     function animate() {
       requestAnimationFrame(animate);
-      
+     
       if (animationMixer) {
         animationMixer.update(clock.getDelta());
       }
-      
+     
       renderer.render(scene, camera);
     }
-    
+   
     function translateToGloss(text) {
       const words = text.toLowerCase().split(/\s+/);
       const glossWords = words.map(word => {
@@ -2155,96 +2288,119 @@
       });
       return glossWords.join(' ');
     }
-    
+   
     function addTranscriptItem(text, gloss) {
       const transcriptItem = document.createElement('div');
       transcriptItem.className = 'transcript-item';
       transcriptItem.innerHTML = `<strong>Speech:</strong> ${text}<br><span class="gloss">Sign: ${gloss}</span>`;
       transcriptDiv.appendChild(transcriptItem);
-      
+     
       // Scroll to bottom
       transcriptDiv.scrollTop = transcriptDiv.scrollHeight;
     }
-    
+   
     function animateAvatar(gloss) {
       if (!avatar || !animationMixer) return;
-      
+     
       // Get animation speed
       const speed = 1.0; // Could be made configurable
-      
+     
       // Create a simple animation for each gloss
       const glossWords = gloss.split(' ');
-      
+     
       glossWords.forEach((word, index) => {
         setTimeout(() => {
           // Simple hand movement animation
           const rightHand = avatar.getObjectByName('mixamorigRightHand');
           const leftHand = avatar.getObjectByName('mixamorigLeftHand');
-          
+         
           if (rightHand) {
             // Animate right hand
             const timeline = new THREE.TimelineMax();
-            timeline.to(rightHand.rotation, { 
-              x: Math.random() * 0.5, 
-              y: Math.random() * 0.5, 
-              z: Math.random() * 0.5, 
-              duration: 0.5 / speed 
+            timeline.to(rightHand.rotation, {
+              x: Math.random() * 0.5,
+              y: Math.random() * 0.5,
+              z: Math.random() * 0.5,
+              duration: 0.5 / speed
             });
           }
-          
+         
           if (leftHand) {
             // Animate left hand
             const timeline = new THREE.TimelineMax();
-            timeline.to(leftHand.rotation, { 
-              x: Math.random() * 0.5, 
-              y: Math.random() * 0.5, 
-              z: Math.random() * 0.5, 
-              duration: 0.5 / speed 
+            timeline.to(leftHand.rotation, {
+              x: Math.random() * 0.5,
+              y: Math.random() * 0.5,
+              z: Math.random() * 0.5,
+              duration: 0.5 / speed
             });
           }
-          
+         
           // Facial expression
           const head = avatar.getObjectByName('mixamorigHead');
           if (head) {
             const timeline = new THREE.TimelineMax();
-            timeline.to(head.rotation, { 
-              x: Math.random() * 0.2, 
-              y: Math.random() * 0.2, 
-              z: Math.random() * 0.2, 
-              duration: 0.5 / speed 
+            timeline.to(head.rotation, {
+              x: Math.random() * 0.2,
+              y: Math.random() * 0.2,
+              z: Math.random() * 0.2,
+              duration: 0.5 / speed
             });
           }
         }, index * (500 / speed));
       });
     }
-    
+   
+    // NEW: Camera controls for students
+    function adjustCameraZoom(delta) {
+      cameraDistance += delta;
+      cameraDistance = Math.max(2, Math.min(10, cameraDistance)); // Limit zoom range
+      camera.position.z = cameraDistance;
+    }
+   
+    function resetCameraView() {
+      cameraDistance = 5;
+      camera.position.set(0, 0, cameraDistance);
+      camera.lookAt(0, 0, 0);
+    }
+   
+    // Sign Language Panel Controls - MODIFIED
     function toggleSignLanguage() {
-      if (signLanguageOverlay.style.display === 'flex') {
+      if (signLanguagePanel.style.display === 'flex') {
         closeSignLanguage();
       } else {
         openSignLanguage();
       }
     }
-    
+   
     function openSignLanguage() {
-      signLanguageOverlay.style.display = 'flex';
+      signLanguagePanel.style.display = 'flex';
       toggleSignLanguageBtn.innerHTML = '<i class="fas fa-times"></i> Close Sign Language';
       toggleSignLanguageBtn.classList.add('btn-danger');
       toggleSignLanguageBtn.classList.remove('btn-primary');
     }
-    
+   
     function closeSignLanguage() {
-      signLanguageOverlay.style.display = 'none';
+      signLanguagePanel.style.display = 'none';
       toggleSignLanguageBtn.innerHTML = '<i class="fas fa-sign-language"></i> Sign Language';
       toggleSignLanguageBtn.classList.remove('btn-danger');
       toggleSignLanguageBtn.classList.add('btn-primary');
-      
+     
       // Stop recognition if active
       if (isSignLanguageActive) {
         stopSignLanguageRecognition();
       }
     }
-    
+   
+    function toggleMinimize() {
+      isMinimized = !isMinimized;
+      if (isMinimized) {
+        signLanguagePanel.classList.add('sign-language-minimized');
+      } else {
+        signLanguagePanel.classList.remove('sign-language-minimized');
+      }
+    }
+   
     function startSignLanguageRecognition() {
       if (recognition && !isSignLanguageActive) {
         recognition.start();
@@ -2253,7 +2409,7 @@
         signLanguageStatus.className = 'sign-language-status active';
       }
     }
-    
+   
     function stopSignLanguageRecognition() {
       if (recognition && isSignLanguageActive) {
         recognition.stop();
@@ -2262,11 +2418,11 @@
         signLanguageStatus.className = 'sign-language-status inactive';
       }
     }
-    
+   
     function clearTranscript() {
       transcriptDiv.innerHTML = '';
     }
-    
+   
     // Initialize the application when the page loads
     window.addEventListener('load', init);
   </script>

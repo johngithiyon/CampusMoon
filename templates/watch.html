@@ -44,6 +44,26 @@
       padding: 10px;
     }
     
+    .exam-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(45deg, #9c27b0, #673ab7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(156, 39, 176, 0.4);
+    }
+
+    .exam-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(156, 39, 176, 0.6);
+    }
+    
     .video-section {
       margin-bottom: 40px;
     }
@@ -189,6 +209,10 @@
     <header>
       <div class="logo"><i class="fas fa-moon"></i> Campus Moon</div>
       <div class="user-actions">
+        <a href="http://localhost:8080/exam" class="exam-button" id="examButton">
+          <i class="fas fa-pencil-alt"></i>
+          <span data-translate="conduct_exam">Exam</span>
+        </a>
         <select id="languageSelector" class="language-selector">
           <option value="en">English</option>
           <option value="ta">தமிழ் (Tamil)</option>
@@ -199,19 +223,19 @@
     </header>
 
     <main>
-      <a href="/index.html" class="back-btn">
-        <i class="fas fa-arrow-left"></i> Back
+      <a href="/index.html" class="back-btn" data-translate="back">
+        <i class="fas fa-arrow-left"></i> <span data-translate="back">Back</span>
       </a>
 
       <div class="video-section">
         <div class="video-title-overlay">
-          <h1 class="video-title">{{.Title}}</h1>
+          <h1 class="video-title" id="videoTitle" data-original="{{.Title}}">{{.Title}}</h1>
         </div>
 
         <div class="video-container">
           <video class="video-player" controls autoplay>
             <source src="{{.VideoURL}}" type="video/mp4">
-            Your browser does not support the video tag.
+            <span data-translate="browser_support">Your browser does not support the video tag.</span>
           </video>
         </div>
 
@@ -219,42 +243,327 @@
         <div class="pdf-section">
           <a href="{{.NotesURL}}" class="pdf-button" target="_blank">
             <i class="fas fa-file-pdf"></i>
-            <span>View PDF</span>
+            <span data-translate="view_pdf">View PDF</span>
           </a>
         </div>
         {{end}}
       </div>
 
       <div class="video-info">
-        <p class="video-description">{{.Description}}</p>
+        <p class="video-description" id="videoDescription" data-original="{{.Description}}">{{.Description}}</p>
       </div>
-
-      <div class="resources">
-        <h2>Resources</h2>
-        <div class="resource-links">
-          {{if .NotesURL}}
-            <!-- Additional resources can be added here -->
-          {{else}}
-            <p class="no-resources">No additional resources available for this video.</p>
-          {{end}}
-        </div>
-      </div>
-    </main>
-
-    <footer><span>Campus Moon &copy; 2025</span></footer>
+    <footer><span data-translate="copyright">Campus Moon &copy; 2025</span></footer>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Set up language selector event
-      document.getElementById('languageSelector').addEventListener('change', function() {
-        localStorage.setItem('preferredLanguage', this.value);
+    // Translation dictionaries
+    const translations = {
+      en: {
+        "back": "Back",
+        "conduct_exam": "Exam",
+        "view_pdf": "View PDF",
+        "resources": "Resources",
+        "no_resources": "No additional resources available for this video.",
+        "browser_support": "Your browser does not support the video tag.",
+        "copyright": "Campus Moon &copy; 2025"
+      },
+      ta: {
+        "back": "திரும்பு",
+        "conduct_exam": "தேர்வு",
+        "view_pdf": "PDF ஐப் பார்க்கவும்",
+        "resources": "வளங்கள்",
+        "no_resources": "இந்த வீடியோவுக்கு கூடுதல் வளங்கள் எதுவும் இல்லை.",
+        "browser_support": "உங்கள் உலாவி வீடியோ குறிச்சொல்லை ஆதரிக்கவில்லை.",
+        "copyright": "கேம்பஸ் மூன் © 2025"
+      },
+      hi: {
+        "back": "वापस",
+        "conduct_exam": "परीक्षा",
+        "view_pdf": "PDF देखें",
+        "resources": "संसाधन",
+        "no_resources": "इस वीडियो के लिए कोई अतिरिक्त संसाधन उपलब्ध नहीं है.",
+        "browser_support": "आपका ब्राउज़र वीडियो टैग का समर्थन नहीं करता है.",
+        "copyright": "कैंपस मून © 2025"
+      },
+      rj: {
+        "back": "वापस",
+        "conduct_exam": "परीक्षा",
+        "view_pdf": "PDF देखो",
+        "resources": "संसाधन",
+        "no_resources": "इस वीडियो खातिर कोई अतिरिक्त संसाधन उपलब्ध नई.",
+        "browser_support": "तुम्हारा ब्राउज़र वीडियो टैग को सपोर्ट नई करता.",
+        "copyright": "कैंपस मून © 2025"
+      }
+    };
+
+    // Video title and description translations
+    // This would ideally come from the backend, but for now we'll define them here
+    const videoContentTranslations = {
+      // Example video translations - replace with actual video content
+      "artificial_intelligence": {
+        en: {
+          title: "Artificial Intelligence",
+          description: "Machine learning, neural networks, and intelligent systems"
+        },
+        ta: {
+          title: "செயற்கை நுண்ணறிவு",
+          description: "இயந்திர கற்றல், நரம்பியல் நெட்வொர்க்குகள் மற்றும் நுண்ணறிவு அமைப்புகள்"
+        },
+        hi: {
+          title: "कृत्रिम बुद्धिमत्ता",
+          description: "मशीन लर्निंग, न्यूरल नेटवर्क और इंटेलिजेंट सिस्टम"
+        },
+        rj: {
+          title: "कृत्रिम बुद्धिमत्ता",
+          description: "मशीन लर्निंग, न्यूरल नेटवर्क और इंटेलिजेंट सिस्टम"
+        }
+      },
+      "vlsi": {
+        en: {
+          title: "Very Large Scale Integration",
+          description: "Design and fabrication of integrated circuits"
+        },
+        ta: {
+          title: "மிகப்பெரிய அளவிலான ஒருங்கிணைப்பு",
+          description: "ஒருங்கிணைந்த சுற்றுகளின் வடிவமைப்பு மற்றும் உற்பத்தி"
+        },
+        hi: {
+          title: "वेरी लार्ज स्केल इंटीग्रेशन",
+          description: "एकीकृत परिपथों का डिजाइन और निर्माण"
+        },
+        rj: {
+          title: "वेरी लार्ज स्केल इंटीग्रेशन",
+          description: "एकीकृत परिपथों का डिजाइन और निर्माण"
+        }
+      },
+      "renewable_energy": {
+        en: {
+          title: "Renewable Energy",
+          description: "Solar, wind, and sustainable energy technologies"
+        },
+        ta: {
+          title: "புதுப்பிக்கத்தக்க ஆற்றல்",
+          description: "சூரிய, காற்று மற்றும் நிலையான ஆற்றல் தொழில்நுட்பங்கள்"
+        },
+        hi: {
+          title: "नवीकरणीय ऊर्जा",
+          description: "सौर, पवन और टिकाऊ ऊर्जा प्रौद्योगिकियां"
+        },
+        rj: {
+          title: "नवीकरणीय ऊर्जा",
+          description: "सौर, पवन और टिकाऊ ऊर्जा प्रौद्योगिकियां"
+        }
+      },
+      "mathematics": {
+        en: {
+          title: "Mathematics",
+          description: "Algebra, Calculus, Geometry and more"
+        },
+        ta: {
+          title: "கணிதம்",
+          description: "இயற்கணிதம், கால்குலஸ், வடிவியல் மற்றும் பிற"
+        },
+        hi: {
+          title: "गणित",
+          description: "बीजगणित, कैलकुलस, ज्यामिति और अधिक"
+        },
+        rj: {
+          title: "गणित",
+          description: "बीजगणित, कैलकुलस, ज्यामिति और बाकी"
+        }
+      },
+      "physics": {
+        en: {
+          title: "Physics",
+          description: "Study of matter and energy"
+        },
+        ta: {
+          title: "இயற்பியல்",
+          description: "பொருள் மற்றும் ஆற்றல் பற்றிய ஆய்வு"
+        },
+        hi: {
+          title: "भौतिक विज्ञान",
+          description: "पदार्थ और ऊर्जा का अध्ययन"
+        },
+        rj: {
+          title: "भौतिक विज्ञान",
+          description: "पदार्थ और ऊर्जा की पढ़ाई"
+        }
+      },
+      "chemistry": {
+        en: {
+          title: "Chemistry",
+          description: "Properties and behavior of matter"
+        },
+        ta: {
+          title: "வேதியியல்",
+          description: "பொருளின் பண்புகள் மற்றும் நடத்தை"
+        },
+        hi: {
+          title: "रसायन विज्ञान",
+          description: "पदार्थ के गुण और व्यवहार"
+        },
+        rj: {
+          title: "रसायन विज्ञान",
+          description: "पदार्थ के गुण और बर्ताव"
+        }
+      },
+      "biology": {
+        en: {
+          title: "Biology",
+          description: "Study of living organisms"
+        },
+        ta: {
+          title: "உயிரியல்",
+          description: "உயிரினங்களைப் பற்றிய ஆய்வு"
+        },
+        hi: {
+          title: "जीवविज्ञान",
+          description: "जीवित जीवों का अध्ययन"
+        },
+        rj: {
+          title: "जीवविज्ञान",
+          description: "जिंदा जीवों की पढ़ाई"
+        }
+      },
+      "computer_science": {
+        en: {
+          title: "Computer Science",
+          description: "Programming and computational thinking"
+        },
+        ta: {
+          title: "கணினி அறிவியல்",
+          description: "நிரலாக்கம் மற்றும் கணக்கீட்டு சிந்தனை"
+        },
+        hi: {
+          title: "कंप्यूटर विज्ञान",
+          description: "प्रोग्रामिंग और कम्प्यूटेशनल सोच"
+        },
+        rj: {
+          title: "कंप्यूटर विज्ञान",
+          description: "प्रोग्रामिंग और कम्प्यूटेशनल सोच"
+        }
+      },
+      "data_science": {
+        en: {
+          title: "Data Science",
+          description: "Big data analytics and visualization"
+        },
+        ta: {
+          title: "தரவு அறிவியல்",
+          description: "பெரிய தரவு பகுப்பாய்வு மற்றும் காட்சிப்படுத்தல்"
+        },
+        hi: {
+          title: "डाटा साइंस",
+          description: "बिग डाटा एनालिटिक्स और विज़ुअलाइज़ेशन"
+        },
+        rj: {
+          title: "डाटा साइंस",
+          description: "बिग डाटा एनालिटिक्स और विज़ुअलाइज़ेशन"
+        }
+      },
+      "cybersecurity": {
+        en: {
+          title: "Cybersecurity",
+          description: "Protecting systems and networks from digital attacks"
+        },
+        ta: {
+          title: "சைபர் பாதுகாப்பு",
+          description: "டிஜிட்டல் தாக்குதல்களிலிருந்து அமைப்புகள் மற்றும் நெட்வொர்க்குகளைப் பாதுகாத்தல்"
+        },
+        hi: {
+          title: "साइबर सुरक्षा",
+          description: "डिजिटल हमलों से सिस्टम और नेटवर्क की सुरक्षा"
+        },
+        rj: {
+          title: "साइबर सुरक्षा",
+          description: "डिजिटल हमलों से सिस्टम और नेटवर्क की सुरक्षा"
+        }
+      }
+    };
+
+    // Language management
+    let currentLanguage = 'en';
+
+    function setLanguage(lang) {
+      if (!translations[lang]) return;
+      
+      currentLanguage = lang;
+      localStorage.setItem('preferredLanguage', lang);
+      document.getElementById('languageSelector').value = lang;
+      
+      // Update all translatable elements
+      document.querySelectorAll('[data-translate]').forEach(element => {
+        const key = element.getAttribute('data-translate');
+        if (translations[lang][key]) {
+          element.textContent = translations[lang][key];
+        }
       });
       
-      // Set the language selector to the stored preference if available
+      // Update video title and description
+      updateVideoContent();
+    }
+
+    function updateVideoContent() {
+      // Get the original title and description
+      const videoTitleElement = document.getElementById('videoTitle');
+      const videoDescriptionElement = document.getElementById('videoDescription');
+      
+      const originalTitle = videoTitleElement.getAttribute('data-original');
+      const originalDescription = videoDescriptionElement.getAttribute('data-original');
+      
+      // Try to find a matching translation key
+      let translationKey = null;
+      for (const key in videoContentTranslations) {
+        if (videoContentTranslations[key].en.title === originalTitle) {
+          translationKey = key;
+          break;
+        }
+      }
+      
+      // If we found a translation key and it has translations for the current language
+      if (translationKey && videoContentTranslations[translationKey][currentLanguage]) {
+        const translation = videoContentTranslations[translationKey][currentLanguage];
+        videoTitleElement.textContent = translation.title;
+        videoDescriptionElement.textContent = translation.description;
+      }
+    }
+
+    function getPreferredLanguage() {
+      // Check localStorage first
       const savedLang = localStorage.getItem('preferredLanguage');
-      if (savedLang) {
-        document.getElementById('languageSelector').value = savedLang;
+      if (savedLang) return savedLang;
+      
+      // Then check browser language
+      const browserLang = navigator.language || navigator.userLanguage;
+      if (browserLang.startsWith('ta')) return 'ta';
+      if (browserLang.startsWith('hi')) return 'hi';
+      if (browserLang.startsWith('mr') || browserLang.startsWith('gu')) return 'rj'; // Approximate for Rajasthani
+      
+      return 'en'; // Default to English
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set preferred language
+      const preferredLang = getPreferredLanguage();
+      setLanguage(preferredLang);
+      
+      // Set up language selector event
+      document.getElementById('languageSelector').addEventListener('change', function() {
+        setLanguage(this.value);
+      });
+      
+      // Add video ID to exam button URL
+      const examButton = document.getElementById('examButton');
+      if (examButton) {
+        // Get video ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoId = urlParams.get('id') || urlParams.get('filename');
+        
+        if (videoId) {
+          // Update the href to include the video ID as a parameter
+          examButton.href = `http://localhost:8080/exam?videoId=${encodeURIComponent(videoId)}`;
+        }
       }
     });
   </script>

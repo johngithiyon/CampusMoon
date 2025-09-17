@@ -63,11 +63,16 @@ func main() {
 
 	http.HandleFunc("/", handlers.ServeHome)
 
+	//questions for videos
+    http.HandleFunc("/exam", handlers.ServeExam)
+	http.HandleFunc("/api/generate-exam", handlers.GenerateExamHandler)
+
 	// Start server
 	port := getEnv("PORT", "8080")
 	fmt.Printf("🚀 Server running at http://localhost:%s\n", port)
 	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, nil))
 }
+
 
 func getEnv(key, defaultVal string) string {
 	if val := os.Getenv(key); val != "" {

@@ -44,24 +44,37 @@
       padding: 10px;
     }
     
-    .exam-button {
+    .action-button {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: linear-gradient(45deg, #9c27b0, #673ab7);
-      color: white;
       padding: 8px 16px;
       border-radius: 20px;
       text-decoration: none;
       font-weight: 600;
       font-size: 0.9rem;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 10px rgba(156, 39, 176, 0.4);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .exam-button {
+      background: linear-gradient(45deg, #9c27b0, #673ab7);
+      color: white;
     }
 
     .exam-button:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(156, 39, 176, 0.6);
+    }
+    
+    .discussion-button {
+      background: linear-gradient(45deg, #2196F3, #03A9F4);
+      color: white;
+    }
+
+    .discussion-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(33, 150, 243, 0.6);
     }
     
     .video-section {
@@ -209,9 +222,13 @@
     <header>
       <div class="logo"><i class="fas fa-moon"></i> Campus Moon</div>
       <div class="user-actions">
-        <a href="http://localhost:8080/exam" class="exam-button" id="examButton">
+        <a href="http://localhost:8080/exam" class="action-button exam-button" id="examButton">
           <i class="fas fa-pencil-alt"></i>
           <span data-translate="conduct_exam">Exam</span>
+        </a>
+        <a href="http://localhost:8080/discussion" class="action-button discussion-button" id="discussionButton">
+          <i class="fas fa-comments"></i>
+          <span data-translate="discussion">Discussion</span>
         </a>
         <select id="languageSelector" class="language-selector">
           <option value="en">English</option>
@@ -261,6 +278,7 @@
       en: {
         "back": "Back",
         "conduct_exam": "Exam",
+        "discussion": "Discussion",
         "view_pdf": "View PDF",
         "resources": "Resources",
         "no_resources": "No additional resources available for this video.",
@@ -270,6 +288,7 @@
       ta: {
         "back": "திரும்பு",
         "conduct_exam": "தேர்வு",
+        "discussion": "விவாதம்",
         "view_pdf": "PDF ஐப் பார்க்கவும்",
         "resources": "வளங்கள்",
         "no_resources": "இந்த வீடியோவுக்கு கூடுதல் வளங்கள் எதுவும் இல்லை.",
@@ -279,6 +298,7 @@
       hi: {
         "back": "वापस",
         "conduct_exam": "परीक्षा",
+        "discussion": "चर्चा",
         "view_pdf": "PDF देखें",
         "resources": "संसाधन",
         "no_resources": "इस वीडियो के लिए कोई अतिरिक्त संसाधन उपलब्ध नहीं है.",
@@ -288,6 +308,7 @@
       rj: {
         "back": "वापस",
         "conduct_exam": "परीक्षा",
+        "discussion": "चर्चा",
         "view_pdf": "PDF देखो",
         "resources": "संसाधन",
         "no_resources": "इस वीडियो खातिर कोई अतिरिक्त संसाधन उपलब्ध नई.",
@@ -555,6 +576,8 @@
       
       // Add video ID to exam button URL
       const examButton = document.getElementById('examButton');
+      const discussionButton = document.getElementById('discussionButton');
+      
       if (examButton) {
         // Get video ID from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -563,6 +586,7 @@
         if (videoId) {
           // Update the href to include the video ID as a parameter
           examButton.href = `http://localhost:8080/exam?videoId=${encodeURIComponent(videoId)}`;
+          discussionButton.href = `http://localhost:8080/discussion?videoId=${encodeURIComponent(videoId)}`;
         }
       }
     });

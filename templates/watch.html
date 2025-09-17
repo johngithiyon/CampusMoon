@@ -25,8 +25,63 @@
     .video-section {margin-bottom: 40px;}
     .video-title-overlay {text-align: center;margin-bottom: 20px;}
     .video-title {font-size: 2.2rem;font-weight: 600;text-shadow: 0 2px 10px rgba(0,0,0,0.5);display: inline-block;padding: 10px 30px;background: rgba(0,0,0,0.3);border-radius: 50px;backdrop-filter: blur(5px);}
-    .video-container {background: rgba(0, 0, 0, 0.3);border-radius: 15px;overflow: hidden;margin-bottom: 30px;box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);}
+    .video-container {background: rgba(0, 0, 0, 0.3);border-radius: 15px;overflow: hidden;margin-bottom: 20px;box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);}
     .video-player {width: 100%;aspect-ratio: 16 / 9;}
+    .subtitle-wrapper {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 30px;
+    }
+    .subtitle-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .subtitle-dropdown select {
+      appearance: none;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 12px 20px 12px 45px;
+      border-radius: 50px;
+      font-size: 1rem;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.3s ease;
+      min-width: 200px;
+      font-weight: 600;
+    }
+    .subtitle-dropdown select:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+    .subtitle-dropdown option {
+      background: #2a2a2a;
+      color: white;
+    }
+    .subtitle-dropdown::before {
+      content: "\f20a";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #ffcc00;
+      font-size: 1.2rem;
+      pointer-events: none;
+    }
+    .subtitle-dropdown::after {
+      content: "\f078";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: white;
+      font-size: 0.8rem;
+      pointer-events: none;
+    }
     .pdf-section {text-align: center;margin-bottom: 40px;}
     .pdf-button {display: inline-flex;align-items: center;gap: 10px;background: linear-gradient(45deg, #ff6b6b, #ff8e8e);color: white;padding: 15px 30px;border-radius: 50px;text-decoration: none;font-weight: 600;font-size: 1.1rem;transition: all 0.3s ease;box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);}
     .pdf-button:hover {transform: translateY(-3px);box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6);}
@@ -64,11 +119,24 @@
           <h1 class="video-title" id="videoTitle" data-original="{{.Title}}">{{.Title}}</h1>
         </div>
         <div class="video-container">
-          <video class="video-player" controls autoplay>
+          <video class="video-player" controls autoplay id="mainVideo">
             <source src="{{.VideoURL}}" type="video/mp4">
             <span data-translate="browser_support">Your browser does not support the video tag.</span>
           </video>
         </div>
+        
+        <div class="subtitle-wrapper">
+          <div class="subtitle-dropdown">
+            <select id="subtitleSelector">
+              <option value="none">Subtitles</option>
+              <option value="en">English</option>
+              <option value="ta">Tamil</option>
+              <option value="hi">Hindi</option>
+              <option value="rj">Rajasthani</option>
+            </select>
+          </div>
+        </div>
+        
         {{if .NotesURL}}
         <div class="pdf-section">
           <a href="{{.NotesURL}}" class="pdf-button" target="_blank"><i class="fas fa-file-pdf"></i><span data-translate="view_pdf">View PDF</span></a>
@@ -112,11 +180,133 @@
         console.error("YouTube API error:", err);
       }
     }
+    
     document.addEventListener("DOMContentLoaded", () => {
       const title = document.getElementById("videoTitleGo").value;
       const desc = document.getElementById("videoDescGo").value;
       const query = `${title} ${desc}`;
       fetchRecommendations(query);
+      
+      // Subtitle functionality
+      const video = document.getElementById('mainVideo');
+      const subtitleSelector = document.getElementById('subtitleSelector');
+      
+      // Subtitle content for each language
+      const subtitleContents = {
+        en: `WEBVTT
+
+00:00:01.000 --> 00:00:04.000
+Welcome to Campus Moon. This is an example of English subtitles.
+
+00:00:05.000 --> 00:00:08.000
+These subtitles will be displayed when you select English.
+
+00:00:09.000 --> 00:00:12.000
+Campus Moon provides educational content for students.
+
+00:00:13.000 --> 00:00:16.000
+You can choose from multiple subtitle languages.
+
+00:00:17.000 --> 00:00:20.000
+Thank you for watching!`,
+
+        ta: `WEBVTT
+
+00:00:01.000 --> 00:00:04.000
+கேம்பஸ் மூனுக்கு வரவேற்கிறோம். இது தமிழ் வசனங்களுக்கான உதாரணம்.
+
+00:00:05.000 --> 00:00:08.000
+தமிழ் தேர்ந்தெடுக்கும்போது இந்த வசனங்கள் காட்டப்படும்.
+
+00:00:09.000 --> 00:00:12.000
+கேம்பஸ் மூன் மாணவர்களுக்கு கல்வி உள்ளடக்கத்தை வழங்குகிறது.
+
+00:00:13.000 --> 00:00:16.000
+நீங்கள் பல வசன மொழிகளிலிருந்து தேர்வு செய்யலாம்.
+
+00:00:17.000 --> 00:00:20.000
+பார்ப்பதற்கு நன்றி!`,
+
+        hi: `WEBVTT
+
+00:00:01.000 --> 00:00:04.000
+कैम्पस मून में आपका स्वागत है। यह हिंदी उपशीर्षक का एक उदाहरण है।
+
+00:00:05.000 --> 00:00:08.000
+जब आप हिंदी का चयन करते हैं, तो ये उपशीर्षक प्रदर्शित होंगे।
+
+00:00:09.000 --> 00:00:12.000
+कैम्पस मून छात्रों के लिए शैक्षणिक सामग्री प्रदान करता है।
+
+00:00:13.000 --> 00:00:16.000
+आप कई उपशीर्षक भाषाओं में से चुन सकते हैं।
+
+00:00:17.000 --> 00:00:20.000
+देखने के लिए धन्यवाद!`,
+
+        rj: `WEBVTT
+
+00:00:01.000 --> 00:00:04.000
+कैम्पस चंद में तुम्हारे स्वागत है। ई राजस्थानी उपशीर्षक रो उदाहरण ऊ।
+
+00:00:05.000 --> 00:00:08.000
+जब तुम राजस्थानी चुनो तो ई उपशीर्षक दिखाई देगा।
+
+00:00:09.000 --> 00:00:12.000
+कैम्पस चंद विद्यार्थियों खात्तर शैक्षणिक सामग्री देता ऊ।
+
+00:00:13.000 --> 00:00:16.000
+तुम बहुत सारी उपशीर्षक भाषाओं में चुन सको ऊ।
+
+00:00:17.000 --> 00:00:20.000
+देखणे खात्तर धन्यवाद!`
+      };
+      
+      // Create subtitle tracks
+      function createSubtitleTrack(lang) {
+        // Remove existing tracks
+        const existingTracks = video.querySelectorAll('track');
+        existingTracks.forEach(track => track.remove());
+        
+        if (lang === 'none') return;
+        
+        // Create a Blob for the subtitle content
+        const content = subtitleContents[lang];
+        if (!content) return;
+        
+        const blob = new Blob([content], { type: 'text/vtt' });
+        const url = URL.createObjectURL(blob);
+        
+        // Create new track element
+        const track = document.createElement('track');
+        track.kind = 'subtitles';
+        track.label = getLanguageName(lang);
+        track.srclang = lang;
+        track.src = url;
+        track.default = true;
+        
+        // Add track to video
+        video.appendChild(track);
+        
+        // Enable subtitles
+        video.textTracks[0].mode = 'showing';
+      }
+      
+      // Get language name
+      function getLanguageName(lang) {
+        const names = {
+          'en': 'English',
+          'ta': 'Tamil',
+          'hi': 'Hindi',
+          'rj': 'Rajasthani'
+        };
+        return names[lang] || lang;
+      }
+      
+      // Handle subtitle selection
+      subtitleSelector.addEventListener('change', function() {
+        createSubtitleTrack(this.value);
+      });
     });
   </script>
 </body>

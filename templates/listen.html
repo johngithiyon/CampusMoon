@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listen to Audio - Campus Moon</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(-45deg, #6a11cb, #2575fc, #0099cc, #4facfe);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .container {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      width: 100%;
+    }
+    
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo i {
+      margin-right: 10px;
+      color: #4facfe;
+    }
+    
+    .back-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 50px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .audio-player {
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      margin-top: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      width: 100%;
+    }
+    
+    .audio-title {
+      font-size: 2rem;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .audio-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .audio-element {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    
+    audio {
+      width: 100%;
+      height: 50px;
+      border-radius: 10px;
+    }
+    
+    .audio-info {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 20px;
+      width: 100%;
+    }
+    
+    .audio-info h3 {
+      margin-bottom: 10px;
+      color: #ff9800;
+    }
+    
+    .audio-info p {
+      line-height: 1.6;
+    }
+    
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+    }
+    
+    .loading i {
+      font-size: 3rem;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .error {
+      text-align: center;
+      padding: 20px;
+      background: rgba(244, 67, 54, 0.2);
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo"><i class="fas fa-moon"></i> Campus Moon</div>
+      <button class="back-btn" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i> Back
+      </button>
+    </header>
+    
+    <div class="audio-player">
+      <h1 class="audio-title" id="audioTitle">Loading Audio...</h1>
+      
+      <div id="loadingIndicator" class="loading">
+        <i class="fas fa-spinner"></i>
+      </div>
+      
+      <div id="audioContainer" style="display: none;">
+        <div class="audio-controls">
+          <div class="audio-element">
+            <audio id="audioPlayer" controls>
+              Your browser does not support the audio element.
+            </audio>
+          </div>
+          
+          <div class="audio-info">
+            <h3>About This Audio</h3>
+            <p id="audioDescription">No description available.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div id="errorContainer" class="error" style="display: none;">
+        <p>Failed to load audio. Please try again later.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const filename = urlParams.get('filename');
+    const title = urlParams.get('title') || 'Untitled Audio';
+    
+    // Set the audio title
+    document.getElementById('audioTitle').textContent = title;
+    
+    // Load the audio file
+    if (filename) {
+      const audioPlayer = document.getElementById('audioPlayer');
+      audioPlayer.src = filename;
+      
+      audioPlayer.addEventListener('loadeddata', function() {
+        // Hide loading indicator and show audio player
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('audioContainer').style.display = 'block';
+      });
+      
+      audioPlayer.addEventListener('error', function() {
+        // Hide loading indicator and show error message
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('errorContainer').style.display = 'block';
+      });
+    } else {
+      // No filename provided
+      document.getElementById('loadingIndicator').style.display = 'none';
+      document.getElementById('errorContainer').style.display = 'block';
+      document.getElementById('errorContainer').innerHTML = '<p>No audio file specified.</p>';
+    }
+    
+    // Go back to the previous page
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>

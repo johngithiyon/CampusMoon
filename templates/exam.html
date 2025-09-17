@@ -68,52 +68,6 @@
             color: white;
         }
         
-        .video-section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-        
-        .video-container {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-            height: 0;
-            overflow: hidden;
-            border-radius: 8px;
-            background: #000;
-        }
-        
-        .video-container video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .video-controls {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-        }
-        
-        button {
-            padding: 10px 20px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-        
-        button:hover {
-            background: #2980b9;
-        }
-        
         .exam-section {
             background: white;
             padding: 20px;
@@ -189,13 +143,40 @@
             color: #e74c3c;
             font-weight: bold;
         }
+        
+        .start-section {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .start-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+        
+        .start-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>AI, VLSC & Renewable Energy Exam</h1>
-            <p>Select a topic, watch the video, and answer questions to test your understanding</p>
+            <p>Select a topic and answer questions to test your understanding</p>
         </header>
         
         <div class="topic-selector">
@@ -204,21 +185,10 @@
             <button class="topic-btn" data-topic="renewable">Renewable Energy</button>
         </div>
         
-        <div class="video-section" id="videoSection">
-            <h2 id="videoTitle">Introduction to Artificial Intelligence</h2>
-            <div class="video-container">
-                <video id="educationalVideo" controls>
-                    <source src="#" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <div class="video-controls">
-                <div class="video-info">
-                    <p id="videoDescription">Learn about the fundamentals of AI and its applications</p>
-                    <p>Duration: 5:00</p>
-                </div>
-                <button id="startExamBtn">Start Exam</button>
-            </div>
+        <div class="start-section" id="startSection">
+            <h2>Ready to Begin Your Exam?</h2>
+            <p>Select your topic and click the button below to start the exam</p>
+            <button id="startExamBtn" class="start-btn">Start Exam</button>
         </div>
         
         <div class="exam-section" id="examSection">
@@ -247,7 +217,7 @@
 
     <script>
         // DOM Elements
-        const videoSection = document.getElementById('videoSection');
+        const startSection = document.getElementById('startSection');
         const examSection = document.getElementById('examSection');
         const resultsSection = document.getElementById('resultsSection');
         const startExamBtn = document.getElementById('startExamBtn');
@@ -259,31 +229,10 @@
         const scoreElement = document.getElementById('score');
         const feedbackElement = document.getElementById('feedback');
         const reviewContainer = document.getElementById('reviewContainer');
-        const videoTitle = document.getElementById('videoTitle');
-        const videoDescription = document.getElementById('videoDescription');
         const topicButtons = document.querySelectorAll('.topic-btn');
         
         // Current topic
         let currentTopic = 'ai';
-        
-        // Topic information
-        const topicInfo = {
-            ai: {
-                title: "Introduction to Artificial Intelligence",
-                description: "Learn about the fundamentals of AI and its applications",
-                videoId: "ai_intro"
-            },
-            vlsc: {
-                title: "VLSC Technology Overview",
-                description: "Understanding VLSC systems and their implementations",
-                videoId: "vlsc_tech"
-            },
-            renewable: {
-                title: "Renewable Energy Solutions",
-                description: "Exploring sustainable energy sources and technologies",
-                videoId: "renewable_energy"
-            }
-        };
         
         // Exam variables
         let questions = [];
@@ -297,17 +246,6 @@
                 topicButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
                 currentTopic = button.dataset.topic;
-                
-                // Update video info
-                videoTitle.textContent = topicInfo[currentTopic].title;
-                videoDescription.textContent = topicInfo[currentTopic].description;
-                
-                // Reset exam if already started
-                if (examSection.style.display === 'block') {
-                    examSection.style.display = 'none';
-                    videoSection.style.display = 'block';
-                    clearInterval(timerInterval);
-                }
             });
         });
         
@@ -324,8 +262,8 @@
             // Start timer
             startTimer();
             
-            // Show exam section, hide video section
-            videoSection.style.display = 'none';
+            // Show exam section, hide start section
+            startSection.style.display = 'none';
             examSection.style.display = 'block';
         }
         
@@ -615,7 +553,7 @@
             } else if (percentage >= 40) {
                 feedbackElement.textContent = "You passed, but you should review the material again.";
             } else {
-                feedbackElement.textContent = "You need to study the material more thoroughly. Try watching the video again.";
+                feedbackElement.textContent = "You need to study the material more thoroughly. Try again.";
             }
             
             // Show review of answers
@@ -647,12 +585,7 @@
         
         retryBtn.addEventListener('click', () => {
             resultsSection.style.display = 'none';
-            videoSection.style.display = 'block';
-        });
-        
-        // Simulate video playback (in a real system, you would track actual video watching)
-        document.getElementById('educationalVideo').addEventListener('play', function() {
-            console.log("Video playback started - in a real system, this would trigger question generation");
+            startSection.style.display = 'block';
         });
     </script>
 </body>

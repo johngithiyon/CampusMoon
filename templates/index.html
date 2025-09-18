@@ -544,6 +544,7 @@
         </div>
         <div class="text-modal-actions">
           <button type="button" class="btn-cancel" id="closeTextModalBtn">Close</button>
+          <button type="button" class="btn-submit" id="downloadTextBtn">Download as Text File</button>
         </div>
       </div>
     </div>
@@ -729,7 +730,7 @@
         "choose_file": "एक वीडियो फाइल चुनो",
         "choose_notes": "एक नोट्स फाइल चुनो",
         "uploaded_videos": "अपलोड किए गए वीडियो",
-        "uploaded_audio": "अपलोड किया गया ऑडियो",
+        "uploaded_audio": "अपलオड किया गया ऑडियो",
         "enter_video_title": "वीडियो शीर्षक भरो",
         "enter_video_description": "वीडियो विवरण भरो",
         "upload": "अपलोड करो",
@@ -775,6 +776,7 @@
     let currentLanguage = 'en';
     let currentSubjectId = null; // Track current subject ID
     let allVideos = []; // Store all videos for the current subject
+    let currentConvertedText = ''; // Store the converted text for downloading
 
     function setLanguage(lang) {
       if (!translations[lang]) return;
@@ -828,6 +830,19 @@
       setTimeout(() => {
         notification.classList.remove('show');
       }, 3000);
+    }
+
+    // Function to download text as a file
+    function downloadTextAsFile(text, filename) {
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     // Expanded subject data with more subjects
@@ -985,20 +1000,37 @@
       showNotification(translations[currentLanguage].converting || 'Converting audio to text...');
       
       try {
-        // In a real implementation, this would call a speech-to-text API
-        // For this example, we'll simulate the process
-        setTimeout(() => {
-          // Simulate converted text
-          const convertedText = "This is a simulated text conversion from the audio file. In a real implementation, this would contain the transcribed content of the audio file.";
-          
-          // Display the text in a modal
-          const textModal = document.getElementById('textModal');
-          const convertedTextDiv = document.getElementById('convertedText');
-          convertedTextDiv.innerHTML = `<p>${convertedText}</p>`;
-          textModal.style.display = 'flex';
-          
-          showNotification(translations[currentLanguage].text_converted || 'Audio converted to text successfully');
-        }, 2000);
+        // Create form data with the audio URL
+        const formData = new FormData();
+        formData.append('fileUrl', audioUrl);
+        formData.append('subjectId', currentSubjectId);
+        
+        // Send request to backend for conversion
+        const response = await fetch('/convert-to-text', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error('Conversion failed');
+        }
+        
+        const result = await response.json();
+        
+        // Store the converted text for downloading
+        currentConvertedText = result.text;
+        
+        // Display the text in a modal
+        const textModal = document.getElementById('textModal');
+        const convertedTextDiv = document.getElementById('convertedText');
+        convertedTextDiv.innerHTML = `<p>${currentConvertedText}</p>`;
+        textModal.style.display = 'flex';
+        
+        // Automatically download the text file
+        const filename = audioUrl.split('/').pop().split('.')[0] + '.txt';
+        downloadTextAsFile(currentConvertedText, filename);
+        
+        showNotification(translations[currentLanguage].text_converted || 'Audio converted to text successfully');
       } catch (error) {
         console.error('Error converting audio to text:', error);
         showNotification('Failed to convert audio to text. Please try again.', 'error');
@@ -1312,6 +1344,7 @@
       const textModal = document.getElementById('textModal');
       const closeTextModal = document.getElementById('closeTextModal');
       const closeTextModalBtn = document.getElementById('closeTextModalBtn');
+      const downloadTextBtn = document.getElementById('downloadTextBtn');
       
       closeTextModal.addEventListener('click', function() {
         textModal.style.display = 'none';
@@ -1319,6 +1352,13 @@
       
       closeTextModalBtn.addEventListener('click', function() {
         textModal.style.display = 'none';
+      });
+      
+      // Set up download text button
+      downloadTextBtn.addEventListener('click', function() {
+        if (currentConvertedText) {
+          downloadTextAsFile(currentConvertedText, 'converted-text.txt');
+        }
       });
     });
 

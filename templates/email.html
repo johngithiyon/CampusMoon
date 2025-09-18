@@ -2,20 +2,238 @@
 <html>
 <head>
   <title>Send Email</title>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-dark: #1e40af;
+      --secondary-color: #f8fafc;
+      --text-color: #334155;
+      --border-color: #e2e8f0;
+      --success-color: #10b981;
+      --error-color: #ef4444;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--text-color);
+      line-height: 1.6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #1e293b;
+      letter-spacing: -0.025em;
+    }
+
+    #emailForm {
+      background-color: white;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-color);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      color: #475569;
+    }
+
+    input[type="email"],
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      background-color: var(--secondary-color);
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    input[type="email"]:focus,
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      background-color: white;
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 0.875rem 1.5rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+
+    button[type="submit"]:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    button[type="submit"]:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+
+    #result {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      text-align: center;
+      font-weight: 500;
+      font-size: 0.875rem;
+      display: none;
+    }
+
+    #result.show {
+      display: block;
+    }
+
+    #result.success {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--success-color);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    #result.error {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--error-color);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .form-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      display: none;
+    }
+
+    button[type="submit"].loading .spinner {
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      #emailForm {
+        padding: 1.5rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Send Email</h1>
-  <form id="emailForm">
-    <input type="email" id="to" placeholder="To Email" required><br><br>
-    <input type="text" id="subject" placeholder="Subject" required><br><br>
-    <textarea id="body" placeholder="Message" required></textarea><br><br>
-    <button type="submit">Send</button>
-  </form>
-  <p id="result"></p>
+  <div class="container">
+    <h1>Send Email</h1>
+    <form id="emailForm">
+      <div class="form-group">
+        <label for="to">Recipient Email</label>
+        <input type="email" id="to" placeholder="name@company.com" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="subject">Subject</label>
+        <input type="text" id="subject" placeholder="Email subject" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="body">Message</label>
+        <textarea id="body" placeholder="Type your message here..." required></textarea>
+      </div>
+      
+      <button type="submit">
+        <span class="spinner"></span>
+        <span class="button-text">Send Email</span>
+      </button>
+    </form>
+    
+    <div id="result"></div>
+    
+
 
   <script>
     document.getElementById("emailForm").addEventListener("submit", function (e) {
       e.preventDefault();
+      
+      const button = document.querySelector('button[type="submit"]');
+      const buttonText = button.querySelector('.button-text');
+      const resultElement = document.getElementById("result");
+      
+      // Show loading state
+      button.classList.add('loading');
+      button.disabled = true;
+      buttonText.textContent = 'Sending...';
+      resultElement.classList.remove('show', 'success', 'error');
+      
       fetch("/send-email", {
         method: "POST",
         headers: {
@@ -29,10 +247,18 @@
       })
       .then(res => res.json())
       .then(data => {
-        document.getElementById("result").innerText = data.message;
+        resultElement.textContent = data.message;
+        resultElement.classList.add('show', data.success ? 'success' : 'error');
       })
       .catch(() => {
-        document.getElementById("result").innerText = "Something went wrong.";
+        resultElement.textContent = "Something went wrong. Please try again.";
+        resultElement.classList.add('show', 'error');
+      })
+      .finally(() => {
+        // Reset button state
+        button.classList.remove('loading');
+        button.disabled = false;
+        buttonText.textContent = 'Send Email';
       });
     });
   </script>

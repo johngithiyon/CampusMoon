@@ -13,13 +13,17 @@ import (
 
 func main() {
     // Initialize DB and MinIO
-    storage.InitDB()   // sets storage.DB
+    storage.InitDB()    // sets storage.DB
     storage.InitMinIO() // for other storage if needed
 
     db := storage.DB
     if db == nil {
         log.Println("warning: storage.DB is nil; some features may not work")
     }
+
+    // ---------------- Audio ----------------
+    handlers.InitAudio() // setup MinIO + bucket
+    // ---------------------------------------
 
     // Setup SMTP config
     handlers.SMTPConfig = handlers.SMTPConfiguration{
@@ -29,9 +33,6 @@ func main() {
         Password: getEnv("SMTP_PASSWORD", ""),
         From:     getEnv("SMTP_FROM", ""),
     }
-
-    // Initialize audio module (MinIO + bucket) - FIXED: Pass database connection
-    handlers.InitAudioHandlers(db)
 
     // Create main router
     r := mux.NewRouter()

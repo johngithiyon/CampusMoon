@@ -1,233 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Listen to Audio - Campus Moon</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Campus Moon - Listen to Audio</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    body {
-      background: linear-gradient(-45deg, #6a11cb, #2575fc, #0099cc, #4facfe);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-      min-height: 100vh;
-      color: #fff;
-      padding: 20px;
+    * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+    body {background:linear-gradient(-45deg,#6a11cb,#2575fc,#0099cc,#4facfe);background-size:400% 400%;animation:gradientBG 15s ease infinite;min-height:100vh;color:#fff;padding:20px;}
+    @keyframes gradientBG {0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+    .container{max-width:1200px;margin:0 auto;}
+    header{display:flex;justify-content:space-between;align-items:center;padding:20px 0;margin-bottom:30px;border-bottom:1px solid rgba(255,255,255,0.2);}
+    .logo{font-size:1.8rem;font-weight:700;color:#fff;text-shadow:0 0 10px rgba(0,0,0,0.3);display:flex;align-items:center;}
+    .logo i{margin-right:10px;color:#ffcc00;}
+    .user-actions{display:flex;gap:15px;align-items:center;}
+    .language-selector {background: rgba(255, 255, 255, 0.2);border: 2px solid rgba(255, 255, 255, 0.3);padding: 12px 20px;border-radius: 50px;color: white;cursor: pointer;backdrop-filter: blur(10px);transition: all 0.3s ease;font-size: 1rem;font-weight: 600;box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);}
+    .language-selector:hover {background: rgba(255, 255, 255, 0.3);border-color: rgba(255, 255, 255, 0.5);transform: translateY(-2px);box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);}
+    .language-selector option {background: #2a2a2a;color: white;padding: 10px;}
+    .action-button {display: inline-flex;align-items: center;gap: 6px;padding: 8px 16px;border-radius: 20px;text-decoration: none;font-weight: 600;font-size: 0.9rem;transition: all 0.3s ease;box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);}
+    .exam-button {background: linear-gradient(45deg, #9c27b0, #673ab7);color: white;}
+    .exam-button:hover {transform: translateY(-2px);box-shadow: 0 6px 12px rgba(156, 39, 176, 0.6);}
+    .discussion-button {background: linear-gradient(45deg, #2196F3, #03A9F4);color: white;}
+    .discussion-button:hover {transform: translateY(-2px);box-shadow: 0 6px 12px rgba(33, 150, 243, 0.6);}
+    .audio-section {margin-bottom: 40px;}
+    .audio-title-overlay {text-align: center;margin-bottom: 20px;}
+    .audio-title {font-size: 2.2rem;font-weight: 600;text-shadow: 0 2px 10px rgba(0,0,0,0.5);display: inline-block;padding: 10px 30px;background: rgba(0,0,0,0.3);border-radius: 50px;backdrop-filter: blur(5px);}
+    .audio-container {background: rgba(0, 0, 0, 0.3);border-radius: 15px;overflow: hidden;margin-bottom: 20px;box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);padding: 30px;display: flex;flex-direction: column;align-items: center;justify-content: center;}
+    .audio-player {width: 100%;max-width: 600px;margin-bottom: 20px;}
+    .audio-visualizer {width: 100%;max-width: 600px;height: 150px;background: rgba(255, 255, 255, 0.1);border-radius: 10px;margin-bottom: 20px;display: flex;align-items: center;justify-content: center;overflow: hidden;}
+    .audio-visualizer i {font-size: 4rem;color: rgba(255, 255, 255, 0.3);}
+    .audio-controls {display: flex;justify-content: center;gap: 20px;margin-bottom: 20px;}
+    .audio-control-btn {background: rgba(255, 255, 255, 0.2);border: none;width: 50px;height: 50px;border-radius: 50%;color: white;font-size: 1.2rem;cursor: pointer;transition: all 0.3s ease;display: flex;align-items: center;justify-content: center;}
+    .audio-control-btn:hover {background: rgba(255, 255, 255, 0.3);transform: scale(1.1);}
+    .play-btn {background: linear-gradient(45deg, #ffcc00, #ff9800);width: 60px;height: 60px;font-size: 1.5rem;}
+    .play-btn:hover {background: linear-gradient(45deg, #ff9800, #ff5722);}
+    .subtitle-wrapper {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    
-    .container {
-      max-width: 800px;
-      width: 100%;
-      margin: 0 auto;
-    }
-    
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 0;
+      justify-content: flex-end;
       margin-bottom: 30px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      width: 100%;
     }
-    
-    .logo {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #fff;
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-      display: flex;
-      align-items: center;
+    .subtitle-dropdown {
+      position: relative;
+      display: inline-block;
     }
-    
-    .logo i {
-      margin-right: 10px;
-      color: #4facfe;
-    }
-    
-    .back-btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      padding: 10px 20px;
-      border-radius: 50px;
-      color: white;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .back-btn:hover {
+    .subtitle-dropdown select {
+      appearance: none;
       background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 12px 20px 12px 45px;
+      border-radius: 50px;
+      font-size: 1rem;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.3s ease;
+      min-width: 200px;
+      font-weight: 600;
     }
-    
-    .audio-player {
-      background: rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 30px;
-      margin-top: 30px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      width: 100%;
+    .subtitle-dropdown select:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
     }
-    
-    .audio-title {
-      font-size: 2rem;
-      margin-bottom: 30px;
-      text-align: center;
+    .subtitle-dropdown option {
+      background: #2a2a2a;
+      color: white;
     }
-    
-    .audio-controls {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
+    .subtitle-dropdown::before {
+      content: "\f20a";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #ffcc00;
+      font-size: 1.2rem;
+      pointer-events: none;
     }
-    
-    .audio-element {
-      width: 100%;
-      margin-bottom: 20px;
+    .subtitle-dropdown::after {
+      content: "\f078";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: white;
+      font-size: 0.8rem;
+      pointer-events: none;
     }
-    
-    audio {
-      width: 100%;
-      height: 50px;
-      border-radius: 10px;
-    }
-    
-    .audio-info {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
-      padding: 20px;
-      margin-top: 20px;
-      width: 100%;
-    }
-    
-    .audio-info h3 {
-      margin-bottom: 10px;
-      color: #ff9800;
-    }
-    
-    .audio-info p {
-      line-height: 1.6;
-    }
-    
-    .loading {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 200px;
-    }
-    
-    .loading i {
-      font-size: 3rem;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .error {
-      text-align: center;
-      padding: 20px;
-      background: rgba(244, 67, 54, 0.2);
-      border-radius: 10px;
-      margin-top: 20px;
-    }
+    .pdf-section {text-align: center;margin-bottom: 40px;}
+    .pdf-button {display: inline-flex;align-items: center;gap: 10px;background: linear-gradient(45deg, #ff6b6b, #ff8e8e);color: white;padding: 15px 30px;border-radius: 50px;text-decoration: none;font-weight: 600;font-size: 1.1rem;transition: all 0.3s ease;box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);}
+    .pdf-button:hover {transform: translateY(-3px);box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6);}
+    .audio-info {background: rgba(255, 255, 255, 0.1);backdrop-filter: blur(10px);border-radius: 15px;padding: 30px;margin-bottom: 40px;box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);}
+    .audio-description {font-size: 1.1rem;line-height: 1.6;color: rgba(255, 255, 255, 0.9);}
+    .recommendations {margin-top:40px;}
+    .recommendations h2 {font-size:1.5rem;margin-bottom:15px;}
+    .recommendations iframe {margin:10px;border-radius:10px;}
+    .back-btn {background: rgba(255, 255, 255, 0.1);border: none;padding: 6px 10px;border-radius: 50px;color: white;cursor: pointer;transition: all 0.3s ease;display: flex;align-items: center;gap: 5px;text-decoration: none;margin-bottom: 20px;font-size: 0.85rem;font-weight: 500;width: fit-content;}
+    .back-btn:hover {background: rgba(255, 255, 255, 0.2);}
+    footer{text-align:center;padding:20px;padding-bottom:50px;color:rgba(255,255,255,0.7);border-top:1px solid rgba(255,255,255,0.2);}
+    .transcript-container {background: rgba(0, 0, 0, 0.2);border-radius: 15px;padding: 20px;margin-top: 20px;max-height: 300px;overflow-y: auto;}
+    .transcript {line-height: 1.8;color: rgba(255, 255, 255, 0.9);}
+    .transcript p {margin-bottom: 10px;}
+    .transcript .timestamp {color: #ffcc00;font-weight: bold;margin-right: 10px;}
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <div class="logo"><i class="fas fa-moon"></i> Campus Moon</div>
-      <button class="back-btn" onclick="goBack()">
-        <i class="fas fa-arrow-left"></i> Back
-      </button>
-    </header>
-    
-    <div class="audio-player">
-      <h1 class="audio-title" id="audioTitle">Loading Audio...</h1>
-      
-      <div id="loadingIndicator" class="loading">
-        <i class="fas fa-spinner"></i>
+      <div class="user-actions">
+        <a href="http://localhost:8080/exam" class="action-button exam-button" id="examButton"><i class="fas fa-pencil-alt"></i><span data-translate="conduct_exam">Exam</span></a>
+        <a href="http://localhost:8080/discussion" class="action-button discussion-button" id="discussionButton"><i class="fas fa-comments"></i><span data-translate="discussion">Discussion</span></a>
+        <select id="languageSelector" class="language-selector">
+          <option value="en">English</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+          <option value="hi">हिंदी (Hindi)</option>
+          <option value="rj">राजस्थानी (Rajasthani)</option>
+        </select>
       </div>
-      
-      <div id="audioContainer" style="display: none;">
-        <div class="audio-controls">
-          <div class="audio-element">
-            <audio id="audioPlayer" controls>
-              Your browser does not support the audio element.
-            </audio>
+    </header>
+
+    <main>
+      <a href="/index.html" class="back-btn" data-translate="back"><i class="fas fa-arrow-left"></i> <span data-translate="back">Back</span></a>
+
+      <div class="audio-section">
+        <div class="audio-title-overlay">
+          <h1 class="audio-title" id="audioTitle" data-original="{{.Title}}">{{.Title}}</h1>
+        </div>
+        <div class="audio-container">
+          <div class="audio-visualizer">
+            <i class="fas fa-music"></i>
           </div>
-          
-          <div class="audio-info">
-            <h3>About This Audio</h3>
-            <p id="audioDescription">No description available.</p>
+          <audio class="audio-player" controls autoplay id="mainAudio">
+            <source src="{{.AudioURL}}" type="audio/mpeg">
+            <span data-translate="browser_support">Your browser does not support the audio element.</span>
+          </audio>
+          <div class="audio-controls">
+            <button class="audio-control-btn" id="rewindBtn"><i class="fas fa-backward"></i></button>
+            <button class="audio-control-btn play-btn" id="playPauseBtn"><i class="fas fa-pause"></i></button>
+            <button class="audio-control-btn" id="forwardBtn"><i class="fas fa-forward"></i></button>
           </div>
         </div>
+        
+        <div class="subtitle-wrapper">
+          <div class="subtitle-dropdown">
+            <select id="subtitleSelector">
+              <option value="none">Transcript</option>
+              <option value="en">English</option>
+              <option value="ta">Tamil</option>
+              <option value="hi">Hindi</option>
+              <option value="rj">Rajasthani</option>
+            </select>
+          </div>
+        </div>
+        
+        {{if .NotesURL}}
+        <div class="pdf-section">
+          <a href="{{.NotesURL}}" class="pdf-button" target="_blank"><i class="fas fa-file-pdf"></i><span data-translate="view_pdf">View PDF</span></a>
+        </div>
+        {{end}}
       </div>
-      
-      <div id="errorContainer" class="error" style="display: none;">
-        <p>Failed to load audio. Please try again later.</p>
+
+      <div class="audio-info">
+        <p class="audio-description" id="audioDescription" data-original="{{.Description}}">{{.Description}}</p>
+        
+        <div class="transcript-container" id="transcriptContainer" style="display: none;">
+          <div class="transcript" id="transcriptContent"></div>
+        </div>
       </div>
-    </div>
+
+      <div class="recommendations">
+        <h2>Recommended YouTube Videos</h2>
+        <div id="recommendations"></div>
+      </div>
+    </main>
+
+    <footer><span data-translate="copyright">Campus Moon &copy; 2025</span></footer>
   </div>
 
+  <!-- Hidden inputs for JS -->
+  <input type="hidden" id="audioTitleGo" value="{{.Title}}">
+  <input type="hidden" id="audioDescGo" value="{{.Description}}">
+
   <script>
-    // Get URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const filename = urlParams.get('filename');
-    const title = urlParams.get('title') || 'Untitled Audio';
-    
-    // Set the audio title
-    document.getElementById('audioTitle').textContent = title;
-    
-    // Load the audio file
-    if (filename) {
-      const audioPlayer = document.getElementById('audioPlayer');
-      audioPlayer.src = filename;
-      
-      audioPlayer.addEventListener('loadeddata', function() {
-        // Hide loading indicator and show audio player
-        document.getElementById('loadingIndicator').style.display = 'none';
-        document.getElementById('audioContainer').style.display = 'block';
-      });
-      
-      audioPlayer.addEventListener('error', function() {
-        // Hide loading indicator and show error message
-        document.getElementById('loadingIndicator').style.display = 'none';
-        document.getElementById('errorContainer').style.display = 'block';
-      });
-    } else {
-      // No filename provided
-      document.getElementById('loadingIndicator').style.display = 'none';
-      document.getElementById('errorContainer').style.display = 'block';
-      document.getElementById('errorContainer').innerHTML = '<p>No audio file specified.</p>';
+    const API_KEY = "AIzaSyCTuNl-Gq1fbZCK7AQhCNI9bPZzOtpb37A"; // Your API key
+    async function fetchRecommendations(query) {
+      try {
+        const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=3&key=${API_KEY}`);
+        const data = await response.json();
+        const container = document.getElementById("recommendations");
+        container.innerHTML = "";
+        data.items.forEach(video => {
+          const iframe = document.createElement("iframe");
+          iframe.width = "300";
+          iframe.height = "200";
+          iframe.src = `https://www.youtube.com/embed/${video.id.videoId}`;
+          container.appendChild(iframe);
+        });
+      } catch (err) {
+        console.error("YouTube API error:", err);
+      }
     }
     
-    // Go back to the previous page
-    function goBack() {
-      window.history.back();
-    }
+    document.addEventListener("DOMContentLoaded", () => {
+      const title = document.getElementById("audioTitleGo").value;
+      const desc = document.getElementById("audioDescGo").value;
+      const query = `${title} ${desc}`;
+      fetchRecommendations(query);
+      
+      // Audio player controls
+      const audio = document.getElementById('mainAudio');
+      const playPauseBtn = document.getElementById('playPauseBtn');
+      const rewindBtn = document.getElementById('rewindBtn');
+      const forwardBtn = document.getElementById('forwardBtn');
+      
+      playPauseBtn.addEventListener('click', () => {
+        if (audio.paused) {
+          audio.play();
+          playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+          audio.pause();
+          playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
+      });
+      
+      rewindBtn.addEventListener('click', () => {
+        audio.currentTime = Math.max(0, audio.currentTime - 10);
+      });
+      
+      forwardBtn.addEventListener('click', () => {
+        audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+      });
+      
+      // Subtitle/Transcript functionality
+      const subtitleSelector = document.getElementById('subtitleSelector');
+      const transcriptContainer = document.getElementById('transcriptContainer');
+      const transcriptContent = document.getElementById('transcriptContent');
+      
+      // Transcript content for each language
+      const transcriptContents = {
+        en: `<p><span class="timestamp">0:00</span>Welcome to Campus Moon. This is an example of English transcript.</p>
+             <p><span class="timestamp">0:05</span>This transcript will be displayed when you select English.</p>
+             <p><span class="timestamp">0:09</span>Campus Moon provides educational content for students.</p>
+             <p><span class="timestamp">0:13</span>You can choose from multiple transcript languages.</p>
+             <p><span class="timestamp">0:17</span>Thank you for listening!</p>`,
+
+        ta: `<p><span class="timestamp">0:00</span>கேம்பஸ் மூனுக்கு வரவேற்கிறோம். இது தமிழ் உரைக்கு உதாரணம்.</p>
+             <p><span class="timestamp">0:05</span>தமிழ் தேர்ந்தெடுக்கும்போது இந்த உரை காட்டப்படும்.</p>
+             <p><span class="timestamp">0:09</span>கேம்பஸ் மூன் மாணவர்களுக்கு கல்வி உள்ளடக்கத்தை வழங்குகிறது.</p>
+             <p><span class="timestamp">0:13</span>நீங்கள் பல உரை மொழிகளிலிருந்து தேர்வு செய்யலாம்.</p>
+             <p><span class="timestamp">0:17</span>கேட்பதற்கு நன்றி!</p>`,
+
+        hi: `<p><span class="timestamp">0:00</span>कैम्पस मून में आपका स्वागत है। यह हिंदी ट्रांसक्रिप्ट का एक उदाहरण है।</p>
+             <p><span class="timestamp">0:05</span>जब आप हिंदी का चयन करते हैं, तो ये ट्रांसक्रिप्ट प्रदर्शित होगी।</p>
+             <p><span class="timestamp">0:09</span>कैम्पस मून छात्रों के लिए शैक्षणिक सामग्री प्रदान करता है।</p>
+             <p><span class="timestamp">0:13</span>आप कई ट्रांसक्रिप्ट भाषाओं में से चुन सकते हैं।</p>
+             <p><span class="timestamp">0:17</span>सुनने के लिए धन्यवाद!</p>`,
+
+        rj: `<p><span class="timestamp">0:00</span>कैम्पस चंद में तुम्हारे स्वागत है। ई राजस्थानी ट्रांसक्रिप्ट रो उदाहरण ऊ।</p>
+             <p><span class="timestamp">0:05</span>जब तुम राजस्थानी चुनो तो ई ट्रांसक्रिप्ट दिखाई देगी।</p>
+             <p><span class="timestamp">0:09</span>कैम्पस चंद विद्यार्थियों खात्तर शैक्षणिक सामग्री देता ऊ।</p>
+             <p><span class="timestamp">0:13</span>तुम बहुत सारी ट्रांसक्रिप्ट भाषाओं में चुन सको ऊ।</p>
+             <p><span class="timestamp">0:17</span>सुनणे खात्तर धन्यवाद!</p>`
+      };
+      
+      // Handle transcript selection
+      subtitleSelector.addEventListener('change', function() {
+        if (this.value === 'none') {
+          transcriptContainer.style.display = 'none';
+        } else {
+          transcriptContainer.style.display = 'block';
+          transcriptContent.innerHTML = transcriptContents[this.value] || '';
+        }
+      });
+    });
   </script>
 </body>
 </html>

@@ -57,6 +57,13 @@ func createTables() {
 			filename VARCHAR(255) NOT NULL,
 			uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);`,
+		`CREATE TABLE IF NOT EXISTS audios (
+			id SERIAL PRIMARY KEY,
+			title VARCHAR(255) NOT NULL,
+			description TEXT,
+			filename VARCHAR(255) NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);`,
 		`CREATE TABLE IF NOT EXISTS admins (
 			id SERIAL PRIMARY KEY,
 			name VARCHAR(100),

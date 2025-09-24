@@ -5,6 +5,7 @@ import (
     "net/http"
     "os"
     "os/exec"
+	"fmt"
 
 )
 
@@ -109,4 +110,20 @@ func respondWithOutput(w http.ResponseWriter, output string, errMsg string) {
 // Optional: serve HTML editor UI
 func ServeCodeRunner(w http.ResponseWriter, r *http.Request) {
     http.ServeFile(w, r, "templates/code_editor.html")
+}
+
+func serveForm(w http.ResponseWriter,r *http.Request) {
+     http.ServeFile(w,r,"templates/cs.html")
+}
+
+func main() {
+    http.HandleFunc("/run", RunHandler)
+    http.HandleFunc("/code", ServeCodeRunner)
+    http.HandleFunc("/form",serveForm)
+
+    fmt.Println("🚀 Server running at http://localhost:8080")
+    err := http.ListenAndServe(":8080", nil) // Start the server
+    if err != nil {
+        fmt.Println("Failed to start server:", err)
+    }
 }

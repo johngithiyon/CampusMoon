@@ -453,6 +453,10 @@
           <i class="fas fa-cloud-upload-alt"></i>
           <span data-translate="upload_videos">Upload Videos</span>
         </button>
+        <button class="subject-action-btn" id="uploadAudioBtn">
+          <i class="fas fa-music"></i>
+          <span data-translate="upload_audio">Upload Audio</span>
+        </button>
         <button class="subject-action-btn chatbot" id="chatbotBtn">
           <i class="fas fa-robot"></i>
           <span data-translate="chatbot">Chatbot</span>
@@ -470,11 +474,7 @@
       <!-- Audio Section -->
       <div class="audio-section">
         <h2 data-translate="uploaded_audio">Uploaded Audio</h2>
-        <form id="audioUploadForm" class="audio-upload-form">
-          <input type="file" name="file" accept="audio/*" required />
-          <button type="submit">Upload</button>
-        </form>
-        <button id="refreshAudioList" class="refresh-audio-btn"><i class="fas fa-sync-alt"></i> Refresh List</button>
+        <button id="refreshAudioList" class="refresh-audio-btn"><i class="fas fa-sync-alt"></i> <span data-translate="refresh">Refresh</span></button>
         <div id="audioList" class="audio-list"></div>
       </div>
     </div>
@@ -489,11 +489,11 @@
         <form id="uploadForm">
           <div class="form-group">
             <label for="videoTitle" data-translate="video_title">Video Title</label>
-            <input type="text" id="videoTitle" name="title" required>
+            <input type="text" id="videoTitle" name="title" required placeholder="Enter video title" data-translate-placeholder="enter_video_title">
           </div>
           <div class="form-group">
             <label for="videoDescription" data-translate="video_description">Video Description</label>
-            <textarea id="videoDescription" name="description"></textarea>
+            <textarea id="videoDescription" name="description" placeholder="Enter video description" data-translate-placeholder="enter_video_description"></textarea>
           </div>
           <div class="form-group">
             <label data-translate="select_video">Select Video File</label>
@@ -532,19 +532,62 @@
       </div>
     </div>
 
+    <!-- Audio Upload Modal -->
+    <div id="uploadAudioModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title" data-translate="upload_audio">Upload Audio</h3>
+          <button class="modal-close" id="closeAudioModal">&times;</button>
+        </div>
+        <form id="audioUploadForm">
+          <div class="form-group">
+            <label for="audioTitle" data-translate="audio_title">Audio Title</label>
+            <input type="text" id="audioTitle" name="title" required placeholder="Enter audio title" data-translate-placeholder="enter_audio_title">
+          </div>
+          <div class="form-group">
+            <label for="audioDescription" data-translate="audio_description">Audio Description</label>
+            <textarea id="audioDescription" name="description" placeholder="Enter audio description" data-translate-placeholder="enter_audio_description"></textarea>
+          </div>
+          <div class="form-group">
+            <label data-translate="select_audio">Select Audio File</label>
+            <div class="file-input-wrapper">
+              <input type="file" id="audioFile" name="audio" accept="audio/*" required>
+              <label for="audioFile" class="file-input-label">
+                <i class="fas fa-file-audio"></i>
+                <span id="audioFileLabel" data-translate="choose_audio_file">Choose an audio file</span>
+              </label>
+            </div>
+          </div>
+          <!-- Hidden field for subject ID -->
+          <div class="form-group" style="display: none;">
+            <input type="hidden" id="audioSubjectId" name="subjectId">
+          </div>
+          <div class="progress-container" id="audioProgressContainer">
+            <div class="progress-bar">
+              <div class="progress" id="audioProgressBar"></div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" id="cancelAudioUpload" data-translate="cancel">Cancel</button>
+            <button type="submit" class="btn-submit" data-translate="upload">Upload</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Text Modal for displaying converted text -->
     <div id="textModal" class="modal">
       <div class="text-modal-content">
         <div class="modal-header">
-          <h3 class="modal-title">Converted Text</h3>
+          <h3 class="modal-title" data-translate="converted_text">Converted Text</h3>
           <button class="modal-close" id="closeTextModal">&times;</button>
         </div>
         <div id="convertedText">
           <!-- Converted text will be displayed here -->
         </div>
         <div class="text-modal-actions">
-          <button type="button" class="btn-cancel" id="closeTextModalBtn">Close</button>
-          <button type="button" class="btn-submit" id="downloadTextBtn">Download as Text File</button>
+          <button type="button" class="btn-cancel" id="closeTextModalBtn" data-translate="close">Close</button>
+          <button type="button" class="btn-submit" id="downloadTextBtn" data-translate="download_text">Download as Text File</button>
         </div>
       </div>
     </div>
@@ -556,7 +599,15 @@
   </div>
 
   <script>
-    // Translation dictionaries
+    // ================= GLOBAL VARIABLES ==================
+    let currentLanguage = 'en';
+    let currentSubjectId = null;
+    let allVideos = [];
+    let allAudios = [];
+    let currentConvertedText = '';
+    const API_BASE = "http://localhost:8080";
+
+    // ================= TRANSLATIONS ==================
     const translations = {
       en: {
         "live_video": "Live Video Stream",
@@ -566,14 +617,20 @@
         "subjects": "Subjects",
         "video_title": "Video Title",
         "video_description": "Video Description",
+        "audio_title": "Audio Title",
+        "audio_description": "Audio Description",
         "select_video": "Select Video File",
+        "select_audio": "Select Audio File",
         "select_notes": "Select Notes File (Optional)",
         "choose_file": "Choose a video file",
+        "choose_audio_file": "Choose an audio file",
         "choose_notes": "Choose a notes file",
         "uploaded_videos": "Uploaded Videos",
         "uploaded_audio": "Uploaded Audio",
         "enter_video_title": "Enter video title",
         "enter_video_description": "Enter video description",
+        "enter_audio_title": "Enter audio title",
+        "enter_audio_description": "Enter audio description",
         "upload": "Upload",
         "cancel": "Cancel",
         "copyright": "Campus Moon &copy; 2025",
@@ -589,6 +646,14 @@
         "convert_to_text": "Convert to Text",
         "converting": "Converting audio to text...",
         "text_converted": "Audio converted to text successfully",
+        "refresh": "Refresh",
+        "close": "Close",
+        "download_text": "Download as Text File",
+        "converted_text": "Converted Text",
+        "upload_success": "Upload successful",
+        "failed_upload": "Upload failed",
+        "video_deleted": "Video deleted successfully",
+        "audio_deleted": "Audio deleted successfully",
         // Subject translations
         "artificial_intelligence": "Artificial Intelligence",
         "ai_desc": "Machine learning, neural networks, and intelligent systems",
@@ -612,6 +677,7 @@
         "cybersecurity_desc": "Protecting systems and networks from digital attacks"
       },
       ta: {
+        // Tamil translations (same as before)
         "live_video": "நேரடி வீடியோ ஸ்ட்ரீம்",
         "upload_video": "வீடியோ பதிவேற்றம்",
         "upload_audio": "ஆடியோ பதிவேற்றம்",
@@ -619,14 +685,20 @@
         "subjects": "பாடங்கள்",
         "video_title": "வீடியோ தலைப்பு",
         "video_description": "வீடியோ விளக்கம்",
+        "audio_title": "ஆடியோ தலைப்பு",
+        "audio_description": "ஆடியோ விளக்கம்",
         "select_video": "வீடியோ கோப்பைத் தேர்ந்தெடுக்கவும்",
+        "select_audio": "ஆடியோ கோப்பைத் தேர்ந்தெடுக்கவும்",
         "select_notes": "குறிப்புகள் கோப்பைத் தேர்ந்தெடுக்கவும் (விரும்பினால்)",
         "choose_file": "ஒரு வீடியோ கோப்பைத் தேர்வுசெய்யவும்",
+        "choose_audio_file": "ஒரு ஆடியோ கோப்பைத் தேர்வுசெய்யவும்",
         "choose_notes": "குறிப்புகள் கோப்பைத் தேர்வுசெய்யவும்",
         "uploaded_videos": "பதிவேற்றப்பட்ட வீடியோக்கள்",
         "uploaded_audio": "பதிவேற்றப்பட்ட ஆடியோ",
         "enter_video_title": "வீடியோ தலைப்பை உள்ளிடவும்",
         "enter_video_description": "வீடியோ விளக்கத்தை உள்ளிடவும்",
+        "enter_audio_title": "ஆடியோ தலைப்பை உள்ளிடவும்",
+        "enter_audio_description": "ஆடியோ விளக்கத்தை உள்ளிடவும்",
         "upload": "பதிவேற்றம்",
         "cancel": "ரத்து செய்",
         "copyright": "கேம்பஸ் மூன் © 2025",
@@ -642,6 +714,14 @@
         "convert_to_text": "உரையாக மாற்று",
         "converting": "ஆடியோவை உரையாக மாற்றுகிறது...",
         "text_converted": "ஆடியோ வெற்றிகரமாக உரையாக மாற்றப்பட்டது",
+        "refresh": "புதுப்பிக்க",
+        "close": "மூடு",
+        "download_text": "உரை கோப்பாக பதிவிறக்கு",
+        "converted_text": "மாற்றப்பட்ட உரை",
+        "upload_success": "பதிவேற்றம் வெற்றிகரமாக",
+        "failed_upload": "பதிவேற்றம் தோல்வியடைந்தது",
+        "video_deleted": "வீடியோ வெற்றிகரமாக நீக்கப்பட்டது",
+        "audio_deleted": "ஆடியோ வெற்றிகரமாக நீக்கப்பட்டது",
         // Subject translations
         "artificial_intelligence": "செயற்கை நுண்ணறிவு",
         "ai_desc": "இயந்திர கற்றல், நரம்பியல் நெட்வொர்க்குகள் மற்றும் நுண்ணறிவு அமைப்புகள்",
@@ -665,6 +745,7 @@
         "cybersecurity_desc": "டிஜிட்டல் தாக்குதல்களிலிருந்து அமைப்புகள் மற்றும் நெட்வொர்க்குகளைப் பாதுகாத்தல்"
       },
       hi: {
+        // Hindi translations (same as before)
         "live_video": "लाइव वीडियो स्ट्रीम",
         "upload_video": "वीडियो अपलोड करें",
         "upload_audio": "ऑडियो अपलोड करें",
@@ -672,14 +753,20 @@
         "subjects": "विषय",
         "video_title": "वीडियो शीर्षक",
         "video_description": "वीडियो विवरण",
+        "audio_title": "ऑडियो शीर्षक",
+        "audio_description": "ऑडियो विवरण",
         "select_video": "वीडियो फ़ाइल चुनें",
+        "select_audio": "ऑडियो फ़ाइल चुनें",
         "select_notes": "नोट्स फ़ाइल चुनें (वैकल्पिक)",
         "choose_file": "एक वीडियो फ़ाइल चुनें",
+        "choose_audio_file": "एक ऑडियो फ़ाइल चुनें",
         "choose_notes": "एक नोट्स फ़ाइल चुनें",
         "uploaded_videos": "अपलोड किए गए वीडियो",
         "uploaded_audio": "अपलोड किया गया ऑडियो",
         "enter_video_title": "वीडियो शीर्षक दर्ज करें",
         "enter_video_description": "वीडियो विवरण दर्ज करें",
+        "enter_audio_title": "ऑडियो शीर्षक दर्ज करें",
+        "enter_audio_description": "ऑडियो विवरण दर्ज करें",
         "upload": "अपलोड करें",
         "cancel": "रद्द करें",
         "copyright": "कैंपस मून © 2025",
@@ -695,6 +782,14 @@
         "convert_to_text": "टेक्स्ट में बदलें",
         "converting": "ऑडियो को टेक्स्ट में बदल रहा है...",
         "text_converted": "ऑडियो को सफलतापूर्वक टेक्स्ट में बदल दिया गया",
+        "refresh": "ताज़ा करें",
+        "close": "बंद करें",
+        "download_text": "टेक्स्ट फाइल के रूप में डाउनलोड करें",
+        "converted_text": "परिवर्तित पाठ",
+        "upload_success": "अपलोड सफल",
+        "failed_upload": "अपलोड विफल",
+        "video_deleted": "वीडियो सफलतापूर्वक हटाया गया",
+        "audio_deleted": "ऑडियो सफलतापूर्वक हटाया गया",
         // Subject translations
         "artificial_intelligence": "कृत्रिम बुद्धिमत्ता",
         "ai_desc": "मशीन लर्निंग, न्यूरल नेटवर्क और इंटेलिजेंट सिस्टम",
@@ -718,6 +813,7 @@
         "cybersecurity_desc": "डिजिटल हमलों से सिस्टम और नेटवर्क की सुरक्षा"
       },
       rj: {
+        // Rajasthani translations (same as before)
         "live_video": "लाइव वीडियो स्ट्रीम",
         "upload_video": "वीडियो अपलोड करो",
         "upload_audio": "ऑडियो अपलोड करो",
@@ -725,14 +821,20 @@
         "subjects": "विषय",
         "video_title": "वीडियो शीर्षक",
         "video_description": "वीडियो विवरण",
+        "audio_title": "ऑडियो शीर्षक",
+        "audio_description": "ऑडियो विवरण",
         "select_video": "वीडियो फाइल चुनो",
+        "select_audio": "ऑडियो फाइल चुनो",
         "select_notes": "नोट्स फाइल चुनो (वैकल्पिक)",
         "choose_file": "एक वीडियो फाइल चुनो",
+        "choose_audio_file": "एक ऑडियो फाइल चुनो",
         "choose_notes": "एक नोट्स फाइल चुनो",
         "uploaded_videos": "अपलोड किए गए वीडियो",
-        "uploaded_audio": "अपलオड किया गया ऑडियो",
+        "uploaded_audio": "अपलोड किया गया ऑडियो",
         "enter_video_title": "वीडियो शीर्षक भरो",
         "enter_video_description": "वीडियो विवरण भरो",
+        "enter_audio_title": "ऑडियो शीर्षक भरो",
+        "enter_audio_description": "ऑडियो विवरण भरो",
         "upload": "अपलोड करो",
         "cancel": "रद्द करो",
         "copyright": "कैंपस मून © 2025",
@@ -748,6 +850,14 @@
         "convert_to_text": "टेक्स्ट में बदलो",
         "converting": "ऑडियो को टेक्स्ट में बदल रहा है...",
         "text_converted": "ऑडियो को सफलतापूर्वक टेक्स्ट में बदल दिया गया",
+        "refresh": "ताज़ा करो",
+        "close": "बंद करो",
+        "download_text": "टेक्स्ट फाइल के रूप में डाउनलोड करो",
+        "converted_text": "परिवर्तित पाठ",
+        "upload_success": "अपलोड सफल",
+        "failed_upload": "अपलोड विफल",
+        "video_deleted": "वीडियो सफलतापूर्वक मिटाया गया",
+        "audio_deleted": "ऑडियो सफलतापूर्वक मिटाया गया",
         // Subject translations
         "artificial_intelligence": "कृत्रिम बुद्धिमत्ता",
         "ai_desc": "मशीन लर्निंग, न्यूरल नेटवर्क और इंटेलिजेंट सिस्टम",
@@ -772,80 +882,7 @@
       }
     };
 
-    // Language management
-    let currentLanguage = 'en';
-    let currentSubjectId = null; // Track current subject ID
-    let allVideos = []; // Store all videos for the current subject
-    let currentConvertedText = ''; // Store the converted text for downloading
-
-    function setLanguage(lang) {
-      if (!translations[lang]) return;
-      
-      currentLanguage = lang;
-      localStorage.setItem('preferredLanguage', lang);
-      document.getElementById('languageSelector').value = lang;
-      
-      // Update all translatable elements
-      document.querySelectorAll('[data-translate]').forEach(element => {
-        const key = element.getAttribute('data-translate');
-        if (translations[lang][key]) {
-          element.textContent = translations[lang][key];
-        }
-      });
-      
-      // Update all placeholder texts
-      document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-translate-placeholder');
-        if (translations[lang][key]) {
-          element.setAttribute('placeholder', translations[lang][key]);
-        }
-      });
-      
-      // Update subject cards
-      updateSubjectCards();
-    }
-
-    function getPreferredLanguage() {
-      // Check localStorage first
-      const savedLang = localStorage.getItem('preferredLanguage');
-      if (savedLang) return savedLang;
-      
-      // Then check browser language
-      const browserLang = navigator.language || navigator.userLanguage;
-      if (browserLang.startsWith('ta')) return 'ta';
-      if (browserLang.startsWith('hi')) return 'hi';
-      if (browserLang.startsWith('mr') || browserLang.startsWith('gu')) return 'rj'; // Approximate for Rajasthani
-      
-      return 'en'; // Default to English
-    }
-
-    // Show notification
-    function showNotification(message, type = 'success') {
-      const notification = document.getElementById('notification');
-      notification.textContent = message;
-      notification.className = `notification ${type}`;
-      notification.classList.add('show');
-      
-      // Hide notification after 3 seconds
-      setTimeout(() => {
-        notification.classList.remove('show');
-      }, 3000);
-    }
-
-    // Function to download text as a file
-    function downloadTextAsFile(text, filename) {
-      const blob = new Blob([text], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    // Expanded subject data with more subjects
+    // ================= SUBJECTS ==================
     const subjects = [
       { id: 1, icon: 'fa-brain', nameKey: 'artificial_intelligence', descKey: 'ai_desc' },
       { id: 2, icon: 'fa-microchip', nameKey: 'vlsi', descKey: 'vlsi_desc' },
@@ -857,519 +894,475 @@
       { id: 8, icon: 'fa-laptop-code', nameKey: 'computer_science', descKey: 'cs_desc' },
       { id: 9, icon: 'fa-chart-bar', nameKey: 'data_science', descKey: 'data_science_desc' },
       { id: 10, icon: 'fa-shield-alt', nameKey: 'cybersecurity', descKey: 'cybersecurity_desc' }
-    ]
+    ];
 
-    function updateSubjectCards() {
-      const subjectsGrid = document.getElementById('subjectsGrid');
-      subjectsGrid.innerHTML = '';
+    // ================= NOTIFICATIONS =================
+    function showNotification(message, type = "success") {
+      const notification = document.getElementById("notification");
+      notification.textContent = message;
+      notification.className = `notification ${type} show`;
+      
+      setTimeout(() => {
+        notification.className = "notification";
+      }, 3000);
+    }
+
+    // ================= DOWNLOAD FILE =================
+    function downloadTextAsFile(text, filename) {
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ================= LANGUAGE FUNCTIONS =================
+    function setLanguage(lang) {
+      currentLanguage = lang;
+      localStorage.setItem("preferredLanguage", lang);
+      document.getElementById("languageSelector").value = lang;
+      
+      // Update all elements with data-translate attribute
+      document.querySelectorAll("[data-translate]").forEach(element => {
+        const key = element.getAttribute("data-translate");
+        if (translations[lang][key]) {
+          element.textContent = translations[lang][key];
+        }
+      });
+      
+      // Update all placeholder elements
+      document.querySelectorAll("[data-translate-placeholder]").forEach(element => {
+        const key = element.getAttribute("data-translate-placeholder");
+        if (translations[lang][key]) {
+          element.setAttribute("placeholder", translations[lang][key]);
+        }
+      });
+      
+      // Re-render subjects to update their names and descriptions
+      renderSubjects();
+      
+      // If on subject page, update the subject title and re-render videos/audios
+      if (document.getElementById("subjectPage").style.display === "block") {
+        const subject = subjects.find(s => s.id === currentSubjectId);
+        if (subject) {
+          document.getElementById("subjectTitle").textContent = translations[lang][subject.nameKey];
+        }
+        listVideos();
+        listAudios();
+      }
+    }
+
+    // ================= SUBJECT RENDERING =================
+    function renderSubjects() {
+      const subjectsGrid = document.getElementById("subjectsGrid");
+      subjectsGrid.innerHTML = "";
       
       subjects.forEach(subject => {
-        const card = document.createElement('div');
-        card.className = 'subject-card';
-        card.dataset.subjectId = subject.id;
-        
-        const subjectName = translations[currentLanguage] && translations[currentLanguage][subject.nameKey] 
-          ? translations[currentLanguage][subject.nameKey] 
-          : subject.nameKey;
-          
-        const subjectDesc = translations[currentLanguage] && translations[currentLanguage][subject.descKey] 
-          ? translations[currentLanguage][subject.descKey] 
-          : subject.descKey;
-        
+        const card = document.createElement("div");
+        card.className = "subject-card";
         card.innerHTML = `
           <div class="subject-icon"><i class="fas ${subject.icon}"></i></div>
-          <h3 class="subject-title">${subjectName}</h3>
-          <p class="subject-desc">${subjectDesc}</p>
+          <h3 class="subject-title">${translations[currentLanguage][subject.nameKey]}</h3>
+          <p class="subject-desc">${translations[currentLanguage][subject.descKey]}</p>
         `;
         
-        // Add click event to show subject page
-        card.addEventListener('click', () => {
-          showSubjectPage(subject.id);
+        card.addEventListener("click", () => {
+          currentSubjectId = subject.id;
+          document.getElementById("mainPage").style.display = "none";
+          document.getElementById("subjectPage").style.display = "block";
+          document.getElementById("subjectTitle").textContent = translations[currentLanguage][subject.nameKey];
+          listVideos();
+          listAudios();
         });
         
         subjectsGrid.appendChild(card);
       });
     }
 
-    // Show subject page
-    function showSubjectPage(subjectId) {
-      currentSubjectId = subjectId; // Store the current subject ID
-      const subject = subjects.find(s => s.id === subjectId);
-      if (!subject) return;
+    // ================= VIDEO FUNCTIONS =================
+    async function uploadVideo(e) {
+      e.preventDefault();
+      const form = document.getElementById("uploadForm");
+      const formData = new FormData(form);
       
-      const subjectName = translations[currentLanguage] && translations[currentLanguage][subject.nameKey] 
-        ? translations[currentLanguage][subject.nameKey] 
-        : subject.nameKey;
-      
-      document.getElementById('subjectTitle').textContent = subjectName;
-      document.getElementById('mainPage').style.display = 'none';
-      document.getElementById('subjectPage').style.display = 'block';
-      
-      // Clear search when entering a new subject
-      document.getElementById('subjectSearchInput').value = '';
-      document.getElementById('clearSearchBtn').style.display = 'none';
-      document.getElementById('searchResultsMessage').style.display = 'none';
-      
-      // Load videos for this subject
-      loadVideos();
-      
-      // Load audio files for this subject
-      loadAudioFiles();
-    }
-
-    // Show main page
-    function showMainPage() {
-      document.getElementById('subjectPage').style.display = 'none';
-      document.getElementById('mainPage').style.display = 'block';
-    }
-
-    // Load videos from the backend
-    async function loadVideos() {
-      try {
-        // Include the current subject ID in the request
-        const response = await fetch(`http://localhost:8080/videos?subjectId=${currentSubjectId}`);
-        if (!response.ok) {
-          throw new Error('Failed to load videos');
-        }
-        
-        const videos = await response.json();
-        allVideos = videos; // Store all videos for filtering
-        displayVideos(allVideos); // Display all videos initially
-      } catch (error) {
-        console.error('Error loading videos:', error);
-        // Show error message to user
-        const videoGrid = document.getElementById('videoGrid');
-        videoGrid.innerHTML = `<p style="text-align: center; color: rgba(255,255,255,0.7);">Failed to load videos. Please try again later.</p>`;
-      }
-    }
-
-    // Load audio files from the backend
-    async function loadAudioFiles() {
-      try {
-        const response = await fetch(`/list-audio?subjectId=${currentSubjectId}`);
-        if (!response.ok) {
-          throw new Error('Failed to load audio files');
-        }
-        
-        const data = await response.text();
-        const urls = data.trim().split("\n").filter(url => url.length > 0);
-        
-        const audioList = document.getElementById('audioList');
-        audioList.innerHTML = '';
-        
-        if (urls.length === 0) {
-          audioList.innerHTML = "<p style='text-align: center; color: rgba(255,255,255,0.7);'>No audio files uploaded yet.</p>";
-          return;
-        }
-        
-        urls.forEach(url => {
-          const audioItem = document.createElement('div');
-          audioItem.className = 'audio-item';
-          
-          const audio = document.createElement('audio');
-          audio.controls = true;
-          audio.src = url;
-          
-          // Create action buttons container
-          const audioActions = document.createElement('div');
-          audioActions.className = 'audio-actions';
-          
-          // Convert to Text button
-          const convertTextBtn = document.createElement('button');
-          convertTextBtn.className = 'convert-text-btn';
-          convertTextBtn.innerHTML = `<i class='fas fa-file-alt'></i> ${translations[currentLanguage].convert_to_text || 'Convert to Text'}`;
-          convertTextBtn.addEventListener('click', () => convertAudioToText(url));
-          
-          // Add button to actions container
-          audioActions.appendChild(convertTextBtn);
-          
-          audioItem.appendChild(audio);
-          audioItem.appendChild(audioActions);
-          
-          audioList.appendChild(audioItem);
-        });
-      } catch (error) {
-        console.error('Error loading audio files:', error);
-        const audioList = document.getElementById('audioList');
-        audioList.innerHTML = "<p style='text-align: center; color: rgba(255,255,255,0.7);'>Failed to load audio files. Please try again later.</p>";
-      }
-    }
-
-    // Convert audio to text
-    async function convertAudioToText(audioUrl) {
-      showNotification(translations[currentLanguage].converting || 'Converting audio to text...');
+      const progressContainer = document.getElementById("progressContainer");
+      const progressBar = document.getElementById("progressBar");
+      progressContainer.style.display = "block";
+      progressBar.style.width = "0%";
       
       try {
-        // Create form data with the audio URL
-        const formData = new FormData();
-        formData.append('fileUrl', audioUrl);
-        formData.append('subjectId', currentSubjectId);
-        
-        // Send request to backend for conversion
-        const response = await fetch('/convert-to-text', {
-          method: 'POST',
+        const res = await fetch(`${API_BASE}/upload`, {
+          method: "POST",
           body: formData
         });
         
-        if (!response.ok) {
-          throw new Error('Conversion failed');
+        if (!res.ok) throw new Error(await res.text());
+        
+        progressBar.style.width = "100%";
+        setTimeout(() => {
+          form.reset();
+          progressContainer.style.display = "none";
+          document.getElementById("uploadModal").style.display = "none";
+          listVideos();
+          showNotification(translations[currentLanguage].upload_success);
+        }, 1000);
+      } catch (err) {
+        showNotification(translations[currentLanguage].failed_upload, "error");
+        progressContainer.style.display = "none";
+      }
+    }
+
+    async function listVideos() {
+      try {
+        const res = await fetch(`${API_BASE}/videos?subjectId=${currentSubjectId}`);
+        if (!res.ok) throw new Error("Failed to fetch videos");
+        
+        allVideos = await res.json();
+        const container = document.getElementById("videoGrid");
+        container.innerHTML = "";
+        
+        if (!allVideos.length) {
+          container.innerHTML = `<p>${translations[currentLanguage].no_results}</p>`;
+          return;
         }
         
-        const result = await response.json();
-        
-        // Store the converted text for downloading
-        currentConvertedText = result.text;
-        
-        // Display the text in a modal
-        const textModal = document.getElementById('textModal');
-        const convertedTextDiv = document.getElementById('convertedText');
-        convertedTextDiv.innerHTML = `<p>${currentConvertedText}</p>`;
-        textModal.style.display = 'flex';
-        
-        // Automatically download the text file
-        const filename = audioUrl.split('/').pop().split('.')[0] + '.txt';
-        downloadTextAsFile(currentConvertedText, filename);
-        
-        showNotification(translations[currentLanguage].text_converted || 'Audio converted to text successfully');
-      } catch (error) {
-        console.error('Error converting audio to text:', error);
-        showNotification('Failed to convert audio to text. Please try again.', 'error');
-      }
-    }
-
-    // Display videos in the gallery
-    function displayVideos(videos) {
-      const videoGrid = document.getElementById('videoGrid');
-      videoGrid.innerHTML = '';
-      
-      if (videos.length === 0) {
-        videoGrid.innerHTML = `<p style="text-align: center; color: rgba(255,255,255,0.7);">No videos uploaded yet.</p>`;
-        return;
-      }
-      
-      videos.forEach(video => {
-        const videoCard = document.createElement('div');
-        videoCard.className = 'video-card';
-        videoCard.dataset.videoId = video.id;
-        videoCard.dataset.videoFilename = video.filename;
-        
-        // Add click event to the entire video card to redirect to watch page
-        videoCard.addEventListener('click', function(e) {
-          // Don't redirect if the delete button was clicked
-          if (e.target.closest('.video-delete-btn')) {
-            return;
-          }
-          // Redirect to watch page with video filename as parameter
-          window.location.href = `http://localhost:8080/watch?filename=${encodeURIComponent(video.filename)}`;
-        });
-        
-        videoCard.innerHTML = `
-          <video class="video-thumbnail" preload="metadata">
-            <source src="${video.url}" type="video/mp4">
-          </video>
-          <div class="video-info">
-            <h3 class="video-title">${video.title}</h3>
-            <p class="video-description">${video.description || 'No description available'}</p>
-            <div class="video-actions">
-              <button class="video-delete-btn" onclick="event.stopPropagation(); deleteVideo('${video.filename}', this)">
-                <i class="fas fa-trash"></i>
-              </button>
+        allVideos.forEach(video => {
+          const div = document.createElement("div");
+          div.className = "video-card";
+          div.innerHTML = `
+            <video class="video-thumbnail" src="${video.url}" preload="metadata"></video>
+            <div class="video-info">
+              <h3 class="video-title">${video.title}</h3>
+              <p class="video-description">${video.description || ""}</p>
+              <div class="video-actions">
+                <button class="video-delete-btn" onclick="deleteVideo('${video.filename}')">
+                  <i class="fas fa-trash"></i> ${translations[currentLanguage].delete}
+                </button>
+              </div>
             </div>
-          </div>
-        `;
-        
-        videoGrid.appendChild(videoCard);
-      });
-    }
-
-    // Filter videos based on search term
-    function filterVideos(searchTerm) {
-      if (!searchTerm) {
-        // If search term is empty, show all videos
-        displayVideos(allVideos);
-        return;
-      }
-      
-      const term = searchTerm.toLowerCase();
-      const filteredVideos = allVideos.filter(video => {
-        const title = video.title ? video.title.toLowerCase() : '';
-        const description = video.description ? video.description.toLowerCase() : '';
-        return title.includes(term) || description.includes(term);
-      });
-      
-      displayVideos(filteredVideos);
-      
-      // Show search results message
-      const resultsMessage = document.getElementById('searchResultsMessage');
-      resultsMessage.style.display = 'block';
-      
-      if (filteredVideos.length === 0) {
-        resultsMessage.textContent = translations[currentLanguage].no_results || "No videos found matching your search.";
-      } else {
-        const message = translations[currentLanguage].showing_results || "Showing {count} videos matching your search.";
-        resultsMessage.textContent = message.replace('{count}', filteredVideos.length);
+          `;
+          
+          div.addEventListener("click", (e) => {
+            if (!e.target.closest('.video-actions')) {
+              window.open(`${API_BASE}/watch?filename=${encodeURIComponent(video.filename)}`, '_blank');
+            }
+          });
+          
+          container.appendChild(div);
+        });
+      } catch (err) {
+        showNotification(err.message, "error");
       }
     }
 
-    // Delete video
-    async function deleteVideo(filename, buttonElement) {
-      if (!confirm('Are you sure you want to delete this video?')) {
-        return;
-      }
+    async function deleteVideo(filename) {
+      if (!confirm("Are you sure you want to delete this video?")) return;
       
       try {
-        const response = await fetch('http://localhost:8080/delete', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            filename: filename,
-            subjectId: currentSubjectId // Include subject ID in delete request
-          })
+        const res = await fetch(`${API_BASE}/delete`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename })
         });
         
-        if (!response.ok) {
-          throw new Error('Failed to delete video');
-        }
+        if (!res.ok) throw new Error(await res.text());
         
-        // Remove the video card from the UI
-        const videoCard = buttonElement.closest('.video-card');
-        videoCard.remove();
-        
-        // Also remove from allVideos array
-        allVideos = allVideos.filter(video => video.filename !== filename);
-        
-        // If there's an active search, re-apply the filter
-        const searchTerm = document.getElementById('subjectSearchInput').value;
-        if (searchTerm) {
-          filterVideos(searchTerm);
-        }
-        
-        // Show success message
-        showNotification('Video deleted successfully');
-      } catch (error) {
-        console.error('Error deleting video:', error);
-        showNotification('Failed to delete video. Please try again.', 'error');
+        showNotification(translations[currentLanguage].video_deleted);
+        listVideos();
+      } catch (err) {
+        showNotification(err.message, "error");
       }
     }
 
-    // Initialize language and subjects
-    document.addEventListener('DOMContentLoaded', function() {
-      const preferredLang = getPreferredLanguage();
-      setLanguage(preferredLang);
+    // ================= AUDIO FUNCTIONS =================
+    async function uploadAudio(e) {
+      e.preventDefault();
+      const form = document.getElementById("audioUploadForm");
+      const formData = new FormData(form);
+      formData.append("subjectId", currentSubjectId);
       
-      // Set up language selector event
-      document.getElementById('languageSelector').addEventListener('change', function() {
-        setLanguage(this.value);
+      const progressContainer = document.getElementById("audioProgressContainer");
+      const progressBar = document.getElementById("audioProgressBar");
+      progressContainer.style.display = "block";
+      progressBar.style.width = "0%";
+      
+      try {
+        const res = await fetch(`${API_BASE}/upload-audio`, {
+          method: "POST",
+          body: formData
+        });
+        
+        if (!res.ok) throw new Error(await res.text());
+        
+        progressBar.style.width = "100%";
+        setTimeout(() => {
+          form.reset();
+          progressContainer.style.display = "none";
+          document.getElementById("uploadAudioModal").style.display = "none";
+          listAudios();
+          showNotification(translations[currentLanguage].upload_success);
+        }, 1000);
+      } catch (err) {
+        showNotification(translations[currentLanguage].failed_upload, "error");
+        progressContainer.style.display = "none";
+      }
+    }
+
+    async function listAudios() {
+      try {
+        const res = await fetch(`${API_BASE}/audios?subjectId=${currentSubjectId}`);
+        if (!res.ok) throw new Error("Failed to fetch audios");
+        
+        allAudios = await res.json();
+        const container = document.getElementById("audioList");
+        container.innerHTML = "";
+        
+        if (!allAudios.length) {
+          container.innerHTML = `<p>${translations[currentLanguage].no_results}</p>`;
+          return;
+        }
+        
+        allAudios.forEach(audio => {
+          const div = document.createElement("div");
+          div.className = "audio-item";
+          div.innerHTML = `
+            <div class="audio-info">
+              <h3>${audio.title}</h3>
+              <p>${audio.description || ""}</p>
+            </div>
+            <audio controls src="${audio.url}"></audio>
+            <div class="audio-actions">
+              <button class="convert-text-btn" onclick="convertAudioToText('${audio.url}', '${audio.title}')">
+                <i class="fas fa-language"></i> ${translations[currentLanguage].convert_to_text}
+              </button>
+              <button class="convert-text-btn" onclick="deleteAudio('${audio.filename}')" style="background: linear-gradient(45deg, #f44336, #d32f2f);">
+                <i class="fas fa-trash"></i> ${translations[currentLanguage].delete}
+              </button>
+            </div>
+          `;
+          
+          container.appendChild(div);
+        });
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    }
+
+    async function deleteAudio(filename) {
+      if (!confirm("Are you sure you want to delete this audio?")) return;
+      
+      try {
+        const res = await fetch(`${API_BASE}/audio/delete`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename })
+        });
+        
+        if (!res.ok) throw new Error(await res.text());
+        
+        showNotification(translations[currentLanguage].audio_deleted);
+        listAudios();
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    }
+
+    async function convertAudioToText(audioUrl, audioTitle) {
+      showNotification(translations[currentLanguage].converting);
+      
+      try {
+        const formData = new FormData();
+        formData.append("fileUrl", audioUrl);
+        formData.append("subjectId", currentSubjectId);
+        
+        const res = await fetch(`${API_BASE}/convert-to-text`, {
+          method: "POST",
+          body: formData
+        });
+        
+        if (!res.ok) throw new Error("Conversion failed");
+        
+        const data = await res.json();
+        currentConvertedText = data.text;
+        
+        document.getElementById("convertedText").textContent = currentConvertedText;
+        document.getElementById("textModal").style.display = "flex";
+        
+        showNotification(translations[currentLanguage].text_converted);
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    }
+
+    // ================= SEARCH FUNCTIONALITY =================
+    function initSearch() {
+      // Main page search
+      document.getElementById("searchBtn").addEventListener("click", () => {
+        const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+        const subjectCards = document.querySelectorAll(".subject-card");
+        
+        subjectCards.forEach(card => {
+          const title = card.querySelector(".subject-title").textContent.toLowerCase();
+          const description = card.querySelector(".subject-desc").textContent.toLowerCase();
+          
+          if (title.includes(searchTerm) || description.includes(searchTerm)) {
+            card.style.display = "flex";
+          } else {
+            card.style.display = "none";
+          }
+        });
+      });
+      
+      // Subject page search
+      document.getElementById("subjectSearchBtn").addEventListener("click", () => {
+        const searchTerm = document.getElementById("subjectSearchInput").value.toLowerCase();
+        const videoCards = document.querySelectorAll(".video-card");
+        let matchCount = 0;
+        
+        videoCards.forEach(card => {
+          const title = card.querySelector(".video-title").textContent.toLowerCase();
+          const description = card.querySelector(".video-description").textContent.toLowerCase();
+          
+          if (title.includes(searchTerm) || description.includes(searchTerm)) {
+            card.style.display = "block";
+            matchCount++;
+          } else {
+            card.style.display = "none";
+          }
+        });
+        
+        const messageElement = document.getElementById("searchResultsMessage");
+        const clearButton = document.getElementById("clearSearchBtn");
+        
+        if (searchTerm) {
+          if (matchCount === 0) {
+            messageElement.textContent = translations[currentLanguage].no_results;
+          } else {
+            messageElement.textContent = translations[currentLanguage].showing_results.replace("{count}", matchCount);
+          }
+          messageElement.style.display = "block";
+          clearButton.style.display = "inline-block";
+        } else {
+          messageElement.style.display = "none";
+          clearButton.style.display = "none";
+        }
+      });
+      
+      // Clear search
+      document.getElementById("clearSearchBtn").addEventListener("click", () => {
+        document.getElementById("subjectSearchInput").value = "";
+        document.getElementById("searchResultsMessage").style.display = "none";
+        document.getElementById("clearSearchBtn").style.display = "none";
+        
+        document.querySelectorAll(".video-card").forEach(card => {
+          card.style.display = "block";
+        });
+      });
+    }
+
+    // ================= INITIALIZATION =================
+    document.addEventListener("DOMContentLoaded", () => {
+      // Set initial language
+      const lang = localStorage.getItem("preferredLanguage") || "en";
+      setLanguage(lang);
+      
+      // Render subjects
+      renderSubjects();
+      
+      // Set up language selector
+      document.getElementById("languageSelector").value = lang;
+      document.getElementById("languageSelector").addEventListener("change", (e) => {
+        setLanguage(e.target.value);
       });
       
       // Set up back button
-      document.getElementById('backBtn').addEventListener('click', showMainPage);
-      
-      // Set up search functionality for subjects
-      const searchInput = document.getElementById('searchInput');
-      searchInput.addEventListener('keyup', function() {
-        const searchTerm = this.value.toLowerCase();
-        const subjectCards = document.querySelectorAll('.subject-card');
-        
-        subjectCards.forEach(card => {
-          const title = card.querySelector('.subject-title').textContent.toLowerCase();
-          const description = card.querySelector('.subject-desc').textContent.toLowerCase();
-          
-          if (title.includes(searchTerm) || description.includes(searchTerm)) {
-            card.style.display = 'flex';
-          } else {
-            card.style.display = 'none';
-          }
+      document.getElementById("backBtn").addEventListener("click", () => {
+        document.getElementById("subjectPage").style.display = "none";
+        document.getElementById("mainPage").style.display = "block";
+        document.getElementById("searchInput").value = "";
+        document.querySelectorAll(".subject-card").forEach(card => {
+          card.style.display = "flex";
         });
       });
       
-      // Set up subject page search functionality
-      const subjectSearchInput = document.getElementById('subjectSearchInput');
-      const subjectSearchBtn = document.getElementById('subjectSearchBtn');
-      const clearSearchBtn = document.getElementById('clearSearchBtn');
-      
-      function performSubjectSearch() {
-        const searchTerm = subjectSearchInput.value.trim();
-        
-        // Filter videos
-        filterVideos(searchTerm);
-        
-        // Show/hide clear button based on search term
-        if (searchTerm) {
-          clearSearchBtn.style.display = 'inline-block';
-        } else {
-          clearSearchBtn.style.display = 'none';
-        }
-      }
-      
-      subjectSearchInput.addEventListener('keyup', function(event) {
-        if (event.key === 'Enter') {
-          performSubjectSearch();
-        }
+      // Set up upload buttons
+      document.getElementById("uploadBtn").addEventListener("click", () => {
+        document.getElementById("subjectId").value = currentSubjectId;
+        document.getElementById("uploadModal").style.display = "flex";
       });
       
-      subjectSearchBtn.addEventListener('click', performSubjectSearch);
-      
-      // Clear search functionality
-      clearSearchBtn.addEventListener('click', function() {
-        subjectSearchInput.value = '';
-        clearSearchBtn.style.display = 'none';
-        document.getElementById('searchResultsMessage').style.display = 'none';
-        displayVideos(allVideos);
+      document.getElementById("uploadAudioBtn").addEventListener("click", () => {
+        document.getElementById("audioSubjectId").value = currentSubjectId;
+        document.getElementById("uploadAudioModal").style.display = "flex";
       });
       
-      // Set up upload modal
-      const uploadModal = document.getElementById('uploadModal');
-      const uploadBtn = document.getElementById('uploadBtn');
-      const closeModal = document.getElementById('closeModal');
-      const cancelUpload = document.getElementById('cancelUpload');
-      
-      uploadBtn.addEventListener('click', function() {
-        // Set the current subject ID in the hidden form field
-        document.getElementById('subjectId').value = currentSubjectId;
-        uploadModal.style.display = 'flex';
+      // Set up modal close buttons
+      document.getElementById("closeModal").addEventListener("click", () => {
+        document.getElementById("uploadModal").style.display = "none";
       });
       
-      closeModal.addEventListener('click', function() {
-        uploadModal.style.display = 'none';
-        resetUploadForm();
+      document.getElementById("closeAudioModal").addEventListener("click", () => {
+        document.getElementById("uploadAudioModal").style.display = "none";
       });
       
-      cancelUpload.addEventListener('click', function() {
-        uploadModal.style.display = 'none';
-        resetUploadForm();
+      document.getElementById("closeTextModal").addEventListener("click", () => {
+        document.getElementById("textModal").style.display = "none";
       });
       
-      // Set up file input labels for video upload
-      const videoFileInput = document.getElementById('videoFile');
-      const notesFileInput = document.getElementById('notesFile');
-      
-      videoFileInput.addEventListener('change', function() {
-        const fileName = this.files[0]?.name || 'Choose a video file';
-        document.getElementById('videoFileLabel').textContent = fileName;
+      document.getElementById("closeTextModalBtn").addEventListener("click", () => {
+        document.getElementById("textModal").style.display = "none";
       });
       
-      notesFileInput.addEventListener('change', function() {
-        const fileName = this.files[0]?.name || 'Choose a notes file';
-        document.getElementById('notesFileLabel').textContent = fileName;
+      // Set up cancel buttons
+      document.getElementById("cancelUpload").addEventListener("click", () => {
+        document.getElementById("uploadModal").style.display = "none";
       });
       
-      // Set up upload form submission
-      const uploadForm = document.getElementById('uploadForm');
-      uploadForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(uploadForm);
-        const progressContainer = document.getElementById('progressContainer');
-        const progressBar = document.getElementById('progressBar');
-        
-        // Show progress bar
-        progressContainer.style.display = 'block';
-        progressBar.style.width = '0%';
-        
-        try {
-          const response = await fetch('http://localhost:8080/upload', {
-            method: 'POST',
-            body: formData
-          });
-          
-          if (!response.ok) {
-            throw new Error('Upload failed');
-          }
-          
-          const result = await response.json();
-          
-          // Update progress bar to 100%
-          progressBar.style.width = '100%';
-          
-          // Close modal and reset form
-          setTimeout(() => {
-            uploadModal.style.display = 'none';
-            resetUploadForm();
-            
-            // Reload videos to show the newly uploaded video
-            loadVideos();
-            
-            // Show success message
-            showNotification('Video uploaded successfully!');
-          }, 1000);
-        } catch (error) {
-          console.error('Error uploading video:', error);
-          showNotification('Failed to upload video. Please try again.', 'error');
-          progressContainer.style.display = 'none';
-        }
+      document.getElementById("cancelAudioUpload").addEventListener("click", () => {
+        document.getElementById("uploadAudioModal").style.display = "none";
       });
       
-      // Set up audio upload form submission
-      const audioUploadForm = document.getElementById('audioUploadForm');
-      audioUploadForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(audioUploadForm);
-        
-        try {
-          const response = await fetch('/upload-audio', {
-            method: 'POST',
-            body: formData
-          });
-          
-          if (!response.ok) {
-            throw new Error('Upload failed');
-          }
-          
-          const result = await response.text();
-          
-          // Show success message
-          showNotification(result);
-          
-          // Reload audio list
-          loadAudioFiles();
-        } catch (error) {
-          console.error('Error uploading audio:', error);
-          showNotification('Upload failed: ' + error.message, 'error');
-        }
-      });
+      // Set up form submissions
+      document.getElementById("uploadForm").addEventListener("submit", uploadVideo);
+      document.getElementById("audioUploadForm").addEventListener("submit", uploadAudio);
       
-      // Set up refresh audio list button
-      document.getElementById('refreshAudioList').addEventListener('click', loadAudioFiles);
-      
-      // Set up chatbot button
-      document.getElementById('chatbotBtn').addEventListener('click', function() {
-        showNotification('Chatbot would open here');
-      });
-      
-      // Set up text modal close buttons
-      const textModal = document.getElementById('textModal');
-      const closeTextModal = document.getElementById('closeTextModal');
-      const closeTextModalBtn = document.getElementById('closeTextModalBtn');
-      const downloadTextBtn = document.getElementById('downloadTextBtn');
-      
-      closeTextModal.addEventListener('click', function() {
-        textModal.style.display = 'none';
-      });
-      
-      closeTextModalBtn.addEventListener('click', function() {
-        textModal.style.display = 'none';
-      });
+      // Set up refresh button
+      document.getElementById("refreshAudioList").addEventListener("click", listAudios);
       
       // Set up download text button
-      downloadTextBtn.addEventListener('click', function() {
-        if (currentConvertedText) {
-          downloadTextAsFile(currentConvertedText, 'converted-text.txt');
+      document.getElementById("downloadTextBtn").addEventListener("click", () => {
+        const title = document.querySelector("#textModal .modal-title").textContent;
+        downloadTextAsFile(currentConvertedText, `${title}.txt`);
+      });
+      
+      // Set up file input labels
+      document.getElementById("videoFile").addEventListener("change", (e) => {
+        document.getElementById("videoFileLabel").textContent = 
+          e.target.files[0] ? e.target.files[0].name : translations[currentLanguage].choose_file;
+      });
+      
+      document.getElementById("notesFile").addEventListener("change", (e) => {
+        document.getElementById("notesFileLabel").textContent = 
+          e.target.files[0] ? e.target.files[0].name : translations[currentLanguage].choose_notes;
+      });
+      
+      document.getElementById("audioFile").addEventListener("change", (e) => {
+        document.getElementById("audioFileLabel").textContent = 
+          e.target.files[0] ? e.target.files[0].name : translations[currentLanguage].choose_audio_file;
+      });
+      
+      // Initialize search functionality
+      initSearch();
+      
+      // Close modals when clicking outside
+      window.addEventListener("click", (e) => {
+        if (e.target.classList.contains("modal")) {
+          e.target.style.display = "none";
         }
       });
     });
-
-    // Reset upload form
-    function resetUploadForm() {
-      document.getElementById('uploadForm').reset();
-      document.getElementById('videoFileLabel').textContent = 'Choose a video file';
-      document.getElementById('notesFileLabel').textContent = 'Choose a notes file';
-      document.getElementById('progressContainer').style.display = 'none';
-      document.getElementById('progressBar').style.width = '0%';
-    }
   </script>
 </body>
 </html>

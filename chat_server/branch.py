@@ -121,7 +121,7 @@ Answer:
         return f"⚠️ Model call failed: {e}"
 
 # ------------------ Flask Routes ------------------
-@app.route("/")
+@app.route("/branchbot")
 def home():
     return render_template("branch_bot.html", greetings=greetings, subjects={"English": ["VLSI","AI","Renewable Energy"]})
 

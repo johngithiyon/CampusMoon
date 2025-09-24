@@ -29,7 +29,7 @@ ai_answers = {
 greetings = ["hi", "hii", "hello", "hey", "good morning", "good evening"]
 farewells = ["bye", "goodbye", "see you", "later"]
 
-@app.route("/")
+@app.route("/videobot")
 def home():
     return render_template("video_bot.html")
 

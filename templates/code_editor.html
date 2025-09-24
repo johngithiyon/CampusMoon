@@ -255,7 +255,6 @@
       box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.3);
     }
 
-    /* Custom dropdown options with border-radius */
     select option {
       border-radius: 12px;
       padding: 12px 15px;
@@ -296,7 +295,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      min-width: 0; /* Needed for proper flexbox scaling */
+      min-width: 0;
     }
 
     .output-header {
@@ -441,7 +440,6 @@
       color: #a0a0c0;
     }
 
-    /* Enhanced animations for theme switching */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -461,7 +459,6 @@
       animation: pulse 0.5s ease;
     }
 
-    /* Ripple effect for buttons */
     .ripple {
       position: relative;
       overflow: hidden;
@@ -500,7 +497,6 @@
       }
     }
 
-    /* Glow animation for theme toggle */
     @keyframes glow {
       0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.6); }
       50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
@@ -521,7 +517,6 @@
       animation: moonGlow 2s infinite;
     }
 
-    /* Floating animation for container */
     @keyframes float {
       0% { transform: translateY(0px); }
       50% { transform: translateY(-8px); }
@@ -532,7 +527,6 @@
       animation: float 6s ease-in-out infinite;
     }
 
-    /* Responsive design */
     @media (max-width: 900px) {
       .main-content {
         flex-direction: column;
@@ -551,6 +545,69 @@
         height: auto;
         min-height: 90vh;
       }
+    }
+
+    .controls .buttons {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .controls .buttons button {
+      flex: none;
+    }
+
+    #submit-btn {
+      background: linear-gradient(135deg, #34a853 0%, #2d8e47 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #submit-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.7s ease;
+    }
+
+    #submit-btn:hover::before {
+      left: 100%;
+    }
+
+    #submit-btn:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+    }
+
+    #submit-btn:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 3px 8px rgba(52, 152, 219, 0.3);
+    }
+
+    #submit-btn:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .night-mode #submit-btn:disabled {
+      background: #4a4a6a;
     }
   </style>
 </head>
@@ -592,7 +649,10 @@
     </div>
 
     <div class="controls">
-      <button id="run-btn" class="ripple"><i class="fas fa-play"></i> Run Code</button>
+      <div class="buttons">
+        <button id="run-btn" class="ripple"><i class="fas fa-play"></i> Run Code</button>
+        <button id="submit-btn" class="ripple" disabled><i class="fas fa-upload"></i> Submit</button>
+      </div>
       <div class="status" id="status">Ready</div>
     </div>
   </div>
@@ -623,13 +683,26 @@
       });
     });
 
+    // Get expected output from sessionStorage and parse it
+    let expectedOutput = "";
+    try {
+        const storedOutput = sessionStorage.getItem('currentExpectedOutput');
+        if (storedOutput) {
+            // Parse if it's a JSON string, otherwise use as-is
+            expectedOutput = JSON.parse(storedOutput);
+        }
+    } catch (e) {
+        // If parsing fails, use the raw value
+        expectedOutput = sessionStorage.getItem('currentExpectedOutput') || '';
+    }
+    console.log("Expected output from sessionStorage:", expectedOutput);
+
     // Language selector functionality
     document.getElementById('language-select').addEventListener('change', function () {
       language = this.value;
       const model = monaco.editor.createModel(defaultCode[language], language);
       editor.setModel(model);
       
-      // Add a subtle animation when changing language
       document.querySelector('.language-selector').classList.add('pulse');
       setTimeout(() => {
         document.querySelector('.language-selector').classList.remove('pulse');
@@ -642,9 +715,11 @@
       const runBtn = document.getElementById('run-btn');
       const status = document.getElementById('status');
       const output = document.getElementById('output');
+      const submitBtn = document.getElementById('submit-btn');
 
       if (!code.trim()) {
         output.innerHTML = `<span class="error">Please write some code first.</span>`;
+        submitBtn.disabled = true;
         return;
       }
 
@@ -664,8 +739,31 @@
 
         if (res.ok) {
           output.textContent = data.output || "Code executed successfully (no output)";
+          
+          // Compare outputs (trim to avoid whitespace mismatch)
+          const actualOutput = (data.output || "").trim();
+          const expected = sessionStorage.getItem("currentExpectedOutput")
+          
+          console.log("Comparing outputs:");
+          console.log("- Actual:", actualOutput);
+          console.log("- Expected:", expected);
+          
+          if (actualOutput === expected) {
+            setTimeout(() => {
+              alert("Outputs match! Code verified.");
+              submitBtn.disabled = false;
+              console.log("Outputs match!");
+            }, 1000);
+          } else {
+            setTimeout(() => {
+              alert("Outputs match! Code verified");
+              submitBtn.disabled = true;
+              console.log("Outputs matched.");
+            }, 1000);
+          }
         } else {
           output.innerHTML = `<span class="error">Error: ${data.error || res.statusText}</span>`;
+          submitBtn.disabled = true;
         }
 
         status.textContent = 'Execution complete';
@@ -673,9 +771,77 @@
         console.error(err);
         output.innerHTML = `<span class="error">Execution failed: ${err.message}</span>`;
         status.textContent = 'Execution failed';
+        submitBtn.disabled = true;
       } finally {
         runBtn.disabled = false;
         runBtn.innerHTML = `<i class="fas fa-play"></i> Run Code`;
+      }
+    });
+
+    // Submit code functionality
+    document.getElementById('submit-btn').addEventListener('click', async () => {
+      const code = editor.getValue();
+      const submitBtn = document.getElementById('submit-btn');
+      const status = document.getElementById('status');
+      const output = document.getElementById('output');
+
+      if (!code.trim()) {
+        output.innerHTML = `<span class="error">Please write some code first.</span>`;
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fas fa-spinner spinner"></i> Submitting...`;
+      status.textContent = 'Submitting...';
+
+      try {
+        // Run the code to get latest output
+        const res = await fetch('http://localhost:8080/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ language, code })
+        });
+
+        const data = await res.json();
+
+        // Set output based on response
+        if (res.ok) {
+          output.textContent = data.output || "Code executed successfully (no output)";
+        } else {
+          output.innerHTML = `<span class="error">Error: ${data.error || res.statusText}</span>`;
+        }
+
+        status.textContent = 'Execution complete';
+
+        // Store output and question ID in sessionStorage
+        const currentOutput = output.textContent;
+        const currentQuestionId = sessionStorage.getItem('currentQuestionId');
+        
+        console.log("Storing output:", currentOutput);
+        console.log("Storing questionId:", currentQuestionId);
+        
+        sessionStorage.setItem('output', currentOutput);
+        sessionStorage.setItem('currentQuestionId', currentQuestionId);
+        
+        // Redirect to questions page
+        window.location.href = 'cs.html';
+
+      } catch (err) {
+        console.error(err);
+        output.innerHTML = `<span class="error">Execution failed: ${err.message}</span>`;
+        status.textContent = 'Execution failed';
+        
+        // Still try to submit even if execution failed
+        const currentOutput = output.textContent;
+        const currentQuestionId = sessionStorage.getItem('currentQuestionId');
+        
+        sessionStorage.setItem('output', currentOutput);
+        sessionStorage.setItem('currentQuestionId', currentQuestionId);
+        
+        window.location.href = 'cs.html';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fas fa-upload"></i> Submit`;
       }
     });
 
@@ -691,12 +857,10 @@
       dayBtn.classList.add('active');
       nightBtn.classList.remove('active');
       
-      // Change Monaco editor theme
       if (editor) {
         monaco.editor.setTheme('vs');
       }
       
-      // Add animation effect
       document.querySelector('.container').classList.add('fade-in');
       setTimeout(() => {
         document.querySelector('.container').classList.remove('fade-in');
@@ -710,12 +874,10 @@
       nightBtn.classList.add('active');
       dayBtn.classList.remove('active');
       
-      // Change Monaco editor theme
       if (editor) {
         monaco.editor.setTheme('vs-dark');
       }
       
-      // Add animation effect
       document.querySelector('.container').classList.add('fade-in');
       setTimeout(() => {
         document.querySelector('.container').classList.remove('fade-in');

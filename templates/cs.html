@@ -647,6 +647,7 @@
         <button class="add-question-btn" id="addQuestionBtn">Add Question</button>
     </div>
     
+    
     <div class="form-container" id="questionFormContainer">
         <form id="questionForm">
             <div class="form-group">
@@ -666,6 +667,9 @@
             
             <button type="submit" class="submit-btn">Submit Question</button>
         </form>
+
+        <div id="questionCardsContainer"></div>
+
     </div>
     
     <div class="spinner" id="spinner"></div>
@@ -729,7 +733,6 @@
             const submitReview = document.getElementById('submitReview');
             const modalRating = document.getElementById('modalRating');
             const reviewText = document.getElementById('reviewText');
-            const expectedOutput = document.getElementById('expectedOutput');
             
             // State variables
             let currentCardForReview = null;
@@ -740,17 +743,16 @@
             
             // Function to check output verification
             function checkOutputVerification() {
-                const receivedOutput = sessionStorage.getItem('output');
-                const questionId = sessionStorage.getItem('currentQuestionId');
-                
-                if (receivedOutput && questionId) {
+                const receivedOutput = sessionStorage.getItem('output'); // Output from code editor
+                const questionId = sessionStorage.getItem('currentQuestionId'); // Question ID
+                const expectedOutput = sessionStorage.getItem('currentExpectedOutput'); // Expected output
+
+                if (receivedOutput && questionId && expectedOutput) {
                     const questionCard = document.querySelector(`[data-id="${questionId}"]`);
                     if (questionCard) {
-                        const expectedOutput = questionCard.querySelector('.expected-output').textContent;
-                        
+                        // Trim and compare outputs
                         if (receivedOutput.trim() === expectedOutput.trim()) {
                             showToast('Output verified successfully!', 'success');
-                            questionCard.classList.add('verified');
                             questionCard.querySelector('.verification-badge').textContent = 'Verified';
                             questionCard.querySelector('.verification-badge').className = 'verification-badge verified';
                         } else {
@@ -759,23 +761,25 @@
                             questionCard.querySelector('.verification-badge').className = 'verification-badge not-verified';
                         }
                     }
-                    
+
                     // Clear the stored values
                     sessionStorage.removeItem('output');
                     sessionStorage.removeItem('currentQuestionId');
+                    sessionStorage.removeItem('currentExpectedOutput');
                 }
             }
-            
+
             // Function to redirect to code editor
             function redirectToCodeEditor(question, input, output, id) {
                 // Store the values in sessionStorage to use in the code editor
                 sessionStorage.setItem('currentQuestion', question);
                 sessionStorage.setItem('currentInput', input);
-                sessionStorage.setItem('currentOutput', output);
+                sessionStorage.setItem('currentExpectedOutput', output);
+                console.log(output) // Store as expected output
                 sessionStorage.setItem('currentQuestionId', id);
                 
                 // Redirect to the code editor
-                window.location.href = 'code_editor.html';
+               
             }
             
             // Theme toggle functionality
@@ -828,7 +832,7 @@
                     
                     // Add to questions container
                     questionsContainer.appendChild(questionCard);
-                    
+
                     // Reset form and hide it
                     questionForm.reset();
                     questionFormContainer.style.display = 'none';
@@ -886,7 +890,7 @@
                     </div>
                     <button class="expand-btn">Show Details <span>▼</span></button>
                 `;
-                
+
                 return questionCard;
             }
             
@@ -900,20 +904,28 @@
                 
                 // Make the entire card clickable (except for buttons)
                 card.addEventListener('click', function(e) {
-                    // Don't trigger if clicking on buttons or interactive elements
-                    if (e.target.tagName === 'BUTTON' || 
-                        e.target.closest('button') || 
-                        e.target.classList.contains('star')) {
+                    // Check if click is on interactive elements
+                    const isInteractive = e.target.closest('button') || 
+                                      e.target.closest('.star') || 
+                                      e.target.closest('.expand-btn') ||
+                                      e.target.closest('.delete-btn');
+                    
+                    if (isInteractive) {
                         return;
                     }
+                     window.location.href = 'http://localhost:8080/code';
                     
                     // Get question data from the card
                     const question = card.querySelector('.section:nth-child(3) pre').textContent;
                     const input = card.querySelector('.section:nth-child(4) pre').textContent;
-                    const output = card.querySelector('.section:nth-child(5) pre').textContent;
+                    const output = card.querySelector('.expected-output').textContent;
+                    
+                    console.log('Card clicked. Redirecting to code editor...');
+                    console.log('Expected output:', output);
                     
                     // Redirect to code editor with the question data
                     redirectToCodeEditor(question, input, output, id);
+                    
                 });
                 
                 // Delete button functionality

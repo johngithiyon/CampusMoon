@@ -22,6 +22,8 @@
     .exam-button:hover {transform: translateY(-2px);box-shadow: 0 6px 12px rgba(156, 39, 176, 0.6);}
     .discussion-button {background: linear-gradient(45deg, #2196F3, #03A9F4);color: white;}
     .discussion-button:hover {transform: translateY(-2px);box-shadow: 0 6px 12px rgba(33, 150, 243, 0.6);}
+    .chatbot-button {background: linear-gradient(45deg, #4CAF50, #8BC34A);color: white;}
+    .chatbot-button:hover {transform: translateY(-2px);box-shadow: 0 6px 12px rgba(76, 175, 80, 0.6);}
     .video-section {margin-bottom: 40px;}
     .video-title-overlay {text-align: center;margin-bottom: 20px;}
     .video-title {font-size: 2.2rem;font-weight: 600;text-shadow: 0 2px 10px rgba(0,0,0,0.5);display: inline-block;padding: 10px 30px;background: rgba(0,0,0,0.3);border-radius: 50px;backdrop-filter: blur(5px);}
@@ -102,6 +104,7 @@
       <div class="user-actions">
         <a href="http://localhost:8080/exam" class="action-button exam-button" id="examButton"><i class="fas fa-pencil-alt"></i><span data-translate="conduct_exam">Exam</span></a>
         <a href="http://localhost:8080/discussion" class="action-button discussion-button" id="discussionButton"><i class="fas fa-comments"></i><span data-translate="discussion">Discussion</span></a>
+        <a href="http://127.0.0.1:5000/videobot" class="action-button chatbot-button" id="chatbotButton"><i class="fas fa-robot"></i><span data-translate="chatbot">Chatbot</span></a>
         <select id="languageSelector" class="language-selector">
           <option value="en">English</option>
           <option value="ta">தமிழ் (Tamil)</option>
@@ -112,7 +115,7 @@
     </header>
 
     <main>
-      <a href="/index.html" class="back-btn" data-translate="back"><i class="fas fa-arrow-left"></i> <span data-translate="back">Back</span></a>
+      <a href="http://localhost:8080/" class="back-btn" data-translate="back"><i class="fas fa-arrow-left"></i> <span data-translate="back">Back</span></a>
 
       <div class="video-section">
         <div class="video-title-overlay">
@@ -153,6 +156,7 @@
         <div id="recommendations"></div>
       </div>
     </main>
+    Uploaded Videos
 
     <footer><span data-translate="copyright">Campus Moon &copy; 2025</span></footer>
   </div>

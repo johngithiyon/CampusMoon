@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Moon - Educational Assistant</title>
+  <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #6a11cb, #2575fc, #0099cc, #4facfe);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+            display: flex;
+            align-items: center;
+            letter-spacing: 1px;
+        }
+
+        .logo i {
+            margin-right: 15px;
+            color: #ffcc00;
+            font-size: 2.5rem;
+            filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.7));
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.7)); }
+            to { filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.9)); }
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease;
+        }
+
+        .hero h1 {
+            font-size: 2.4rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            color: #f8f8f8;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            max-width: 650px;
+            margin: 0 auto;
+            opacity: 0.9;
+            line-height: 1.6;
+            padding: 0 15px;
+        }
+
+        /* Chat container specific styles */
+        .chat-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 22px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .section-title {
+            font-size: 1.9rem;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            display: inline-block;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+            font-weight: 600;
+        }
+
+        .chat-container {
+            width: 100%;
+            height: 480px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .messages {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .msg {
+            margin: 5px 0;
+            padding: 14px 20px;
+            border-radius: 18px;
+            max-width: 78%;
+            word-wrap: break-word;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            animation: fadeIn 0.3s ease;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .user { 
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+            color: white;
+        }
+
+        .bot { 
+            background: rgba(255, 255, 255, 0.95);
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+            color: #333;
+        }
+
+        .msg-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 6px;
+            display: block;
+        }
+
+        .audio-control {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            color: #666;
+        }
+
+        .audio-control button {
+            background: none;
+            border: none;
+            color: #4facfe;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .audio-control button:hover {
+            text-decoration: underline;
+            transform: scale(1.05);
+        }
+
+        .input-area {
+            display: flex;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.15);
+            gap: 12px;
+            align-items: center;
+        }
+
+        .input-area input, .input-area select {
+            flex: 1;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .input-area input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .input-area input:focus, .input-area select:focus {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .input-area select {
+            flex: 0.7;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 15px;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        /* Fix for dropdown options visibility */
+        .input-area select option {
+            background: rgba(40, 40, 70, 0.95);
+            color: white;
+            padding: 10px;
+            border: none;
+        }
+
+        .input-area button {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            border: none;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            flex-shrink: 0;
+        }
+
+        .input-area button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .voice-controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 15px;
+        }
+
+        .voice-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .voice-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .voice-btn.recording {
+            background: rgba(255, 107, 107, 0.3);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(255, 107, 107, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        }
+
+        /* Scrollbar styling */
+        .messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        .messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Firefox scrollbar */
+        .messages {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            margin-top: 40px;
+            color: rgba(255, 255, 255, 0.7);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #999;
+            margin: 0 3px;
+            animation: typingAnimation 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes typingAnimation {
+            0%, 80%, 100% { 
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .input-area {
+                flex-direction: column;
+            }
+            
+            .input-area select {
+                flex: 1;
+                width: 100%;
+            }
+            
+            .msg {
+                max-width: 85%;
+            }
+            
+            .logo {
+                font-size: 2.2rem;
+            }
+            
+            .voice-controls {
+                flex-direction: column;
+            }
+            
+            .chat-section {
+                padding: 20px;
+            }
+            
+            .messages {
+                padding: 15px;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+        }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <i>🌙</i> Campus Moon
+      </div>
+    </header>
+    
+    <section class="hero">
+      <h1>Your Academic Companion</h1>
+      <p>Campus Moon helps you navigate your educational journey with multilingual support, speech recognition, and text-to-speech capabilities.</p>
+    </section>
+    
+    <section class="chat-section">
+      <h2 class="section-title">Chat with Campus Moon</h2>
+      <div class="chat-container">
+        <div class="messages" id="messages"></div>
+        <div class="input-area">
+          <select id="language"></select>
+          <select id="subject"></select>
+          <input type="text" id="user_input" placeholder="Type a message or use voice input..." />
+          <button onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+      <div class="voice-controls">
+        <button class="voice-btn" id="recordBtn" onclick="toggleRecording()">
+          <span>🎤</span> Voice Input
+        </button>
+        <button class="voice-btn" onclick="uploadImage()">
+          <span>🖼️</span> Upload Image
+        </button>
+      </div>
+    </section>
+    
+    <footer>
+      <p>© 2025 Campus Moon - Your Educational Companion. All rights reserved.</p>
+    </footer>
+  </div>
+<script>
+  // ------------------ Data ------------------
+  let chatbotData = {
+    "English": {
+      "greeting": "👋 Hello! Ask me anything about your chosen subject.",
+      "subjects": ["VLSI", "Artificial Intelligence", "Renewable Energy"]
+    },
+    "Hindi": {
+      "greeting": "👋 नमस्ते! अपने चुने हुए विषय के बारे में मुझसे कुछ भी पूछें।",
+      "subjects": ["वीएलएसआई", "कृत्रिम बुद्धिमत्ता", "नवीकरणीय ऊर्जा"]
+    },
+    "Tamil": {
+      "greeting": "👋 வணக்கம்! நீங்கள் தேர்ந்தெடுத்த பாடம் பற்றி என்னிடம் கேளுங்கள்.",
+      "subjects": ["விஎல்எஸ்ஐ", "செயற்கை நுண்ணறிவு", "புதுப்பிக்கத்தக்க ஆற்றல்"]
+    },
+    "Rajasthani": {
+      "greeting": "👋 राम राम! तूं म्हारै विषयां बेरा कुछ पूछ सको है।",
+      "subjects": ["वीएलएसआई", "कृत्रिम बुद्धिमत्ता", "नवीकरणीय ऊर्जा"]
+    }
+  };
+
+  // Variables for audio and recording
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let isRecording = false;
+
+  // 🔊 Function to make bot speak its reply
+  function speak(text) {
+    if ("speechSynthesis" in window) {
+      // ✅ Fix pronunciation for AI & VLSI
+      let fixedText = text
+        .replace(/\bAI\b/g, "A I")
+        .replace(/Artificial Intelligence/gi, "A I")
+        .replace(/कृत्रिम बुद्धिमत्ता/g, "ए आई")
+        .replace(/செயற்கை நுண்ணறிவு/g, "ஏ ஐ")
+        .replace(/कृत्रिम बुद्धि/g, "ए आई")
+        .replace(/\bVLSI\b/g, "V L S I")
+        .replace(/वीएलएसआई/g, "वी एल एस आई")
+        .replace(/விஎல்எஸ்ஐ/g, "வி எல் எஸ் ஐ");
+
+      const utterance = new SpeechSynthesisUtterance(fixedText);
+      const lang = document.getElementById("language").value;
+
+      // Map languages to browser-supported voices
+      const langMap = {
+        "English": "en-IN",
+        "Hindi": "hi-IN",
+        "Tamil": "ta-IN",
+        "Rajasthani": "hi-IN" // fallback
+      };
+
+      utterance.lang = langMap[lang] || "en-IN";
+
+      // 🔁 Ensure fresh speech each time
+      speechSynthesis.cancel();
+      setTimeout(() => {
+        speechSynthesis.speak(utterance);
+      }, 100);
+    } else {
+      console.warn("Speech Synthesis not supported in this browser.");
+    }
+  }
+
+  // Fetch languages and subjects from backend on page load
+  async function initializeApp() {
+    try {
+      const response = await fetch("/languages");
+      if (response.ok) {
+        const data = await response.json();
+        chatbotData = data;
+      }
+    } catch (error) {
+      console.error("Error fetching language data:", error);
+    }
+    populateLanguageDropdown();
+    updateSubjects();
+    addMessage("bot", chatbotData[document.getElementById("language").value].greeting);
+  }
+
+  // Populate language dropdown
+  function populateLanguageDropdown() {
+    const langSelect = document.getElementById("language");
+    langSelect.innerHTML = "";
+    Object.keys(chatbotData).forEach((lang) => {
+      let opt = document.createElement("option");
+      opt.value = lang;
+      opt.textContent = lang;
+      langSelect.appendChild(opt);
+    });
+  }
+
+  // Populate subjects based on selected language
+  function updateSubjects() {
+    const lang = document.getElementById("language").value;
+    const subjSelect = document.getElementById("subject");
+    subjSelect.innerHTML = "";
+    if (chatbotData[lang] && chatbotData[lang].subjects) {
+      chatbotData[lang].subjects.forEach((subj) => {
+        let opt = document.createElement("option");
+        opt.value = subj;
+        opt.textContent = subj;
+        subjSelect.appendChild(opt);
+      });
+    }
+  }
+
+  // Add message to chat box
+  function addMessage(sender, text) {
+    const msg = document.createElement("div");
+    msg.classList.add(sender === "user" ? "user" : "bot");
+    msg.classList.add("msg");
+
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    msg.innerHTML = text + `<span class="msg-time">${timeString}</span>`;
+
+    const chatBox = document.getElementById("messages");
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // 🟢 Make bot talk automatically
+    if (sender === "bot") {
+      speak(text);
+    }
+  }
+
+  // On page load → show greeting + subjects
+  document.addEventListener("DOMContentLoaded", initializeApp);
+
+  // When language changes → update greeting + subjects
+  document.getElementById("language").addEventListener("change", () => {
+    document.getElementById("messages").innerHTML = "";
+    updateSubjects();
+    addMessage("bot", chatbotData[document.getElementById("language").value].greeting);
+  });
+
+  // Send message to Flask backend
+  async function sendMessage() {
+    const input = document.getElementById("user_input");
+    const lang = document.getElementById("language").value;
+    const subject = document.getElementById("subject").value;
+
+    if (!input.value) return;
+
+    addMessage("user", input.value);
+
+    // 🟢 Clear the box immediately
+    const userMessage = input.value;
+    input.value = "";
+
+    try {
+      const typingIndicator = document.createElement("div");
+      typingIndicator.classList.add("bot", "msg");
+      typingIndicator.innerHTML =
+        '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+      typingIndicator.id = "typing-indicator";
+      document.getElementById("messages").appendChild(typingIndicator);
+
+      const response = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_input: userMessage,
+          language: lang,
+          subject: subject,
+        }),
+      });
+
+      document.getElementById("typing-indicator").remove();
+
+      if (response.ok) {
+        const data = await response.json();
+        addMessage("bot", data.reply);
+      } else {
+        addMessage(
+          "bot",
+          "Sorry, I'm having trouble connecting to the server. Please try again later."
+        );
+      }
+    } catch (error) {
+      const indicator = document.getElementById("typing-indicator");
+      if (indicator) indicator.remove();
+      addMessage("bot", "Network error. Please check your connection and try again.");
+      console.error("Error:", error);
+    }
+  }
+
+  // Toggle voice recording
+  async function toggleRecording() {
+    const recordBtn = document.getElementById("recordBtn");
+    if (!isRecording) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+          const formData = new FormData();
+          formData.append("audio", audioBlob, "recording.wav");
+          try {
+            const response = await fetch("/stt", { method: "POST", body: formData });
+            if (response.ok) {
+              const data = await response.json();
+              document.getElementById("user_input").value = data.text;
+              sendMessage();
+            } else {
+              addMessage("bot", "Sorry, I couldn't process your audio. Please try again.");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            addMessage("bot", "Network error. Please check your connection and try again.");
+          }
+        };
+        mediaRecorder.start();
+        isRecording = true;
+        recordBtn.classList.add("recording");
+        recordBtn.innerHTML = "<span>⏹️</span> Stop Recording";
+      } catch (error) {
+        console.error("Error accessing microphone:", error);
+        addMessage("bot", "Microphone access denied. Please allow microphone access to use voice input.");
+      }
+    } else {
+      if (mediaRecorder) {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+        isRecording = false;
+        recordBtn.classList.remove("recording");
+        recordBtn.innerHTML = "<span>🎤</span> Voice Input";
+      }
+    }
+  }
+
+  // Upload image function
+  function uploadImage() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      addMessage("user", "Uploading image for analysis...");
+      setTimeout(() => {
+        addMessage("bot", "Image analysis is not fully implemented in this demo. Please describe the image in text for assistance.");
+      }, 1500);
+    };
+    input.click();
+  }
+
+  // Allow sending message with Enter key
+  document.getElementById("user_input").addEventListener("keypress", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sendMessage();
+    }
+  });
+</script>
+</body>
+</html>

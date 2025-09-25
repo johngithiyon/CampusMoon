@@ -74,10 +74,10 @@ func VideoPageHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     // Construct full URLs
-    videoURL := fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.BucketName, filename)
+    videoURL := fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.VideoBucketName, filename)
     var notesURL string
     if notesFilename.Valid && notesFilename.String != "" {
-        notesURL = fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.BucketName, notesFilename.String)
+        notesURL = fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.VideoBucketName, notesFilename.String)
     }
 
     data := VideoPageData{

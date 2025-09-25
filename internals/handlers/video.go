@@ -64,7 +64,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
     // upload video
     _, err = storage.MinioClient.PutObject(
         context.Background(),
-        storage.BucketName,
+        storage.VideoBucketName,
         videoObjectName,
         videoFile,
         videoHeader.Size,
@@ -87,7 +87,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
         _, err = storage.MinioClient.PutObject(
             context.Background(),
-            storage.BucketName,
+            storage.VideoBucketName,
             notesObjectName,
             notesFile,
             notesHeaderSize,
@@ -129,11 +129,11 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
         Title:         title,
         Description:   description,
         Filename:      videoObjectName,
-        URL:           fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.BucketName, videoObjectName),
+        URL:           fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.VideoBucketName, videoObjectName),
         NotesFilename: notesObjectName,
     }
     if notesObjectName != "" {
-        detail.NotesURL = fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.BucketName, notesObjectName)
+        detail.NotesURL = fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.VideoBucketName, notesObjectName)
     }
 
     w.Header().Set("Content-Type", "application/json")
@@ -157,7 +157,7 @@ func VideosHandler(w http.ResponseWriter, r *http.Request) {
             continue
         }
         v.Filename = filename
-        v.URL = fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.BucketName, filename)
+        v.URL = fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.VideoBucketName, filename)
         videos = append(videos, v)
     }
 
@@ -183,10 +183,10 @@ func VideoDetailHandler(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Video not found", http.StatusNotFound)
         return
     }
-    v.URL = fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.BucketName, v.Filename)
+    v.URL = fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.VideoBucketName, v.Filename)
     if notesFilename.Valid && notesFilename.String != "" {
         v.NotesFilename = notesFilename.String
-        v.NotesURL = fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.BucketName, notesFilename.String)
+        v.NotesURL = fmt.Sprintf("%s/%s/%s", PublicURLPrefix, storage.VideoBucketName, notesFilename.String)
     }
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(v)
@@ -207,7 +207,7 @@ func DeleteVideoHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     // Remove video object
-    err = storage.MinioClient.RemoveObject(context.Background(), storage.BucketName, req.Filename, minio.RemoveObjectOptions{})
+    err = storage.MinioClient.RemoveObject(context.Background(), storage.VideoBucketName, req.Filename, minio.RemoveObjectOptions{})
     if err != nil {
         http.Error(w, "Failed to delete video from storage", http.StatusInternalServerError)
         return
@@ -218,7 +218,7 @@ func DeleteVideoHandler(w http.ResponseWriter, r *http.Request) {
     err = storage.DB.QueryRow("SELECT notes_filename FROM videos WHERE filename=$1", req.Filename).Scan(&notesFilename)
     if err == nil {
         if notesFilename.Valid && notesFilename.String != "" {
-            _ = storage.MinioClient.RemoveObject(context.Background(), storage.BucketName, notesFilename.String, minio.RemoveObjectOptions{})
+            _ = storage.MinioClient.RemoveObject(context.Background(), storage.VideoBucketName, notesFilename.String, minio.RemoveObjectOptions{})
         }
     }
 

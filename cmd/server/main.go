@@ -113,6 +113,16 @@ func main() {
     r.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir(handlers.UploadDir))))
     r.HandleFunc("/convert-to-text", handlers.ConvertToTextHandler).Methods("POST", "OPTIONS")
 
+    // ---------------- Image Routes ----------------
+        r.HandleFunc("/upload-image", handlers.UploadImageHandler).Methods("POST", "OPTIONS")
+        r.HandleFunc("/images", handlers.ListImagesHandler).Methods("GET")
+        r.HandleFunc("/image/{imageName}", handlers.GetImageHandler).Methods("GET")
+        r.HandleFunc("/delete-image", handlers.DeleteImageHandler).Methods("DELETE", "OPTIONS")
+        r.HandleFunc("/like-image", handlers.LikeImageHandler).Methods("POST", "OPTIONS")
+        r.HandleFunc("/unlike-image", handlers.UnlikeImageHandler).Methods("POST", "OPTIONS")
+        r.HandleFunc("/add-comment", handlers.AddCommentHandler).Methods("POST", "OPTIONS")
+        r.HandleFunc("/image-comments", handlers.GetCommentsHandler).Methods("GET")
+        r.HandleFunc("/trend", handlers.ServeTrend)
     // Start server
     port := getEnv("PORT", "8080")
     fmt.Printf("🚀 Server running at http://localhost:%s\n", port)

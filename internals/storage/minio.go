@@ -11,13 +11,11 @@ import (
 )
 
 var MinioClient *minio.Client
-var BucketName = "videos"
-
+var VideoBucketName = "videos"
+var ImageBucketName = "photogram" // New bucket for images
 
 func InitMinIO() {
-
 	load := godotenv.Load()
-
 	if load != nil {
 		log.Println("❌ Error loading .env file")
 	}
@@ -36,16 +34,27 @@ func InitMinIO() {
 		log.Fatalln("Failed to connect to MinIO:", err)
 	}
 
-	// Ensure bucket exists
 	ctx := context.Background()
-	err = MinioClient.MakeBucket(ctx, BucketName, minio.MakeBucketOptions{Region: "us-east-1"})
+	
+	// Ensure video bucket exists
+	ensureBucketExists(ctx, VideoBucketName)
+	
+	// Ensure image bucket exists
+	ensureBucketExists(ctx, ImageBucketName)
+	
+	log.Println("✅ MinIO ready, buckets:", VideoBucketName, "and", ImageBucketName)
+}
+
+func ensureBucketExists(ctx context.Context, bucketName string) {
+	err := MinioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: "us-east-1"})
 	if err != nil {
-		exists, errBucketExists := MinioClient.BucketExists(ctx, BucketName)
+		exists, errBucketExists := MinioClient.BucketExists(ctx, bucketName)
 		if errBucketExists == nil && exists {
-			log.Println("Bucket already exists:", BucketName)
+			log.Println("Bucket already exists:", bucketName)
 		} else {
 			log.Fatalln("Error creating bucket:", err)
 		}
+	} else {
+		log.Println("✅ Bucket created:", bucketName)
 	}
-	log.Println("✅ MinIO ready, bucket:", BucketName)
 }

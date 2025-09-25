@@ -84,6 +84,28 @@ func createTables() {
 			timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			room_id VARCHAR(100) DEFAULT 'default'
 		);`,
+		`CREATE TABLE IF NOT EXISTS images (
+			id SERIAL PRIMARY KEY,
+			user_id VARCHAR(50) NOT NULL,
+			filename VARCHAR(255) NOT NULL,
+			url TEXT NOT NULL,
+			uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);`,
+		`
+		CREATE TABLE IF NOT EXISTS image_likes (
+			id SERIAL PRIMARY KEY,
+			image_id INT NOT NULL REFERENCES images(id) ON DELETE CASCADE,
+			user_id VARCHAR(50) NOT NULL,
+			UNIQUE(image_id, user_id)
+		);`,
+		
+		`CREATE TABLE IF NOT EXISTS image_comments (
+			id SERIAL PRIMARY KEY,
+			image_id INT NOT NULL REFERENCES images(id) ON DELETE CASCADE,
+			user_id VARCHAR(50) NOT NULL,
+			comment TEXT NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);`,
 	}
 
 	for _, q := range queries {

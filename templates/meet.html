@@ -9,7 +9,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <style>
-    /* All existing CSS remains unchanged */
     :root {
       --primary-color: #4a6cf7;
       --secondary-color: #6c757d;
@@ -829,9 +828,93 @@
     .mail-button i {
       font-size: 1.2rem;
     }
+
+    /* Recording indicator */
+    .recording-indicator {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: var(--danger-color);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      z-index: 10;
+      display: none;
+    }
+
+    .recording-pulse {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    
+    /* Notification styles */
+    .notification-container {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2000;
+      width: 90%;
+      max-width: 400px;
+    }
+    
+    .notification {
+      padding: 15px 20px;
+      border-radius: var(--border-radius);
+      margin-bottom: 10px;
+      box-shadow: var(--box-shadow);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideDown 0.3s ease;
+    }
+    
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .notification.success {
+      background-color: var(--success-color);
+      color: white;
+    }
+    
+    .notification.error {
+      background-color: var(--danger-color);
+      color: white;
+    }
+    
+    .notification.info {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .notification.warning {
+      background-color: var(--warning-color);
+      color: var(--dark-color);
+    }
+    
+    .notification-close {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
   </style>
 </head>
 <body>
+  <!-- Notification Container -->
+  <div class="notification-container" id="notificationContainer"></div>
+  
   <!-- New Send Mail Button -->
   <button class="mail-button" title="Send Mail" onclick="window.location.href='http://localhost:8080/email'">
     <i class="fas fa-envelope"></i>
@@ -848,6 +931,9 @@
         <div class="video-grid">
           <div class="video-container local-video">
             <video id="localVideo" autoplay muted playsinline></video>
+            <div class="recording-indicator" id="recordingIndicator">
+              <i class="fas fa-circle"></i> Recording
+            </div>
             <div class="video-info">
               <span>You</span>
               <div class="video-controls">
@@ -907,6 +993,10 @@
           </button>
           <button class="btn btn-primary" id="shareScreen">
             <i class="fas fa-desktop"></i> Share Screen
+          </button>
+          <!-- New Record Button -->
+          <button class="btn btn-primary" id="recordButton">
+            <i class="fas fa-circle"></i> Start Recording
           </button>
         </div>
       </div>
@@ -1113,6 +1203,11 @@
     const zoomInBtn = document.getElementById("zoomIn");
     const zoomOutBtn = document.getElementById("zoomOut");
     const resetViewBtn = document.getElementById("resetView");
+
+    // Recording variables
+    const recordButton = document.getElementById("recordButton");
+    const recordingIndicator = document.getElementById("recordingIndicator");
+    const notificationContainer = document.getElementById("notificationContainer");
    
     let localStream;
     let peers = {}; // peerId -> RTCPeerConnection
@@ -1137,6 +1232,11 @@
     let isMinimized = false;
     let isTeacher = false;
     let cameraDistance = 5;
+
+    // Recording state variables
+    let mediaRecorder;
+    let recordedChunks = [];
+    let isRecording = false;
    
     // Gloss dictionary for sign language
     const glossDict = {
@@ -1458,6 +1558,9 @@
       toggleAudioBtn.addEventListener('click', toggleAudio);
       toggleVideoBtn.addEventListener('click', toggleVideo);
      
+      // Recording events
+      recordButton.addEventListener('click', toggleRecording);
+     
       // Whiteboard events
       if (isStaff) {
         toggleWhiteboardBtn.addEventListener('click', toggleWhiteboard);
@@ -1512,13 +1615,161 @@
           // Create any pending peer connections
           pendingPeers.forEach(peerId => createPeerConnection(peerId, true));
           pendingPeers = [];
+          
+          // Initialize recording
+          initRecording(stream);
         })
         .catch(err => {
           console.error("getUserMedia error:", err);
           statusText.textContent = "Unable to access camera/microphone";
         });
     }
-   
+
+   // Initialize recording functionality
+function initRecording(stream) {
+    try {
+        mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'video/webm;codecs=vp9,opus',
+            videoBitsPerSecond: 2500000 // 2.5 Mbps
+        });
+
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                recordedChunks.push(event.data);
+            }
+        };
+
+        mediaRecorder.onstop = async () => {
+            try {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                
+                // Show upload status
+                recordButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+                recordButton.disabled = true;
+
+                await uploadRecording(blob);
+                
+            } catch (error) {
+                console.error("Upload failed:", error);
+                showNotification("Upload failed: " + error.message, "error");
+            } finally {
+                // Reset button state
+                recordButton.innerHTML = '<i class="fas fa-circle"></i> Start Recording';
+                recordButton.classList.remove('btn-danger');
+                recordButton.classList.add('btn-primary');
+                recordButton.disabled = false;
+                
+                // Hide recording indicator
+                recordingIndicator.style.display = 'none';
+                recordingIndicator.classList.remove('recording-pulse');
+            }
+        };
+
+        console.log("Recording initialized");
+    } catch (err) {
+        console.error("Error initializing recording:", err);
+        recordButton.disabled = true;
+        recordButton.innerHTML = '<i class="fas fa-ban"></i> Recording Unavailable';
+    }
+}
+
+// Upload recording function
+async function uploadRecording(blob) {
+    const formData = new FormData();
+    formData.append("video", blob, `recording_${Date.now()}.webm`);
+
+    const response = await fetch("http://localhost:8080/record", {
+        method: "POST",
+        body: formData
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log("✅ Upload successful:", result);
+    
+    // Show success message
+    showNotification("Recording uploaded successfully!", "success");
+    
+    return result;
+}
+
+// Toggle recording function
+function toggleRecording() {
+    if (!mediaRecorder) {
+        showNotification("Recording not available. Please check browser compatibility.", "error");
+        return;
+    }
+
+    if (!isRecording) {
+        // Start recording
+        recordedChunks = [];
+        mediaRecorder.start(1000); // Collect data every second
+        isRecording = true;
+        recordButton.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+        recordButton.classList.remove('btn-primary');
+        recordButton.classList.add('btn-danger');
+        
+        // Show recording indicator
+        recordingIndicator.style.display = 'block';
+        recordingIndicator.classList.add('recording-pulse');
+        
+        console.log("Recording started");
+    } else {
+        // Stop recording
+        mediaRecorder.stop();
+        isRecording = false;
+        console.log("Recording stopped");
+    }
+}
+
+// Utility function to show notifications
+function showNotification(message, type = 'info') {
+    // Remove any existing notifications
+    notificationContainer.innerHTML = '';
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    
+    // Add icon based on type
+    let icon = '';
+    switch(type) {
+        case 'success':
+            icon = '<i class="fas fa-check-circle"></i>';
+            break;
+        case 'error':
+            icon = '<i class="fas fa-exclamation-circle"></i>';
+            break;
+        case 'warning':
+            icon = '<i class="fas fa-exclamation-triangle"></i>';
+            break;
+        default:
+            icon = '<i class="fas fa-info-circle"></i>';
+    }
+    
+    notification.innerHTML = `
+        ${icon}
+        <span>${message}</span>
+        <button class="notification-close">&times;</button>
+    `;
+    
+    // Add close functionality
+    notification.querySelector('.notification-close').addEventListener('click', () => {
+        notification.remove();
+    });
+    
+    // Add to container
+    notificationContainer.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
     // Handle signaling messages
     async function handleSignalingMessage(event) {
       const msg = JSON.parse(event.data);
@@ -1730,6 +1981,9 @@
             isScreenSharing = false;
             shareScreenBtn.innerHTML = '<i class="fas fa-desktop"></i> Share Screen';
             shareScreenBtn.classList.remove('btn-danger');
+            
+            // Reinitialize recording with new stream
+            initRecording(stream);
           })
           .catch(err => console.error("Error switching back to camera:", err));
       } else {
@@ -1740,6 +1994,9 @@
             isScreenSharing = true;
             shareScreenBtn.innerHTML = '<i class="fas fa-times"></i> Stop Sharing';
             shareScreenBtn.classList.add('btn-danger');
+            
+            // Reinitialize recording with new stream
+            initRecording(stream);
            
             // Handle when the user stops screen sharing
             stream.getVideoTracks()[0].onended = () => {
@@ -1959,6 +2216,11 @@
    
     // Leave the call
     function leaveCall() {
+      // Stop recording if active
+      if (isRecording) {
+        toggleRecording();
+      }
+      
       // Close all peer connections
       Object.keys(peers).forEach(peerId => {
         removePeerConnection(peerId);
@@ -1984,6 +2246,7 @@
       shareScreenBtn.disabled = true;
       toggleAudioBtn.disabled = true;
       toggleVideoBtn.disabled = true;
+      recordButton.disabled = true;
      
       // Show message
       const emptyState = document.createElement('div');

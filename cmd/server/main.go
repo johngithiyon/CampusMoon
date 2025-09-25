@@ -69,6 +69,7 @@ func main() {
     r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
         handlers.Handlewebrtc(w, r, db)
     })
+    r.HandleFunc("/record", handlers.RecorduploadHandler).Methods("POST", "OPTIONS")
     r.HandleFunc("/chat/history", func(w http.ResponseWriter, r *http.Request) {
         handlers.ChatHistory(w, r, db)
     })

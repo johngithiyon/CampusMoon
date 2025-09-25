@@ -106,6 +106,17 @@ func createTables() {
 			comment TEXT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);`,
+
+		`CREATE TABLE IF NOT EXISTS video_recordings (
+			id SERIAL PRIMARY KEY,
+			filename VARCHAR(255) NOT NULL,
+			filepath TEXT NOT NULL,
+			duration INTEGER NOT NULL, -- in milliseconds
+			participants INTEGER NOT NULL,
+			start_time TIMESTAMP NOT NULL,
+			upload_time TIMESTAMP NOT NULL,
+			file_size BIGINT
+		);`,
 	}
 
 	for _, q := range queries {

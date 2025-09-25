@@ -59,10 +59,11 @@
             animation: glow 2s infinite alternate;
         }
 
-        @keyframes glow {
-            from { filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.7)); }
-            to { filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.9)); }
-        }
+       @keyframes glow {
+    from { filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.7)); }
+    to { filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.9)); }
+}
+    
 
         .hero {
             text-align: center;
@@ -113,7 +114,7 @@
 
         .chat-container {
             width: 100%;
-            height: 480px;
+            height: 480px; /* Fixed height */
             display: flex;
             flex-direction: column;
             background: rgba(255, 255, 255, 0.05);
@@ -124,12 +125,35 @@
         }
 
         .messages {
-            flex: 1;
+            flex: 1; /* Takes up all available space */
             padding: 25px;
-            overflow-y: auto;
+            overflow-y: scroll; /* Changed to scroll to always show scrollbar */
             display: flex;
             flex-direction: column;
             gap: 18px;
+            min-height: 0; /* Crucial for proper flexbox scrolling */
+            /* Scrollbar styling */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.7) rgba(255, 255, 255, 0.2);
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 14px; /* Increased scrollbar width */
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2); /* Darker track for contrast */
+            border-radius: 10px;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.8); /* More opaque thumb */
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.9);
         }
 
         .msg {
@@ -152,11 +176,11 @@
         }
 
         .bot { 
-            background: rgba(255, 255, 255, 0.95);
-            align-self: flex-start;
-            border-bottom-left-radius: 5px;
-            color: #333;
-        }
+    background: rgba(255, 255, 255, 0.95);
+    align-self: flex-start;
+    border-bottom-left-radius: 5px;
+    color: #333;
+}
 
         .msg-time {
             font-size: 0.7rem;
@@ -296,31 +320,6 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
         }
 
-        /* Scrollbar styling */
-        .messages::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .messages::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        .messages::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-        }
-
-        .messages::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-
-        /* Firefox scrollbar */
-        .messages {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
-        }
-
         footer {
             text-align: center;
             padding: 25px;
@@ -367,6 +366,58 @@
             }
         }
 
+        /* Language selector styling */
+        .language-selector {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .language-selector label {
+            font-weight: 600;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+        }
+
+        .language-selector select {
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #1a8cde); /* New gradient color */
+            color: #333; /* Dark text for better contrast */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            outline: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .language-selector select:hover {
+            background: linear-gradient(45deg, #b7baea);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .language-selector select:focus {
+            background: linear-gradient(45deg, #bfdbf7);
+            box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.5);
+        }
+
+        /* Fix for dropdown options visibility */
+        .language-selector select option {
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            color: #333;
+            padding: 10px;
+            border: none;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .input-area {
@@ -405,6 +456,15 @@
             .hero p {
                 font-size: 1rem;
             }
+            
+            .chat-container {
+                height: 400px; /* Slightly smaller on mobile */
+            }
+            
+            .language-selector {
+                flex-direction: column;
+                padding: 10px;
+            }
         }
   </style>
 </head>
@@ -412,301 +472,344 @@
   <div class="container">
     <header>
       <div class="logo">
-        <i>🌙</i> Campus Moon
+        <i>🌙</i> <span id="title">Campus Moon</span>
       </div>
     </header>
     
     <section class="hero">
-      <h1>Your Academic Companion</h1>
-      <p>Campus Moon helps you navigate your educational journey with multilingual support, speech recognition, and text-to-speech capabilities.</p>
+      <h1 id="heroTitle">Your Academic Companion</h1>
+      <p id="heroDescription">Campus Moon helps you navigate your educational journey with multilingual support, speech recognition, and text-to-speech capabilities.</p>
     </section>
     
+    <!-- Language Selector -->
+    <div class="language-selector">
+      <label id="selectLabel">Select Language:</label>
+      <select id="language">
+        <option value="en">English</option>
+        <option value="hi">Hindi</option>
+        <option value="ta">Tamil</option>
+        <option value="rj">Rajasthani</option>
+      </select>
+    </div>
+    
     <section class="chat-section">
-      <h2 class="section-title">Chat with Campus Moon</h2>
+      <h2 class="section-title" id="chatTitle">Chat with Campus Moon</h2>
       <div class="chat-container">
         <div class="messages" id="messages"></div>
         <div class="input-area">
-          <select id="language"></select>
-          <select id="subject"></select>
+          <select id="subject">
+            <option value="AI">AI</option>
+            <option value="VLSI">VLSI</option>
+            <option value="Renewable Energy">Renewable Energy</option>
+          </select>
           <input type="text" id="user_input" placeholder="Type a message or use voice input..." />
-          <button onclick="sendMessage()">Send</button>
+          <button id="sendBtn">Send</button>
         </div>
       </div>
       <div class="voice-controls">
-        <button class="voice-btn" id="recordBtn" onclick="toggleRecording()">
-          <span>🎤</span> Voice Input
+        <button class="voice-btn" id="recordBtn">
+          <span>🎤</span> <span id="voiceBtnText">Voice Input</span>
         </button>
-        <button class="voice-btn" onclick="uploadImage()">
-          <span>🖼️</span> Upload Image
+        <button class="voice-btn" id="repeatBtn">
+          <span>🔊</span> <span id="repeatBtnText">Repeat Answer</span>
         </button>
       </div>
     </section>
     
     <footer>
-      <p>© 2025 Campus Moon - Your Educational Companion. All rights reserved.</p>
+      <p id="footerText">© 2025 Campus Moon - Your Educational Companion. All rights reserved.</p>
     </footer>
   </div>
-<script>
-  // ------------------ Data ------------------
-  let chatbotData = {
-    "English": {
-      "greeting": "👋 Hello! Ask me anything about your chosen subject.",
-      "subjects": ["VLSI", "Artificial Intelligence", "Renewable Energy"]
-    },
-    "Hindi": {
-      "greeting": "👋 नमस्ते! अपने चुने हुए विषय के बारे में मुझसे कुछ भी पूछें।",
-      "subjects": ["वीएलएसआई", "कृत्रिम बुद्धिमत्ता", "नवीकरणीय ऊर्जा"]
-    },
-    "Tamil": {
-      "greeting": "👋 வணக்கம்! நீங்கள் தேர்ந்தெடுத்த பாடம் பற்றி என்னிடம் கேளுங்கள்.",
-      "subjects": ["விஎல்எஸ்ஐ", "செயற்கை நுண்ணறிவு", "புதுப்பிக்கத்தக்க ஆற்றல்"]
-    },
-    "Rajasthani": {
-      "greeting": "👋 राम राम! तूं म्हारै विषयां बेरा कुछ पूछ सको है।",
-      "subjects": ["वीएलएसआई", "कृत्रिम बुद्धिमत्ता", "नवीकरणीय ऊर्जा"]
-    }
-  };
-
-  // Variables for audio and recording
-  let mediaRecorder = null;
-  let audioChunks = [];
-  let isRecording = false;
-
-  // 🔊 Function to make bot speak its reply
-  function speak(text) {
-    if ("speechSynthesis" in window) {
-      // ✅ Fix pronunciation for AI & VLSI
-      let fixedText = text
-        .replace(/\bAI\b/g, "A I")
-        .replace(/Artificial Intelligence/gi, "A I")
-        .replace(/कृत्रिम बुद्धिमत्ता/g, "ए आई")
-        .replace(/செயற்கை நுண்ணறிவு/g, "ஏ ஐ")
-        .replace(/कृत्रिम बुद्धि/g, "ए आई")
-        .replace(/\bVLSI\b/g, "V L S I")
-        .replace(/वीएलएसआई/g, "वी एल एस आई")
-        .replace(/விஎல்எஸ்ஐ/g, "வி எல் எஸ் ஐ");
-
-      const utterance = new SpeechSynthesisUtterance(fixedText);
-      const lang = document.getElementById("language").value;
-
-      // Map languages to browser-supported voices
-      const langMap = {
-        "English": "en-IN",
-        "Hindi": "hi-IN",
-        "Tamil": "ta-IN",
-        "Rajasthani": "hi-IN" // fallback
-      };
-
-      utterance.lang = langMap[lang] || "en-IN";
-
-      // 🔁 Ensure fresh speech each time
-      speechSynthesis.cancel();
-      setTimeout(() => {
-        speechSynthesis.speak(utterance);
-      }, 100);
-    } else {
-      console.warn("Speech Synthesis not supported in this browser.");
-    }
-  }
-
-  // Fetch languages and subjects from backend on page load
-  async function initializeApp() {
-    try {
-      const response = await fetch("/languages");
-      if (response.ok) {
-        const data = await response.json();
-        chatbotData = data;
-      }
-    } catch (error) {
-      console.error("Error fetching language data:", error);
-    }
-    populateLanguageDropdown();
-    updateSubjects();
-    addMessage("bot", chatbotData[document.getElementById("language").value].greeting);
-  }
-
-  // Populate language dropdown
-  function populateLanguageDropdown() {
-    const langSelect = document.getElementById("language");
-    langSelect.innerHTML = "";
-    Object.keys(chatbotData).forEach((lang) => {
-      let opt = document.createElement("option");
-      opt.value = lang;
-      opt.textContent = lang;
-      langSelect.appendChild(opt);
-    });
-  }
-
-  // Populate subjects based on selected language
-  function updateSubjects() {
-    const lang = document.getElementById("language").value;
-    const subjSelect = document.getElementById("subject");
-    subjSelect.innerHTML = "";
-    if (chatbotData[lang] && chatbotData[lang].subjects) {
-      chatbotData[lang].subjects.forEach((subj) => {
-        let opt = document.createElement("option");
-        opt.value = subj;
-        opt.textContent = subj;
-        subjSelect.appendChild(opt);
-      });
-    }
-  }
-
-  // Add message to chat box
-  function addMessage(sender, text) {
-    const msg = document.createElement("div");
-    msg.classList.add(sender === "user" ? "user" : "bot");
-    msg.classList.add("msg");
-
-    const now = new Date();
-    const timeString = now.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    msg.innerHTML = text + `<span class="msg-time">${timeString}</span>`;
-
-    const chatBox = document.getElementById("messages");
-    chatBox.appendChild(msg);
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    // 🟢 Make bot talk automatically
-    if (sender === "bot") {
-      speak(text);
-    }
-  }
-
-  // On page load → show greeting + subjects
-  document.addEventListener("DOMContentLoaded", initializeApp);
-
-  // When language changes → update greeting + subjects
-  document.getElementById("language").addEventListener("change", () => {
-    document.getElementById("messages").innerHTML = "";
-    updateSubjects();
-    addMessage("bot", chatbotData[document.getElementById("language").value].greeting);
-  });
-
-  // Send message to Flask backend
-  async function sendMessage() {
-    const input = document.getElementById("user_input");
-    const lang = document.getElementById("language").value;
-    const subject = document.getElementById("subject").value;
-
-    if (!input.value) return;
-
-    addMessage("user", input.value);
-
-    // 🟢 Clear the box immediately
-    const userMessage = input.value;
-    input.value = "";
-
-    try {
-      const typingIndicator = document.createElement("div");
-      typingIndicator.classList.add("bot", "msg");
-      typingIndicator.innerHTML =
-        '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
-      typingIndicator.id = "typing-indicator";
-      document.getElementById("messages").appendChild(typingIndicator);
-
-      const response = await fetch("/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_input: userMessage,
-          language: lang,
-          subject: subject,
-        }),
-      });
-
-      document.getElementById("typing-indicator").remove();
-
-      if (response.ok) {
-        const data = await response.json();
-        addMessage("bot", data.reply);
-      } else {
-        addMessage(
-          "bot",
-          "Sorry, I'm having trouble connecting to the server. Please try again later."
-        );
-      }
-    } catch (error) {
-      const indicator = document.getElementById("typing-indicator");
-      if (indicator) indicator.remove();
-      addMessage("bot", "Network error. Please check your connection and try again.");
-      console.error("Error:", error);
-    }
-  }
-
-  // Toggle voice recording
-  async function toggleRecording() {
-    const recordBtn = document.getElementById("recordBtn");
-    if (!isRecording) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-        mediaRecorder.ondataavailable = (event) => {
-          audioChunks.push(event.data);
-        };
-        mediaRecorder.onstop = async () => {
-          const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-          const formData = new FormData();
-          formData.append("audio", audioBlob, "recording.wav");
-          try {
-            const response = await fetch("/stt", { method: "POST", body: formData });
-            if (response.ok) {
-              const data = await response.json();
-              document.getElementById("user_input").value = data.text;
-              sendMessage();
-            } else {
-              addMessage("bot", "Sorry, I couldn't process your audio. Please try again.");
-            }
-          } catch (error) {
-            console.error("Error:", error);
-            addMessage("bot", "Network error. Please check your connection and try again.");
-          }
-        };
-        mediaRecorder.start();
-        isRecording = true;
-        recordBtn.classList.add("recording");
-        recordBtn.innerHTML = "<span>⏹️</span> Stop Recording";
-      } catch (error) {
-        console.error("Error accessing microphone:", error);
-        addMessage("bot", "Microphone access denied. Please allow microphone access to use voice input.");
-      }
-    } else {
-      if (mediaRecorder) {
-        mediaRecorder.stop();
-        mediaRecorder.stream.getTracks().forEach((track) => track.stop());
-        isRecording = false;
-        recordBtn.classList.remove("recording");
-        recordBtn.innerHTML = "<span>🎤</span> Voice Input";
-      }
-    }
-  }
-
-  // Upload image function
-  function uploadImage() {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      addMessage("user", "Uploading image for analysis...");
-      setTimeout(() => {
-        addMessage("bot", "Image analysis is not fully implemented in this demo. Please describe the image in text for assistance.");
-      }, 1500);
+  
+  <script>
+    let currentLang = "en";
+    let lastBotMessage = "";
+    let isRecording = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    
+    // Language-specific content
+    const languageContent = {
+        en: {
+            title: "Campus Moon",
+            heroTitle: "Your Academic Companion",
+            heroDescription: "Campus Moon helps you navigate your educational journey with multilingual support, speech recognition, and text-to-speech capabilities.",
+            selectLabel: "Select Language:",
+            chatTitle: "Chat with Campus Moon",
+            askPlaceholder: "Type a message or use voice input...",
+            sendButton: "Send",
+            voiceButton: "Voice Input",
+            repeatButton: "Repeat Answer",
+            footerText: "© 2025 Campus Moon - Your Educational Companion. All rights reserved.",
+            greeting: "Hello! I'm Campus Moon. Ask me anything about AI, VLSI, or Renewable Energy.",
+            subjects: ["AI", "VLSI", "Renewable Energy"]
+        },
+        hi: {
+            title: "कैम्पस मून",
+            heroTitle: "आपका शैक्षणिक साथी",
+            heroDescription: "कैम्पस मून बहुभाषी समर्थन, स्पीच रिकग्निशन और टेक्स्ट-टू-स्पीच क्षमताओं के साथ आपकी शैक्षणिक यात्रा में आपकी मदद करता है।",
+            selectLabel: "भाषा चुनें:",
+            chatTitle: "कैम्पस मून के साथ चैट करें",
+            askPlaceholder: "मैसेज टाइप करें या वॉइस इनपुट का उपयोग करें...",
+            sendButton: "भेजें",
+            voiceButton: "वॉइस इनपुट",
+            repeatButton: "उत्तर दोहराएं",
+            footerText: "© 2025 कैम्पस मून - आपका शैक्षणिक साथी। सर्वाधिकार सुरक्षित।",
+            greeting: "नमस्ते! मैं कैम्पस मून हूं। एआई, वीएलएसआई, या नवीकरणीय ऊर्जा के बारे में कुछ भी पूछें।",
+            subjects: ["कृत्रिम बुद्धिमत्ता", "वीएलएसआई", "नवीकरणीय ऊर्जा"]
+        },
+        ta: {
+            title: "கேம்பஸ் மூன்",
+            heroTitle: "உங்கள் கல்வி துணை",
+            heroDescription: "கேம்பஸ் மூன் பலமொழி ஆதரவு, பேச்சு அங்கீகாரம் மற்றும் உரை-ஒலி திறன்களுடன் உங்கள் கல்வி பயணத்தில் உதவுகிறது.",
+            selectLabel: "மொழியைத் தேர்ந்தெடுக்கவும்:",
+            chatTitle: "கேம்பஸ் மூன் சாட்",
+            askPlaceholder: "ஒரு செய்தியை தட்டச்சு செய்யவும் அல்லது குரல் உள்ளீட்டைப் பயன்படுத்தவும்...",
+            sendButton: "அனுப்பு",
+            voiceButton: "குரல் உள்ளீடு",
+            repeatButton: "பதிலை மீண்டும் கூறு",
+            footerText: "© 2025 கேம்பஸ் மூன் - உங்கள் கல்வி துணை. அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.",
+            greeting: "வணக்கம்! நான் கேம்பஸ் மூன். செயற்கை நுண்ணறிவு, மிகப் பெரிய அளவிலான ஒருங்கிணைப்பு, அல்லது புதுப்பிக்கத்தக்க ஆற்றல் பற்றி எதையும் கேளுங்கள்.",
+            subjects: ["செயற்கை நுண்ணறிவு", "மிகப் பெரிய அளவிலான ஒருங்கிணைப்பு", "புதுப்பிக்கத்தக்க ஆற்றல்"]
+        },
+        rj: {
+            title: "कैम्पस चांद",
+            heroTitle: "तुहारो शैक्षणिक साथी",
+            heroDescription: "कैम्पस चांद बहुभाषी समर्थन, आवाज पहचान और टेक्स्ट-टू-स्पीच क्षमताओं के साथ तुहारी शैक्षणिक यात्रा में मदद करै है।",
+            selectLabel: "भाषा चुनो:",
+            chatTitle: "कैम्पस चांद संग बातचीत करो",
+            askPlaceholder: "संदेश लिखो या आवाज इनपुट का उपयोग करो...",
+            sendButton: "भेजो",
+            voiceButton: "आवाज इनपुट",
+            repeatButton: "जवाब दोहराओ",
+            footerText: "© 2025 कैम्पस चांद - तुहारो शैक्षणिक साथी। सर्वाधिकार सुरक्षित।",
+            greeting: "राम राम! मैं कैम्पस चांद हूं। AI, VLSI, या नवीकरणीय ऊर्जा के बारे में कुछ भी पूछो।",
+            subjects: ["कृत्रिम बुद्धि", "बहुत बड़ो एकीकरण", "नवीकरणीय ऊर्जा"]
+        }
     };
-    input.click();
-  }
 
-  // Allow sending message with Enter key
-  document.getElementById("user_input").addEventListener("keypress", function (event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      sendMessage();
+    // Function to load UI texts
+    function loadUI(lang = "en") {
+        const texts = languageContent[lang] || languageContent.en;
+        
+        // Update all UI elements with the fetched texts
+        document.getElementById("title").innerText = texts.title;
+        document.title = texts.title + " - Educational Assistant";
+        document.getElementById("heroTitle").innerText = texts.heroTitle;
+        document.getElementById("heroDescription").innerText = texts.heroDescription;
+        document.getElementById("selectLabel").innerText = texts.selectLabel;
+        document.getElementById("chatTitle").innerText = texts.chatTitle;
+        document.getElementById("user_input").placeholder = texts.askPlaceholder;
+        document.getElementById("sendBtn").innerText = texts.sendButton;
+        document.getElementById("voiceBtnText").innerText = texts.voiceButton;
+        document.getElementById("repeatBtnText").innerText = texts.repeatButton;
+        document.getElementById("footerText").innerText = texts.footerText;
+        
+        // Update subject dropdown
+        const subjectSelect = document.getElementById("subject");
+        subjectSelect.innerHTML = '';
+        texts.subjects.forEach(subject => {
+            const option = document.createElement("option");
+            option.value = subject;
+            option.textContent = subject;
+            subjectSelect.appendChild(option);
+        });
     }
-  });
-</script>
+
+    // Function to set language
+    function setLanguage(lang) {
+        currentLang = lang;
+        loadUI(lang);
+        
+        // Notify backend of language change
+        fetch('/set_language', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ lang: lang })
+        })
+        .catch(error => console.error('Error setting language:', error));
+        
+        // Clear chat and show new greeting
+        document.getElementById("messages").innerHTML = "";
+        addMessage("bot", languageContent[lang].greeting);
+        lastBotMessage = languageContent[lang].greeting;
+    }
+
+    // Add message to chat box
+    function addMessage(sender, text) {
+        const msg = document.createElement("div");
+        msg.classList.add(sender === "user" ? "user" : "bot");
+        msg.classList.add("msg");
+
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+        msg.innerHTML = text + `<span class="msg-time">${timeString}</span>`;
+
+        // Add audio control for bot messages
+        if (sender === "bot") {
+            lastBotMessage = text;
+            const audioControl = document.createElement("div");
+            audioControl.classList.add("audio-control");
+            audioControl.innerHTML = `<button onclick="speakText('${encodeURIComponent(text)}')">🔊 ${currentLang === 'en' ? 'Listen' : currentLang === 'hi' ? 'सुनें' : currentLang === 'ta' ? 'கேளுங்கள்' : 'सुणो'}</button>`;
+            msg.appendChild(audioControl);
+        }
+
+        const chatBox = document.getElementById("messages");
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Speak text using browser's TTS API
+    function speakText(text) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(decodeURIComponent(text));
+            utterance.lang = currentLang === 'en' ? 'en-US' : 
+                            currentLang === 'hi' ? 'hi-IN' : 
+                            currentLang === 'ta' ? 'ta-IN' : 'hi-IN';
+            speechSynthesis.speak(utterance);
+        }
+        else {
+            // Fallback to server-side TTS
+            fetch(`/tts?text=${encodeURIComponent(text)}&lang=${currentLang}`)
+                .then(response => response.blob())
+                .then(blob => {
+                    const audioUrl = URL.createObjectURL(blob);
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                })
+                .catch(error => console.error('Error with TTS:', error));
+        }
+    }
+
+    // Repeat the last bot message
+    function speakLastBotMessage() {
+        if (lastBotMessage) {
+            speakText(encodeURIComponent(lastBotMessage));
+        }
+    }
+
+    // Send message to backend
+    async function sendMessage() {
+        const input = document.getElementById("user_input");
+        const subject = document.getElementById("subject").value;
+
+        if (!input.value) return;
+
+        addMessage("user", input.value);
+        const userMessage = input.value;
+        input.value = "";
+
+        try {
+            // Show typing indicator
+            const typingIndicator = document.createElement("div");
+            typingIndicator.classList.add("bot", "msg");
+            typingIndicator.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+            typingIndicator.id = "typing-indicator";
+            document.getElementById("messages").appendChild(typingIndicator);
+
+            // Send request to Flask backend
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question: userMessage,
+                    subject: subject
+                })
+            });
+
+            // Remove typing indicator
+            document.getElementById("typing-indicator").remove();
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+            addMessage("bot", data.answer);
+            lastBotMessage = data.answer;
+        } catch (error) {
+            console.error('Error:', error);
+            addMessage("bot", "Sorry, I'm having trouble connecting to the server. Please try again later.");
+        }
+    }
+
+    // Toggle voice recording
+    async function toggleRecording() {
+        const recordBtn = document.getElementById("recordBtn");
+        if (!isRecording) {
+            try {
+                // For demo purposes, we'll simulate recording
+                isRecording = true;
+                recordBtn.classList.add("recording");
+                recordBtn.innerHTML = `<span>⏹️</span> ${currentLang === 'en' ? 'Stop Recording' : currentLang === 'hi' ? 'रिकॉर्डिंग रोकें' : currentLang === 'ta' ? 'பதிவை நிறுத்து' : 'रिकॉर्डिंग रोको'}`;
+                
+                // Simulate recording for 3 seconds
+                setTimeout(() => {
+                    if (isRecording) {
+                        isRecording = false;
+                        recordBtn.classList.remove("recording");
+                        recordBtn.innerHTML = `<span>🎤</span> ${currentLang === 'en' ? 'Voice Input' : currentLang === 'hi' ? 'वॉइस इनपुट' : currentLang === 'ta' ? 'குரல் உள்ளீடு' : 'आवाज इनपुट'}`;
+                        
+                        // Add a simulated voice message
+                        const subject = document.getElementById("subject").value;
+                        let message = "";
+                        if (currentLang === "en") {
+                            message = "Tell me about " + subject;
+                        } else if (currentLang === "hi") {
+                            message = subject + " के बारे में बताएं";
+                        } else if (currentLang === "ta") {
+                            message = subject + " பற்றி சொல்லுங்கள்";
+                        } else if (currentLang === "rj") {
+                            message = subject + " के बारे में बतावो";
+                        }
+                        
+                        addMessage("user", message);
+                        // Call sendMessage directly
+                        sendMessage();
+                    }
+                }, 3000);
+            } catch (error) {
+                console.error("Error accessing microphone:", error);
+                addMessage("bot", "Microphone access denied. Please allow microphone access to use voice input.");
+                isRecording = false;
+                recordBtn.classList.remove("recording");
+                recordBtn.innerHTML = `<span>🎤</span> ${currentLang === 'en' ? 'Voice Input' : currentLang === 'hi' ? 'वॉइस इनपुट' : currentLang === 'ta' ? 'குரல் உள்ளீடு' : 'आवाज इनपुट'}`;
+            }
+        } else {
+            // Stop recording
+            isRecording = false;
+            recordBtn.classList.remove("recording");
+            recordBtn.innerHTML = `<span>🎤</span> ${currentLang === 'en' ? 'Voice Input' : currentLang === 'hi' ? 'वॉइस इनपुट' : currentLang === 'ta' ? 'குரல் உள்ளீடு' : 'आवाज इनपुट'}`;
+        }
+    }
+
+    // Event listeners
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+    document.getElementById("language").addEventListener("change", e => setLanguage(e.target.value));
+    document.getElementById("repeatBtn").addEventListener("click", speakLastBotMessage);
+    document.getElementById("recordBtn").addEventListener("click", toggleRecording);
+
+    // Allow sending message with Enter key
+    document.getElementById("user_input").addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // Initial load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadUI();
+        addMessage("bot", languageContent.en.greeting);
+        lastBotMessage = languageContent.en.greeting;
+    });
+  </script>
 </body>
 </html>

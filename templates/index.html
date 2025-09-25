@@ -165,11 +165,82 @@
     .subject-action-btn.chatbot{background:linear-gradient(45deg,#9c27b0,#673ab7);}
     .subject-action-btn.chatbot:hover{box-shadow:0 6px 15px rgba(156,39,176,0.4);}
     
+    /* Live Videos Section Styles */
+    .live-videos-section {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      border: 2px solid rgba(255, 215, 0, 0.3);
+    }
+    
+    .live-videos-section h2 {
+      font-size: 1.8rem;
+      margin-bottom: 25px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(255, 215, 0, 0.5);
+      display: inline-block;
+      color: #ffd700;
+    }
+    
+    .live-videos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 25px;
+    }
+    
+    .live-video-card {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 15px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      border: 1px solid rgba(255, 215, 0, 0.2);
+    }
+    
+    .live-video-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+      border-color: rgba(255, 215, 0, 0.5);
+    }
+    
+    .live-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: linear-gradient(45deg, #ff0000, #ff6b6b);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      z-index: 2;
+    }
+    
+    /* Video Player Styles */
+    .video-player-container {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    }
+    
+    .video-player {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
     /* Video Gallery Styles */
     .video-gallery{margin-top:40px;}
     .video-gallery h2{font-size:1.8rem;margin-bottom:25px;padding-bottom:10px;border-bottom:2px solid rgba(255,255,255,0.2);display:inline-block;}
     .video-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:25px;}
-    .video-card{background:rgba(255,255,255,0.1);border-radius:15px;overflow:hidden;transition:all 0.3s ease;box-shadow:0 5px 15px rgba(0,0,0,0.1);cursor:pointer;}
+    .video-card{background:rgba(255,255,255,0.1);border-radius:15px;overflow:hidden;transition:all 0.3s ease;box-shadow:0 5px 15px rgba(0,0,0,0.1);cursor:pointer;position: relative;}
     .video-card:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(0,0,0,0.2);}
     .video-thumbnail{width:100%;height:180px;object-fit:cover;background-color:rgba(0,0,0,0.2);}
     .video-info{padding:15px;}
@@ -391,7 +462,7 @@
     @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
     @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
     @media(max-width:992px){.subjects-grid{grid-template-columns:repeat(2, 1fr);}}
-    @media(max-width:768px){.button-group{flex-direction:column;align-items:center;}.btn{width:100%;max-width:350px;}.subjects-grid{grid-template-columns:1fr;}header{flex-direction:column;gap:15px;} .search-container input {width: 80%;} .subject-actions{flex-direction:column;align-items:center;} .subject-search-container input{width:80%;} .video-grid{grid-template-columns:1fr;} .audio-list{grid-template-columns:1fr;}}
+    @media(max-width:768px){.button-group{flex-direction:column;align-items:center;}.btn{width:100%;max-width:350px;}.subjects-grid{grid-template-columns:1fr;}header{flex-direction:column;gap:15px;} .search-container input {width: 80%;} .subject-actions{flex-direction:column;align-items:center;} .subject-search-container input{width:80%;} .video-grid{grid-template-columns:1fr;} .audio-list{grid-template-columns:1fr;} .live-videos-grid{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
@@ -461,6 +532,15 @@
           <i class="fas fa-robot"></i>
           <a href="http://127.0.0.1:5000/branchbot"><span data-translate="chatbot">Chatbot</span></a>
         </button>
+      </div>
+
+      <!-- Live Videos Section -->
+      <div class="live-videos-section">
+        <h2><i class="fas fa-broadcast-tower"></i> <span data-translate="live_videos">Live Recorded Videos</span></h2>
+        <button id="refreshLiveVideos" class="refresh-audio-btn"><i class="fas fa-sync-alt"></i> <span data-translate="refresh_live_videos">Refresh Live Videos</span></button>
+        <div class="live-videos-grid" id="liveVideosGrid">
+          <!-- Live videos will be loaded here -->
+        </div>
       </div>
 
       <!-- Video Gallery -->
@@ -604,6 +684,7 @@
     let currentSubjectId = null;
     let allVideos = [];
     let allAudios = [];
+    let liveVideos = [];
     let currentConvertedText = '';
     const API_BASE = "http://localhost:8080";
 
@@ -611,6 +692,8 @@
     const translations = {
       en: {
         "live_video": "Live Video Stream",
+        "live_videos": "Live Recorded Videos",
+        "refresh_live_videos": "Refresh Live Videos",
         "upload_video": "Upload Video",
         "upload_audio": "Upload Audio",
         "labs": "Labs",
@@ -654,6 +737,8 @@
         "failed_upload": "Upload failed",
         "video_deleted": "Video deleted successfully",
         "audio_deleted": "Audio deleted successfully",
+        "live_video_deleted": "Live video deleted successfully",
+        "no_live_videos": "No live recorded videos available",
         // Subject translations
         "artificial_intelligence": "Artificial Intelligence",
         "ai_desc": "Machine learning, neural networks, and intelligent systems",
@@ -677,8 +762,10 @@
         "cybersecurity_desc": "Protecting systems and networks from digital attacks"
       },
       ta: {
-        // Tamil translations (same as before)
+        // Tamil translations
         "live_video": "நேரடி வீடியோ ஸ்ட்ரீம்",
+        "live_videos": "நேரடி பதிவுசெய்யப்பட்ட வீடியோக்கள்",
+        "refresh_live_videos": "நேரடி வீடியோக்களைப் புதுப்பிக்க",
         "upload_video": "வீடியோ பதிவேற்றம்",
         "upload_audio": "ஆடியோ பதிவேற்றம்",
         "labs": "ஆய்வகங்கள்",
@@ -722,6 +809,8 @@
         "failed_upload": "பதிவேற்றம் தோல்வியடைந்தது",
         "video_deleted": "வீடியோ வெற்றிகரமாக நீக்கப்பட்டது",
         "audio_deleted": "ஆடியோ வெற்றிகரமாக நீக்கப்பட்டது",
+        "live_video_deleted": "நேரடி வீடியோ வெற்றிகரமாக நீக்கப்பட்டது",
+        "no_live_videos": "நேரடி பதிவுசெய்யப்பட்ட வீடியோக்கள் எதுவும் இல்லை",
         // Subject translations
         "artificial_intelligence": "செயற்கை நுண்ணறிவு",
         "ai_desc": "இயந்திர கற்றல், நரம்பியல் நெட்வொர்க்குகள் மற்றும் நுண்ணறிவு அமைப்புகள்",
@@ -745,8 +834,10 @@
         "cybersecurity_desc": "டிஜிட்டல் தாக்குதல்களிலிருந்து அமைப்புகள் மற்றும் நெட்வொர்க்குகளைப் பாதுகாத்தல்"
       },
       hi: {
-        // Hindi translations (same as before)
+        // Hindi translations
         "live_video": "लाइव वीडियो स्ट्रीम",
+        "live_videos": "लाइव रिकॉर्डेड वीडियो",
+        "refresh_live_videos": "लाइव वीडियो ताज़ा करें",
         "upload_video": "वीडियो अपलोड करें",
         "upload_audio": "ऑडियो अपलोड करें",
         "labs": "प्रयोगशालाएं",
@@ -790,6 +881,8 @@
         "failed_upload": "अपलोड विफल",
         "video_deleted": "वीडियो सफलतापूर्वक हटाया गया",
         "audio_deleted": "ऑडियो सफलतापूर्वक हटाया गया",
+        "live_video_deleted": "लाइव वीडियो सफलतापूर्वक हटाया गया",
+        "no_live_videos": "कोई लाइव रिकॉर्डेड वीडियो उपलब्ध नहीं है",
         // Subject translations
         "artificial_intelligence": "कृत्रिम बुद्धिमत्ता",
         "ai_desc": "मशीन लर्निंग, न्यूरल नेटवर्क और इंटेलिजेंट सिस्टम",
@@ -813,8 +906,10 @@
         "cybersecurity_desc": "डिजिटल हमलों से सिस्टम और नेटवर्क की सुरक्षा"
       },
       rj: {
-        // Rajasthani translations (same as before)
+        // Rajasthani translations
         "live_video": "लाइव वीडियो स्ट्रीम",
+        "live_videos": "लाइव रिकॉर्डेड वीडियो",
+        "refresh_live_videos": "लाइव वीडियो ताज़ा करो",
         "upload_video": "वीडियो अपलोड करो",
         "upload_audio": "ऑडियो अपलोड करो",
         "labs": "प्रयोगशालाएं",
@@ -858,6 +953,8 @@
         "failed_upload": "अपलोड विफल",
         "video_deleted": "वीडियो सफलतापूर्वक मिटाया गया",
         "audio_deleted": "ऑडियो सफलतापूर्वक मिटाया गया",
+        "live_video_deleted": "लाइव वीडियो सफलतापूर्वक मिटाया गया",
+        "no_live_videos": "कोई लाइव रिकॉर्डेड वीडियो उपलब्ध नहीं है",
         // Subject translations
         "artificial_intelligence": "कृत्रिम बुद्धिमत्ता",
         "ai_desc": "मशीन लर्निंग, न्यूरल नेटवर्क और इंटेलिजेंट सिस्टम",
@@ -951,6 +1048,7 @@
         }
         listVideos();
         listAudios();
+        listLiveVideos();
       }
     }
 
@@ -975,13 +1073,85 @@
           document.getElementById("subjectTitle").textContent = translations[currentLanguage][subject.nameKey];
           listVideos();
           listAudios();
+          listLiveVideos();
         });
         
         subjectsGrid.appendChild(card);
       });
     }
 
-    
+    // ================= LIVE VIDEO FUNCTIONS =================
+    async function listLiveVideos() {
+      try {
+        // Since we don't have a specific endpoint for live videos, we'll use the record endpoint structure
+        // We'll assume the videos are accessible via the API_BASE + /api/videos/{filename}
+        // For now, we'll create a mock implementation since the backend endpoint doesn't exist yet
+        
+        // This is a placeholder - you'll need to implement the actual endpoint in your backend
+        const res = await fetch(`${API_BASE}/live-videos`);
+        
+        if (!res.ok) {
+          // If endpoint doesn't exist, show a message
+          const container = document.getElementById("liveVideosGrid");
+          container.innerHTML = `<p style="text-align: center; padding: 20px;">${translations[currentLanguage].no_live_videos}</p>`;
+          return;
+        }
+        
+        liveVideos = await res.json();
+        const container = document.getElementById("liveVideosGrid");
+        container.innerHTML = "";
+        
+        if (!liveVideos.length) {
+          container.innerHTML = `<p style="text-align: center; padding: 20px;">${translations[currentLanguage].no_live_videos}</p>`;
+          return;
+        }
+        
+        liveVideos.forEach(video => {
+          const div = document.createElement("div");
+          div.className = "live-video-card";
+          div.innerHTML = `
+            <div class="live-badge">LIVE</div>
+            <div class="video-player-container">
+              <video class="video-player" src="${video.url}" controls preload="metadata"></video>
+            </div>
+            <div class="video-info">
+              <h3 class="video-title">${video.title || video.filename}</h3>
+              <p class="video-description">${video.description || "Live recorded video"}</p>
+              <div class="video-actions">
+                <button class="video-delete-btn" onclick="deleteLiveVideo('${video.filename}')">
+                  <i class="fas fa-trash"></i> ${translations[currentLanguage].delete}
+                </button>
+              </div>
+            </div>
+          `;
+          
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error("Error fetching live videos:", err);
+        const container = document.getElementById("liveVideosGrid");
+        container.innerHTML = `<p style="text-align: center; padding: 20px;">${translations[currentLanguage].no_live_videos}</p>`;
+      }
+    }
+
+    async function deleteLiveVideo(filename) {
+      if (!confirm("Are you sure you want to delete this live video?")) return;
+      
+      try {
+        const res = await fetch(`${API_BASE}/delete-live-video`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename, bucket: "livevideo" })
+        });
+        
+        if (!res.ok) throw new Error(await res.text());
+        
+        showNotification(translations[currentLanguage].live_video_deleted);
+        listLiveVideos();
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    }
 
     // ================= VIDEO FUNCTIONS =================
     async function uploadVideo(e) {
@@ -1077,8 +1247,6 @@
         showNotification(err.message, "error");
       }
     }
-
-
 
     // ================= AUDIO FUNCTIONS =================
     async function uploadAudio(e) {
@@ -1332,8 +1500,9 @@
       document.getElementById("uploadForm").addEventListener("submit", uploadVideo);
       document.getElementById("audioUploadForm").addEventListener("submit", uploadAudio);
       
-      // Set up refresh button
+      // Set up refresh buttons
       document.getElementById("refreshAudioList").addEventListener("click", listAudios);
+      document.getElementById("refreshLiveVideos").addEventListener("click", listLiveVideos);
       
       // Set up download text button
       document.getElementById("downloadTextBtn").addEventListener("click", () => {

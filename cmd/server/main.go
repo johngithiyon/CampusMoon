@@ -70,6 +70,8 @@ func main() {
         handlers.Handlewebrtc(w, r, db)
     })
     r.HandleFunc("/record", handlers.RecorduploadHandler).Methods("POST", "OPTIONS")
+    // Add this route to main.go
+r.HandleFunc("/live-videos", handlers.LiveVideosHandler).Methods("GET")
     r.HandleFunc("/chat/history", func(w http.ResponseWriter, r *http.Request) {
         handlers.ChatHistory(w, r, db)
     })

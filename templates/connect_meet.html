@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Campus Moon - Video Meeting</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+    body {background:linear-gradient(-45deg,#6a11cb,#2575fc,#0099cc,#4facfe);background-size:400% 400%;animation:gradientBG 15s ease infinite;min-height:100vh;color:#fff;padding:20px;display:flex;align-items:center;justify-content:center;}
+    @keyframes gradientBG {0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+    
+    .container{max-width:1200px;margin:0 auto;width:100%;}
+    
+    .meeting-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .logo {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    
+    .logo i {
+      margin-right: 15px;
+      color: #4facfe;
+    }
+    
+    .meeting-title {
+      font-size: 2rem;
+      margin-bottom: 40px;
+      color: white;
+    }
+    
+    .meeting-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .meeting-btn {
+      padding: 18px 30px;
+      font-size: 1.2rem;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      font-weight: 600;
+      text-decoration: none;
+      color: white;
+    }
+    
+    .create-btn {
+      background: linear-gradient(45deg, #4CAF50, #45a049);
+    }
+    
+    .create-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(76, 175, 80, 0.4);
+    }
+    
+    .join-btn {
+      background: linear-gradient(45deg, #2196F3, #0b7dda);
+    }
+    
+    .join-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(33, 150, 243, 0.4);
+    }
+    
+    .join-form {
+      display: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 25px;
+      margin-top: 20px;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .join-form.active {
+      display: block;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: white;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 15px 20px;
+      border-radius: 10px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    
+    .form-group input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .form-group input:focus {
+      border-color: rgba(33, 150, 243, 0.5);
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 25px;
+    }
+    
+    .btn-submit {
+      background: linear-gradient(45deg, #2196F3, #0b7dda);
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+    }
+    
+    .btn-cancel {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    
+    .btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .room-info {
+      display: none;
+      background: rgba(76, 175, 80, 0.2);
+      border: 2px solid rgba(76, 175, 80, 0.5);
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 20px;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .room-info.active {
+      display: block;
+    }
+    
+    .room-id {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #4CAF50;
+      word-break: break-all;
+    }
+    
+    .room-instructions {
+      margin-bottom: 20px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .copy-btn {
+      background: linear-gradient(45deg, #4CAF50, #45a049);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      margin-right: 10px;
+    }
+    
+    .copy-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    .join-room-btn {
+      background: linear-gradient(45deg, #2196F3, #0b7dda);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .join-room-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+    }
+    
+    .error-message {
+      color: #ff6b6b;
+      margin-top: 10px;
+      font-weight: 500;
+      display: none;
+    }
+    
+    .error-message.show {
+      display: block;
+    }
+    
+    .success-message {
+      color: #4CAF50;
+      margin-top: 10px;
+      font-weight: 500;
+      display: none;
+    }
+    
+    .success-message.show {
+      display: block;
+    }
+    
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 50px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    
+    @media(max-width:768px) {
+      .meeting-container {
+        padding: 30px 20px;
+        margin: 20px;
+      }
+      
+      .meeting-title {
+        font-size: 1.8rem;
+      }
+      
+      .meeting-btn {
+        font-size: 1.1rem;
+        padding: 15px 25px;
+      }
+      
+      .form-actions {
+        flex-direction: column;
+      }
+      
+      .copy-btn, .join-room-btn {
+        width: 100%;
+        margin-bottom: 10px;
+        margin-right: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-btn">
+    <i class="fas fa-arrow-left"></i> Back to Home
+  </a>
+  
+  <div class="container">
+    <div class="meeting-container">
+      <div class="logo">
+        <i class="fas fa-moon"></i> Campus Moon
+      </div>
+      
+      <h1 class="meeting-title">Video Meeting</h1>
+      
+      <div class="meeting-buttons">
+        <button class="meeting-btn create-btn" id="createMeetBtn">
+          <i class="fas fa-plus-circle"></i> Create Meeting
+        </button>
+        
+        <button class="meeting-btn join-btn" id="showJoinFormBtn">
+          <i class="fas fa-sign-in-alt"></i> Join Meeting
+        </button>
+      </div>
+      
+      <!-- Join Form -->
+      <div class="join-form" id="joinForm">
+        <div class="form-group">
+          <label for="roomId">Enter Room ID</label>
+          <input type="text" id="roomId" placeholder="Enter the meeting room ID" maxlength="20">
+          <div class="error-message" id="joinError">Please enter a valid room ID</div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn-submit" id="joinMeetBtn">Join Meeting</button>
+          <button type="button" class="btn-cancel" id="cancelJoinBtn">Cancel</button>
+        </div>
+      </div>
+      
+      <!-- Room Info (shown after creating a meeting) -->
+      <div class="room-info" id="roomInfo">
+        <div class="room-id" id="generatedRoomId"></div>
+        <div class="room-instructions">
+          Share this Room ID with participants you want to invite to the meeting.
+        </div>
+        <button class="copy-btn" id="copyRoomIdBtn">
+          <i class="fas fa-copy"></i> Copy Room ID
+        </button>
+        <a href="#" class="join-room-btn" id="proceedToMeetBtn">
+          <i class="fas fa-video"></i> Join Meeting
+        </a>
+        <div class="success-message" id="copySuccess">Room ID copied to clipboard!</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Generate a random room ID
+    function generateRoomId() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < 10; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+    
+    // Copy text to clipboard
+    async function copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (err) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          return true;
+        } catch (err) {
+          console.error('Failed to copy text: ', err);
+          return false;
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
+    }
+    
+    // Show/hide elements
+    function showElement(elementId) {
+      document.getElementById(elementId).classList.add('active');
+    }
+    
+    function hideElement(elementId) {
+      document.getElementById(elementId).classList.remove('active');
+    }
+    
+    function showMessage(messageId, show = true) {
+      const element = document.getElementById(messageId);
+      if (show) {
+        element.classList.add('show');
+      } else {
+        element.classList.remove('show');
+      }
+    }
+    
+    // DOM elements
+    const createMeetBtn = document.getElementById('createMeetBtn');
+    const showJoinFormBtn = document.getElementById('showJoinFormBtn');
+    const joinForm = document.getElementById('joinForm');
+    const joinMeetBtn = document.getElementById('joinMeetBtn');
+    const cancelJoinBtn = document.getElementById('cancelJoinBtn');
+    const roomIdInput = document.getElementById('roomId');
+    const roomInfo = document.getElementById('roomInfo');
+    const generatedRoomId = document.getElementById('generatedRoomId');
+    const copyRoomIdBtn = document.getElementById('copyRoomIdBtn');
+    const proceedToMeetBtn = document.getElementById('proceedToMeetBtn');
+    const joinError = document.getElementById('joinError');
+    const copySuccess = document.getElementById('copySuccess');
+    
+    let currentRoomId = '';
+    
+    // Create meeting button click
+    createMeetBtn.addEventListener('click', () => {
+      // Generate a new room ID
+      currentRoomId = generateRoomId();
+      
+      // Display the room info
+      generatedRoomId.textContent = `Room ID: ${currentRoomId}`;
+      showElement('roomInfo');
+      
+      // Hide join form if it's visible
+      hideElement('joinForm');
+      
+      // Scroll to room info
+      roomInfo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    
+    // Show join form button click
+    showJoinFormBtn.addEventListener('click', () => {
+      showElement('joinForm');
+      hideElement('roomInfo');
+      roomIdInput.focus();
+    });
+    
+    // Cancel join button click
+    cancelJoinBtn.addEventListener('click', () => {
+      hideElement('joinForm');
+      roomIdInput.value = '';
+      showMessage('joinError', false);
+    });
+    
+    // Join meeting button click
+    joinMeetBtn.addEventListener('click', () => {
+      const roomId = roomIdInput.value.trim();
+      
+      // Validate room ID
+      if (!roomId || roomId.length < 6) {
+        showMessage('joinError');
+        return;
+      }
+      
+      // Hide error message
+      showMessage('joinError', false);
+      
+      // Set current room ID and proceed
+      currentRoomId = roomId;
+      proceedToMeet();
+    });
+    
+    // Copy room ID button click
+    copyRoomIdBtn.addEventListener('click', async () => {
+      const success = await copyToClipboard(currentRoomId);
+      if (success) {
+        showMessage('copySuccess');
+        setTimeout(() => {
+          showMessage('copySuccess', false);
+        }, 3000);
+      }
+    });
+    
+    // Proceed to meeting button click
+    proceedToMeetBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      proceedToMeet();
+    });
+    
+    // Function to proceed to the meeting page
+    function proceedToMeet() {
+      if (!currentRoomId) {
+        alert('No room ID available');
+        return;
+      }
+      
+      // Redirect to meet.html with room ID as a parameter
+      window.location.href = `http://localhost:8080/meet?roomId=${encodeURIComponent(currentRoomId)}`;
+    }
+    
+    // Handle Enter key in room ID input
+    roomIdInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        joinMeetBtn.click();
+      }
+    });
+    
+    // Hide messages when user starts typing
+    roomIdInput.addEventListener('input', () => {
+      showMessage('joinError', false);
+    });
+  </script>
+</body>
+</html>

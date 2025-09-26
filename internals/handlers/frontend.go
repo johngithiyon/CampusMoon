@@ -42,3 +42,7 @@ func Cs(w http.ResponseWriter, r *http.Request) {
 func Serveelabs(w http.ResponseWriter,r *http.Request) {
 	http.ServeFile(w,r,"templates/e.html")
 }
+
+func ServeConnect(w http.ResponseWriter, r *http.Request) {
+     http.ServeFile(w, r, "templates/connect_meet.html")
+}

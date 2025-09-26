@@ -489,9 +489,9 @@
 
       <div class="button-group">
         <button class="btn btn-primary">
-          <a href="http://localhost:8080/meet" style="color:white;text-decoration:none;"><i class="fas fa-video"></i> <span data-translate="live_video">Live Video Stream</span></a>
+          <a href="http://localhost:8080/connect" style="color:white;text-decoration:none;"><i class="fas fa-video"></i> <span data-translate="live_video">Live Video Stream</span></a>
         </button>
-        <button class="btn btn-labs" id="labsBtn">
+        <button class="btn-labs" id="labsBtn">
           <a href="http://localhost:8080/labs" style="color:white;text-decoration:none;"><i class="fas fa-flask"></i> <span data-translate="labs">Labs</span></a>
         </button>
       </div>
@@ -1501,7 +1501,6 @@
       
       // Set up refresh buttons
       document.getElementById("refreshAudioList").addEventListener("click", listAudios);
-      document.getElementById("refreshLiveVideos").addEventListener("click", listLiveVideos);
       
       // Set up download text button
       document.getElementById("downloadTextBtn").addEventListener("click", () => {

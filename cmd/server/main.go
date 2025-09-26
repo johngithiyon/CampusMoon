@@ -126,6 +126,10 @@ r.HandleFunc("/live-videos", handlers.LiveVideosHandler).Methods("GET")
         r.HandleFunc("/add-comment", handlers.AddCommentHandler).Methods("POST", "OPTIONS")
         r.HandleFunc("/image-comments", handlers.GetCommentsHandler).Methods("GET")
         r.HandleFunc("/trend", handlers.ServeTrend)
+
+        //connect meet 
+
+        r.HandleFunc("/connect", handlers.ServeConnect)
     // Start server
     port := getEnv("PORT", "8080")
     fmt.Printf("🚀 Server running at http://localhost:%s\n", port)

@@ -525,6 +525,7 @@
     let currentLang = "en";
     let lastBotMessage = "";
     let isRecording = false;
+    let recognition = null;
     let mediaRecorder = null;
     let audioChunks = [];
     
@@ -588,6 +589,75 @@
         }
     };
 
+    // Initialize speech recognition
+    function initSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            // Set language based on current selection
+            recognition.lang = currentLang === 'en' ? 'en-US' : 
+                            currentLang === 'hi' ? 'hi-IN' : 
+                            currentLang === 'ta' ? 'ta-IN' : 'hi-IN';
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById("user_input").value = transcript;
+                sendMessage(); // Automatically send the message after recognition
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error', event.error);
+                addMessage("bot", "Error in speech recognition: " + event.error);
+                resetRecordingButton();
+            };
+            
+            recognition.onend = function() {
+                resetRecordingButton();
+            };
+        } else {
+            console.error("Speech recognition not supported in this browser");
+            addMessage("bot", "Speech recognition is not supported in your browser. Please use Chrome or Edge.");
+        }
+    }
+
+    // Reset recording button state
+    function resetRecordingButton() {
+        isRecording = false;
+        const recordBtn = document.getElementById("recordBtn");
+        recordBtn.classList.remove("recording");
+        recordBtn.innerHTML = `<span>🎤</span> ${currentLang === 'en' ? 'Voice Input' : currentLang === 'hi' ? 'वॉइस इनपुट' : currentLang === 'ta' ? 'குரல் உள்ளீடு' : 'आवाज इनपुट'}`;
+    }
+
+    // Send audio to server for speech recognition (fallback)
+    function sendAudioToServer(audioBlob) {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.wav');
+        formData.append('lang', currentLang);  // Send the current language code
+        
+        fetch('/speech_to_text', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                addMessage("bot", "Error processing audio: " + data.error);
+            } else {
+                document.getElementById("user_input").value = data.text;
+                sendMessage();
+            }
+            resetRecordingButton();
+        })
+        .catch(error => {
+            console.error('Error sending audio to server:', error);
+            addMessage("bot", "Error processing your voice input. Please try again.");
+            resetRecordingButton();
+        });
+    }
+
     // Function to load UI texts
     function loadUI(lang = "en") {
         const texts = languageContent[lang] || languageContent.en;
@@ -620,6 +690,13 @@
     function setLanguage(lang) {
         currentLang = lang;
         loadUI(lang);
+        
+        // Update speech recognition language if available
+        if (recognition) {
+            recognition.lang = lang === 'en' ? 'en-US' : 
+                            lang === 'hi' ? 'hi-IN' : 
+                            lang === 'ta' ? 'ta-IN' : 'hi-IN';
+        }
         
         // Notify backend of language change
         fetch('/set_language', {
@@ -741,52 +818,72 @@
     }
 
     // Toggle voice recording
-    async function toggleRecording() {
+    function toggleRecording() {
+        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            // Use server-side recognition as fallback
+            if (!isRecording) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        audioChunks = [];
+                        
+                        mediaRecorder.ondataavailable = event => {
+                            audioChunks.push(event.data);
+                        };
+                        
+                        mediaRecorder.onstop = () => {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                            sendAudioToServer(audioBlob);
+                            stream.getTracks().forEach(track => track.stop());
+                        };
+                        
+                        mediaRecorder.start();
+                        isRecording = true;
+                        const recordBtn = document.getElementById("recordBtn");
+                        recordBtn.classList.add("recording");
+                        recordBtn.innerHTML = `<span>⏹</span> ${currentLang === 'en' ? 'Stop Recording' : currentLang === 'hi' ? 'रिकॉर्डिंग रोकें' : currentLang === 'ta' ? 'பதிவை நிறுத்து' : 'रिकॉर्डिंग रोको'}`;
+                    })
+                    .catch(err => {
+                        console.error('Error accessing microphone:', err);
+                        addMessage("bot", "Microphone access denied. Please allow microphone access to use voice input.");
+                    });
+            } else {
+                if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                }
+                resetRecordingButton();
+            }
+            return;
+        }
+        
+        // Client-side speech recognition
+        if (!recognition) {
+            initSpeechRecognition();
+            if (!recognition) return;
+        }
+        
         const recordBtn = document.getElementById("recordBtn");
         if (!isRecording) {
             try {
-                // For demo purposes, we'll simulate recording
+                recognition.lang = currentLang === 'en' ? 'en-US' : 
+                                currentLang === 'hi' ? 'hi-IN' : 
+                                currentLang === 'ta' ? 'ta-IN' : 'hi-IN';
+                
                 isRecording = true;
                 recordBtn.classList.add("recording");
-                recordBtn.innerHTML = `<span>⏹️</span> ${currentLang === 'en' ? 'Stop Recording' : currentLang === 'hi' ? 'रिकॉर्डिंग रोकें' : currentLang === 'ta' ? 'பதிவை நிறுத்து' : 'रिकॉर्डिंग रोको'}`;
+                recordBtn.innerHTML = `<span>⏹</span> ${currentLang === 'en' ? 'Stop Recording' : currentLang === 'hi' ? 'रिकॉर्डिंग रोकें' : currentLang === 'ta' ? 'பதிவை நிறுத்து' : 'रिकॉर्डिंग रोको'}`;
                 
-                // Simulate recording for 3 seconds
-                setTimeout(() => {
-                    if (isRecording) {
-                        isRecording = false;
-                        recordBtn.classList.remove("recording");
-                        recordBtn.innerHTML = `<span>🎤</span> ${currentLang === 'en' ? 'Voice Input' : currentLang === 'hi' ? 'वॉइस इनपुट' : currentLang === 'ta' ? 'குரல் உள்ளீடு' : 'आवाज इनपुट'}`;
-                        
-                        // Add a simulated voice message
-                        const subject = document.getElementById("subject").value;
-                        let message = "";
-                        if (currentLang === "en") {
-                            message = "Tell me about " + subject;
-                        } else if (currentLang === "hi") {
-                            message = subject + " के बारे में बताएं";
-                        } else if (currentLang === "ta") {
-                            message = subject + " பற்றி சொல்லுங்கள்";
-                        } else if (currentLang === "rj") {
-                            message = subject + " के बारे में बतावो";
-                        }
-                        
-                        addMessage("user", message);
-                        // Call sendMessage directly
-                        sendMessage();
-                    }
-                }, 3000);
+                recognition.start();
             } catch (error) {
-                console.error("Error accessing microphone:", error);
-                addMessage("bot", "Microphone access denied. Please allow microphone access to use voice input.");
-                isRecording = false;
-                recordBtn.classList.remove("recording");
-                recordBtn.innerHTML = `<span>🎤</span> ${currentLang === 'en' ? 'Voice Input' : currentLang === 'hi' ? 'वॉइस इनपुट' : currentLang === 'ta' ? 'குரல் உள்ளீடு' : 'आवाज इनपुट'}`;
+                console.error("Error starting speech recognition:", error);
+                addMessage("bot", "Error starting speech recognition: " + error.message);
+                resetRecordingButton();
             }
         } else {
-            // Stop recording
             isRecording = false;
             recordBtn.classList.remove("recording");
             recordBtn.innerHTML = `<span>🎤</span> ${currentLang === 'en' ? 'Voice Input' : currentLang === 'hi' ? 'वॉइस इनपुट' : currentLang === 'ta' ? 'குரல் உள்ளீடு' : 'आवाज इनपुट'}`;
+            recognition.stop();
         }
     }
 
@@ -809,6 +906,9 @@
         loadUI();
         addMessage("bot", languageContent.en.greeting);
         lastBotMessage = languageContent.en.greeting;
+        
+        // Initialize speech recognition
+        initSpeechRecognition();
     });
   </script>
 </body>

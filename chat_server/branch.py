@@ -2,14 +2,22 @@ from flask import Flask, render_template, request, jsonify, send_file
 from gtts import gTTS
 import os
 import difflib
-
-app = Flask(__name__)
+import speech_recognition as sr
 
 
 # Set up Flask with custom template directory
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 app = Flask(__name__, template_folder=TEMPLATES_DIR)
+
+
+# Language mapping for speech recognition
+LANG_MAPPING = {
+    'en': 'en-US',
+    'hi': 'hi-IN',
+    'ta': 'ta-IN',
+    'rj': 'hi-IN'  # Fallback for Rajasthani
+}
 
 # ------------------- DATA -------------------
 
@@ -192,6 +200,56 @@ def set_language():
         current_lang = lang
     return jsonify({"status": "ok", "lang": current_lang, "greeting": greetings[current_lang]})
 
+@app.route("/speech_to_text", methods=["POST"])
+def speech_to_text():
+    """Convert speech to text using server-side recognition"""
+    if 'audio' not in request.files:
+        return jsonify({"error": "No audio file provided"}), 400
+    
+    audio_file = request.files['audio']
+    if audio_file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    
+    # Get the language from the form data
+    lang_code = request.form.get('lang', 'en')
+    # Map to the speech recognition language code
+    speech_lang = LANG_MAPPING.get(lang_code, 'en-US')
+    
+    # Save the audio file temporarily
+    temp_path = os.path.join("temp", "temp_audio.wav")
+    os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+    audio_file.save(temp_path)
+    
+    try:
+        # Initialize recognizer
+        recognizer = sr.Recognizer()
+        
+        # Load the audio file
+        with sr.AudioFile(temp_path) as source:
+            audio_data = recognizer.record(source)
+        
+        # Recognize speech using Google Web Speech API
+        text = recognizer.recognize_google(audio_data, language=speech_lang)
+        
+        # Clean up the temporary file
+        os.remove(temp_path)
+        
+        return jsonify({"text": text})
+    except sr.UnknownValueError:
+        os.remove(temp_path)
+        return jsonify({"error": "Could not understand audio"}), 400
+    except sr.RequestError as e:
+        os.remove(temp_path)
+        return jsonify({"error": f"Error with speech recognition service: {e}"}), 500
+    except Exception as e:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
 # ------------------- MAIN -------------------
 if __name__ == "__main__":
+    # Create temp directory if it doesn't exist
+    if not os.path.exists("temp"):
+        os.makedirs("temp")
+    
     app.run(debug=True)

@@ -10,4 +10,8 @@ run:
 	SMTP_PASSWORD=pgfsslmluqamhqvn \
 	SMTP_FROM=johngithiyon4@gmail.com \
 	PORT=8080 \
-	go run $(MAIN)
+    go run $(MAIN)
+    #nohup go run $(MAIN)>CampusMoon.log 2>&1 & 
+
+# stop:
+# 	lsof -i :8080

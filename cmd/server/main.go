@@ -130,6 +130,10 @@ r.HandleFunc("/live-videos", handlers.LiveVideosHandler).Methods("GET")
         //connect meet 
 
         r.HandleFunc("/connect", handlers.ServeConnect)
+
+        // notes convertor for livevideos
+        r.HandleFunc("/convert-video-to-notes", handlers.ConvertVideoToNotesHandler).Methods("POST", "OPTIONS")
+
     // Start server
     port := getEnv("PORT", "8080")
     fmt.Printf("🚀 Server running at http://localhost:%s\n", port)

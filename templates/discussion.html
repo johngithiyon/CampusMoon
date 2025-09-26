@@ -123,9 +123,13 @@ function connectWS(){
     try{
       const msg=JSON.parse(evt.data);
       if(!msg.timestamp) msg.timestamp=new Date().toISOString();
-      // Display all messages, including sender
-      const el=createMessageElement(msg); messagesEl.appendChild(el);
-      messagesEl.scrollTop=messagesEl.scrollHeight;
+      
+      // Only show if not from self
+      if(msg.sender !== localUser) {
+        const el=createMessageElement(msg); 
+        messagesEl.appendChild(el);
+        messagesEl.scrollTop=messagesEl.scrollHeight;
+      }
     }catch(e){ console.warn(e);}
   };
   ws.onclose=()=>{ isConnected=false; setStatus('Disconnected','rgba(128,0,0,0.12)'); setTimeout(connectWS,1500);}
@@ -135,7 +139,14 @@ function connectWS(){
 function sendText(){
   const txt=textInput.value.trim(); if(!txt) return;
   const payload={type:'text',content:txt,reply_to_id:replyToId||null,timestamp:new Date().toISOString(),sender:localUser};
-  const el=createMessageElement(payload); messagesEl.appendChild(el); messagesEl.scrollTop=messagesEl.scrollHeight; textInput.value=''; cancelReply();
+  
+  // Show immediately
+  const el=createMessageElement(payload); 
+  messagesEl.appendChild(el); 
+  messagesEl.scrollTop=messagesEl.scrollHeight; 
+  textInput.value=''; 
+  cancelReply();
+  
   if(ws && ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify(payload));
 }
 
@@ -150,7 +161,10 @@ async function startRecording(){
       const localMsg={type:'audio',content:URL.createObjectURL(blob),sender:localUser,timestamp:new Date().toISOString()};
       messagesEl.appendChild(createMessageElement(localMsg));
       messagesEl.scrollTop=messagesEl.scrollHeight;
-      if(ws && ws.readyState===WebSocket.OPEN){ ws.send(JSON.stringify({type:'audio_meta',reply_to_id:replyToId||null,timestamp:new Date().toISOString(),sender:localUser})); ws.send(blob); }
+      if(ws && ws.readyState===WebSocket.OPEN){ 
+        ws.send(JSON.stringify({type:'audio_meta',reply_to_id:replyToId||null,timestamp:new Date().toISOString(),sender:localUser})); 
+        ws.send(blob); 
+      }
       stream.getTracks().forEach(t=>t.stop()); recording=false; updateRecordingUI(); cancelReply();
     };
     mediaRecorder.start(); recording=true; updateRecordingUI();

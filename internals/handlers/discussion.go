@@ -145,9 +145,11 @@ func HandleDiscussionWS(w http.ResponseWriter, r *http.Request) {
 func broadcaster() {
 	for msg := range broadcastChan {
 		clientsLock.Lock()
-		for client := range connectedClients {
+		for client, username := range connectedClients {
+			if username == msg.Sender {
+				continue // don’t send back to sender
+			}
 			if err := client.WriteJSON(msg); err != nil {
-				// on error, close and remove client
 				log.Println("ws write error, removing client:", err)
 				client.Close()
 				delete(connectedClients, client)
@@ -156,7 +158,6 @@ func broadcaster() {
 		clientsLock.Unlock()
 	}
 }
-
 // saveMessageToDB persists a ChatMessage into chat_history table.
 // If DB not configured, it's a no-op (useful for dev).
 func saveMessageToDB(m ChatMessage) error {
